@@ -20,11 +20,11 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '$g6e6mar#04g1dt(!sme&gknk7s$+e66g855=ul@08x)2l=&aun_mas-seguro!'
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-dev-key-local')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # DEBUG =False
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
 APPEND_SLASH = True
 # SECURE_SSL_REDIRECT=True
@@ -32,7 +32,7 @@ SESSION_COOKIE_AGE=(60*120)
 SESSION_SAVE_EVERY_REQUEST=True
 CELERY_BROKER_URL = 'amqp://localhost'
 CELERY_RESULT_BACKEND = 'amqp'
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '*').split(',')
 
 
 # Application definition
@@ -103,15 +103,14 @@ WSGI_APPLICATION = 'nom035.wsgi.application'
 #     }
 # }
 
+import dj_database_url
+import os
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'nom035',
-        'USER': 'superuser',
-        'PASSWORD': 'Kr9k9t0@',
-        'HOST': 'localhost',
-        'PORT': '',
-    }
+    'default': dj_database_url.config(
+        default=os.environ.get('DATABASE_URL'),
+        conn_max_age=600
+    )
 }
 # Password validation
 # https://docs.djangoproject.com/en/3.0/ref/settings/#auth-password-validators
