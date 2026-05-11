@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<!--[if lt IE 7 ]><html class="ie ie6" lang="en"> <![endif]-->
+<!--[if IE 7 ]><html class="ie ie7" lang="en"> <![endif]-->
+<!--[if IE 8 ]><html class="ie ie8" lang="en"> <![endif]-->
+<!--[if (gte IE 9)|!(IE)]><!--><html lang="en"> <!--<![endif]-->
+<head>
+
+<meta charset="utf-8">
+<title>IHES - {{title}}</title>
+<meta name="author" content="IHES">
+<style>
+  <!--
+   /* Font Definitions */
+   @font-face
+    {font-family:Helvetica;
+    panose-1:2 11 6 4 2 2 2 2 2 4;
+    mso-font-charset:0;
+    mso-generic-font-family:swiss;
+    mso-font-pitch:variable;
+    mso-font-signature:-536858881 -1073711013 9 0 511 0;}
+  @font-face
+    {font-family:"Cambria Math";
+    panose-1:2 4 5 3 5 4 6 3 2 4;
+    mso-font-charset:0;
+    mso-generic-font-family:roman;
+    mso-font-pitch:variable;
+    mso-font-signature:-536869121 1107305727 33554432 0 415 0;}
+  @font-face
+    {font-family:Calibri;
+    panose-1:2 15 5 2 2 2 4 3 2 4;
+    mso-font-charset:0;
+    mso-generic-font-family:swiss;
+    mso-font-pitch:variable;
+    mso-font-signature:-536858881 -1073732485 9 0 511 0;}
+   /* Style Definitions */
+   p.MsoNormal, li.MsoNormal, div.MsoNormal
+    {mso-style-unhide:no;
+    mso-style-qformat:yes;
+    mso-style-parent:"";
+    margin-top:0cm;
+    margin-right:0cm;
+    margin-bottom:8.0pt;
+    margin-left:0cm;
+    line-height:107%;
+    mso-pagination:widow-orphan;
+    font-size:11.0pt;
+    font-family:"Calibri",sans-serif;
+    mso-ascii-font-family:Calibri;
+    mso-ascii-theme-font:minor-latin;
+    mso-fareast-font-family:Calibri;
+    mso-fareast-theme-font:minor-latin;
+    mso-hansi-font-family:Calibri;
+    mso-hansi-theme-font:minor-latin;
+    mso-bidi-font-family:"Times New Roman";
+    mso-bidi-theme-font:minor-bidi;
+    mso-fareast-language:EN-US;}
+  h1
+    {mso-style-priority:9;
+    mso-style-unhide:no;
+    mso-style-qformat:yes;
+    mso-style-link:"T�tulo 1 Car";
+    mso-margin-top-alt:auto;
+    margin-right:0cm;
+    mso-margin-bottom-alt:auto;
+    margin-left:0cm;
+    mso-pagination:widow-orphan;
+    mso-outline-level:1;
+    font-size:24.0pt;
+    font-family:"Times New Roman",serif;
+    mso-fareast-font-family:"Times New Roman";}
+  h2
+    {mso-style-priority:9;
+    mso-style-unhide:no;
+    mso-style-qformat:yes;
+    mso-style-link:"T�tulo 2 Car";
+    mso-margin-top-alt:auto;
+    margin-right:0cm;
+    mso-margin-bottom-alt:auto;
+    margin-left:0cm;
+    mso-pagination:widow-orphan;
+    mso-outline-level:2;
+    font-size:18.0pt;
+    font-family:"Times New Roman",serif;
+    mso-fareast-font-family:"Times New Roman";}
+  h3
+    {mso-style-priority:9;
+    mso-style-unhide:no;
+    mso-style-qformat:yes;
+    mso-style-link:"T�tulo 3 Car";
+    mso-margin-top-alt:auto;
+    margin-right:0cm;
+    mso-margin-bottom-alt:auto;
+    margin-left:0cm;
+    mso-pagination:widow-orphan;
+    mso-outline-level:3;
+    font-size:13.5pt;
+    font-family:"Times New Roman",serif;
+    mso-fareast-font-family:"Times New Roman";}
+  a:link, span.MsoHyperlink
+    {mso-style-noshow:yes;
+    mso-style-priority:99;
+    color:blue;
+    text-decoration:underline;
+    text-underline:single;}
+  a:visited, span.MsoHyperlinkFollowed
+    {mso-style-noshow:yes;
+    mso-style-priority:99;
+    color:#954F72;
+    mso-themecolor:followedhyperlink;
+    text-decoration:underline;
+    text-underline:single;}
+  span.Ttulo1Car
+    {mso-style-name:"T�tulo 1 Car";
+    mso-style-priority:9;
+    mso-style-unhide:no;
+    mso-style-locked:yes;
+    mso-style-link:"T�tulo 1";
+    mso-ansi-font-size:24.0pt;
+    mso-bidi-font-size:24.0pt;
+    font-family:"Times New Roman",serif;
+    mso-ascii-font-family:"Times New Roman";
+    mso-fareast-font-family:"Times New Roman";
+    mso-hansi-font-family:"Times New Roman";
+    mso-bidi-font-family:"Times New Roman";
+    mso-font-kerning:18.0pt;
+    mso-fareast-language:ES-MX;
+    font-weight:bold;}
+  span.Ttulo2Car
+    {mso-style-name:"T�tulo 2 Car";
+    mso-style-priority:9;
+    mso-style-unhide:no;
+    mso-style-locked:yes;
+    mso-style-link:"T�tulo 2";
+    mso-ansi-font-size:18.0pt;
+    mso-bidi-font-size:18.0pt;
+    font-family:"Times New Roman",serif;
+    mso-ascii-font-family:"Times New Roman";
+    mso-fareast-font-family:"Times New Roman";
+    mso-hansi-font-family:"Times New Roman";
+    mso-bidi-font-family:"Times New Roman";
+    mso-fareast-language:ES-MX;
+    font-weight:bold;}
+  span.Ttulo3Car
+    {mso-style-name:"T�tulo 3 Car";
+    mso-style-priority:9;
+    mso-style-unhide:no;
+    mso-style-locked:yes;
+    mso-style-link:"T�tulo 3";
+    mso-ansi-font-size:13.5pt;
+    mso-bidi-font-size:13.5pt;
+    font-family:"Times New Roman",serif;
+    mso-ascii-font-family:"Times New Roman";
+    mso-fareast-font-family:"Times New Roman";
+    mso-hansi-font-family:"Times New Roman";
+    mso-bidi-font-family:"Times New Roman";
+    mso-fareast-language:ES-MX;
+    font-weight:bold;}
+  span.m6043471080588192998m3161970359752883086bkng-bold
+    {mso-style-name:m_6043471080588192998m_3161970359752883086bkng-bold;
+    mso-style-unhide:no;}
+  span.m6043471080588192998m3161970359752883086bkng-field
+    {mso-style-name:m_6043471080588192998m_3161970359752883086bkng-field;
+    mso-style-unhide:no;}
+  span.SpellE
+    {mso-style-name:"";
+    mso-spl-e:yes;}
+  span.GramE
+    {mso-style-name:"";
+    mso-gram-e:yes;}
+  .MsoChpDefault
+    {mso-style-type:export-only;
+    mso-default-props:yes;
+    font-family:"Calibri",sans-serif;
+    mso-ascii-font-family:Calibri;
+    mso-ascii-theme-font:minor-latin;
+    mso-fareast-font-family:Calibri;
+    mso-fareast-theme-font:minor-latin;
+    mso-hansi-font-family:Calibri;
+    mso-hansi-theme-font:minor-latin;
+    mso-bidi-font-family:"Times New Roman";
+    mso-bidi-theme-font:minor-bidi;
+    mso-fareast-language:EN-US;}
+  .MsoPapDefault
+    {mso-style-type:export-only;
+    margin-bottom:8.0pt;
+    line-height:107%;}
+  @page WordSection1
+    {size:612.0pt 792.0pt;
+    margin:70.85pt 3.0cm 70.85pt 3.0cm;
+    mso-header-margin:35.4pt;
+    mso-footer-margin:35.4pt;
+    mso-paper-source:0;}
+  div.WordSection1
+    {page:WordSection1;}
+  -->
+  </style>
+
+<style>
+ /* Style Definitions */
+ table.MsoNormalTable
+  {mso-style-name:"Tabla normal";
+  mso-tstyle-rowband-size:0;
+  mso-tstyle-colband-size:0;
+  mso-style-noshow:yes;
+  mso-style-priority:99;
+  mso-style-parent:"";
+  mso-padding-alt:0cm 5.4pt 0cm 5.4pt;
+  mso-para-margin-top:0cm;
+  mso-para-margin-right:0cm;
+  mso-para-margin-bottom:8.0pt;
+  mso-para-margin-left:0cm;
+  line-height:107%;
+  mso-pagination:widow-orphan;
+  font-size:11.0pt;
+  font-family:"Calibri",sans-serif;
+  mso-ascii-font-family:Calibri;
+  mso-ascii-theme-font:minor-latin;
+  mso-hansi-font-family:Calibri;
+  mso-hansi-theme-font:minor-latin;
+  mso-bidi-font-family:"Times New Roman";
+  mso-bidi-theme-font:minor-bidi;
+  mso-fareast-language:EN-US;}
+</style>
+
+</head>
+<body>
+
+  <div align=center>
+
+  <table class=MsoNormalTable border=0 cellspacing=0 cellpadding=0 width=414
+   style='width:310.5pt;mso-cellspacing:0cm;background:#E4E4E4;mso-yfti-tbllook:
+   1184;mso-padding-alt:12.0pt 12.0pt 12.0pt 12.0pt'>
+   <tr style='mso-yfti-irow:0;mso-yfti-firstrow:yes'>
+    <td style='padding:12.0pt 12.0pt 12.0pt 12.0pt'>
+    </td>
+    <td width=32 style='width:24.0pt;padding:12.0pt 12.0pt 12.0pt 12.0pt'>
+    </td>
+    <td width=32 style='width:24.0pt;padding:12.0pt 12.0pt 12.0pt 12.0pt'>
+    </td>
+   </tr>
+   <tr style='mso-yfti-irow:1'>
+    <td colspan=4 style='padding:12.0pt 12.0pt 12.0pt 12.0pt'></td>
+   </tr>
+   <tr style='mso-yfti-irow:2'>
+    <td colspan=4 style='background:white;padding:12.0pt 12.0pt 12.0pt 12.0pt'>
+      <b align="center" >Fecha: {{date_today}}</b>
+    <table class=MsoNormalTable border=0 cellspacing=0 cellpadding=0 width=414
+     style='width:310.5pt;mso-cellspacing:0cm;mso-yfti-tbllook:1184;mso-padding-alt:
+     0cm 0cm 0cm 0cm'>
+     <tr style='mso-yfti-irow:0;mso-yfti-firstrow:yes'>
+      <td style='padding:12.0pt 12.0pt 2.4pt 12.0pt'>
+      <b>{{title}}</b>
+      </td>
+     </tr>
+     <tr style='mso-yfti-irow:2;mso-yfti-lastrow:yes'>
+      <td style='background:#F8F8F8;padding:12.0pt 12.0pt 12.0pt 12.0pt'>
+      <table class=MsoNormalTable border=0 cellspacing=0 cellpadding=0
+       style='mso-cellspacing:0cm;mso-yfti-tbllook:1184;mso-padding-alt:0cm 0cm 0cm 0cm'>
+       <tr style='mso-yfti-irow:0;mso-yfti-firstrow:yes'>
+        <td style='padding:0cm 0cm 0cm 0cm'>
+        <p><b>Datos de Contacto</b></p>
+        <hr size=4 width=70 style='width:52.5pt' align=center>
+        </td>
+       </tr>
+       <tr style='mso-yfti-irow:1;mso-yfti-lastrow:yes'>
+        <td style='padding:0cm 0cm 0cm 0cm'>
+        <div align=center>
+        <table class=MsoNormalTable border=1 cellspacing=0 cellpadding=0
+         width=380 style='width:285.0pt;mso-cellspacing:0cm;background:white;
+         border:solid #E4E4E4 1.0pt;mso-border-alt:solid #E4E4E4 .75pt;
+         mso-yfti-tbllook:1184;mso-padding-alt:0cm 0cm 0cm 0cm'>
+         </tr><tr style='mso-yfti-irow:0;mso-yfti-firstrow:yes'>
+          <td colspan=3 style='border:none;padding:12.0pt 12.0pt 0cm 12.0pt'>
+            {%if type == "email_verification"%}
+            <p>Verificación de correo.</p>
+            <p>NOM-035-STPS-2018 Servicio Profesional, por favor verifica tu correo para acceder al sistema. El enlace tiene una vigencia de 24 horas.</p>
+            {%elif type == "payment_confirmed"%}
+            <p>Confirmación de pago.</p>
+            <p>NOM-035-STPS-2018 Servicio Profesional, Te agradecemos por tu compra, puedes ver los detalles de tu compra a continuación. Puedes solicitar una factura por medio del siguiente correo electrónico: n035.ihes@gmail.com indicando en el asunto una solicitud de factura junto con la referencia del pago, así como los datos de facturación.</p>
+            {%elif type == "password_recover"%}
+            <p>Recuperación de contraseña de acceso.</p>
+            <p>NOM-035-STPS-2018 Servicio Profesional, recupera tu contraseña por medio del enlace en la parte inferior del correo para que puedas acceder al sistema. El enlace es válido por una hora.</p>
+            {%elif type == "new_user"%}
+            <p>Gracias por registrarte con nosotros.</p>
+            <p>NOM-035-STPS-2018 Servicio Profesional, Te ayudamos a dar cumplimiento a las obligaciones patronales en la identificación, análisis y prevención de factores de los riesgos psicosociales en el trabajo.</p>
+            {%endif%}
+          </td>
+         </tr>
+         <tr style='mso-yfti-irow:0;mso-yfti-firstrow:yes'>
+          <td colspan=3 style='border:none;padding:12.0pt 12.0pt 0cm 12.0pt'>
+            <p><b>Nombre de empresa o razón social: </b>{{name}}</p>
+          </td>
+         </tr>
+         
+         <tr style='mso-yfti-irow:0;mso-yfti-firstrow:yes'>
+          <td colspan=3 style='border:none;padding:12.0pt 12.0pt 0cm 12.0pt'>
+            <p><b>Correo electónico: </b>{{email}}</p>
+          </td>
+         </tr>
+         <tr style='mso-yfti-irow:0;mso-yfti-firstrow:yes'>
+          <td colspan=3 style='border:none;padding:12.0pt 12.0pt 0cm 12.0pt'>
+            <p><b>Teléfono: </b>{{phone}}</p>
+          </td>
+         </tr>
+          {%if type == "payment_confirmed"%}
+            <tr style='mso-yfti-irow:0;mso-yfti-firstrow:yes'>
+            <td colspan=3 style='border:none;padding:12.0pt 12.0pt 0cm 12.0pt'>
+              <p><b>Centros de trabajo pagados: </b></p>
+              <ul>
+                {%for item in workplaces%}
+                  <li><b>{{item.name}}</b><small> {{item.emp_num}} empleados</small> - {{item.price}}$ </li>
+                {%endfor%}
+              </ul>
+            </td>
+            </tr>
+            <tr style='mso-yfti-irow:0;mso-yfti-firstrow:yes'>
+            <td colspan=3 style='border:none;padding:12.0pt 12.0pt 0cm 12.0pt'>
+              <p><b>Referencia de pago: </b>{{payment_id}}</p>
+            </td>
+            </tr>
+          {%else%}
+         <tr style='mso-yfti-irow:0;mso-yfti-firstrow:yes'>
+          <td colspan=3 style='border:none;padding:12.0pt 12.0pt 0cm 12.0pt'>
+            {%if type == "password_recover"%}
+            <p>Recupera tu contraseña aquí:</p>
+            <a href="https://035.ihes.mx/email_verification/{{v_code}}/{{token}}" >Recuperar contraseña</a>
+            {%else%}
+            <p>Verifica tu cuenta en éste enlace:</p>
+            <a href="https://035.ihes.mx/email_verification/{{v_code}}/{{token}}" >Validar mi Cuenta</a>
+            {%endif%}
+
+          </td>
+          {%endif%}
+         </tr>
+        </table>
+        </div>
+        </td>
+       </tr>
+      </table>
+      </td>
+     </tr>
+    </table>
+    </td>
+   </tr>
+  </table>
+
+  </div>
+
+</body>
+
+</html>

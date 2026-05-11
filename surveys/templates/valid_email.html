@@ -1,0 +1,163 @@
+{% load static %}
+<!DOCTYPE html>
+<html class="loading" lang="en" data-textdirection="ltr">
+<!-- BEGIN: Head-->
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="keywords" content="NOM 035 Factores de riesgo psicosocial en el trabajo Identificación análisis prevención" />
+    <meta name="description" content="NOM 035 - Servicio Profesional para el cumplimiento de las obligaciones de las NOM-035-STPS-2018">
+    <title>Inicio de sesión</title>
+    <link rel="apple-touch-icon" href="{% static 'app-assets/images/ico/apple-icon-120.png' %}">
+    <link rel="shortcut icon" type="image/x-icon" href="{% static 'app-assets/images/ico/favicon.ico' %}">
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:300,400,500,600" rel="stylesheet">
+
+    <!-- BEGIN: Vendor CSS-->
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/vendors/css/vendors.min.css' %}">
+    <!-- END: Vendor CSS-->
+
+    <!-- BEGIN: Theme CSS-->
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/bootstrap.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/bootstrap-extended.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/colors.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/components.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/themes/dark-layout.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/themes/semi-dark-layout.css' %}">
+
+    <!-- BEGIN: Page CSS-->
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/core/menu/menu-types/vertical-menu.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/core/colors/palette-gradient.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/pages/authentication.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/vendors/css/extensions/toastr.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/plugins/extensions/toastr.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/core/colors/palette-gradient.css' %}">
+    <!-- END: Page CSS-->
+
+    <!-- BEGIN: Custom CSS-->
+    <link rel="stylesheet" type="text/css" href="{% static 'assets/css/style.css' %}">
+    <!-- END: Custom CSS-->
+
+</head>
+<!-- END: Head-->
+
+<!-- BEGIN: Body-->
+
+<body class="vertical-layout vertical-menu-modern 1-column  navbar-floating footer-static bg-full-screen-image  blank-page blank-page" data-open="click" data-menu="vertical-menu-modern" data-col="1-column">
+    <!-- BEGIN: Content-->
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="header-navbar-shadow"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+            </div>
+            <div class="content-body">
+                <section class="row flexbox-container">
+                    <div class="col-xl-8 col-11 d-flex justify-content-center">
+                        <div class="card bg-authentication rounded-0 mb-0">
+                            <div class="row m-0">
+                                <div class="col-lg-6 d-lg-block d-none text-center align-self-center px-1 py-0">
+                                    <img src="{% static 'app-assets/images/pages/login_nom035.png' %}" alt="branding logo">
+                                    <br><br><br>
+                                    <p class="clearfix blue-grey lighten-2 mb-0"><span class="float-md-left d-block d-md-inline-block mt-25">COPYRIGHT © 2020 <a class="text-bold-800 grey darken-2" href="#" target="_blank">Instituto Hispanoamericano de Estudios Superiores S.C.,</a>Todos los derechos reservados</span>
+                                    </p>
+                                </div>
+                                <div class="col-lg-6 col-12 p-0">
+                                    <div class="card rounded-0 mb-0 px-2">
+                                        <div class="card-header pb-1">
+                                            <div class="card-title">
+                                                <h4 class="mb-0">Verificación de correo electrónico</h4><br><br>
+                                            </div>
+                                        </div>
+                                        {% if resend_verification == True %}
+                                            <form method="POST">
+                                                {% csrf_token %}
+                                                <div class="card-content mb-3">
+                                                    <div class="card-body pt-1">
+                                                    <div class="form-group">
+                                                        <div class="controls form-label-group">
+                                                            <input type="email" name="email" id="inputEmail" class="form-control" data-validation-required-message="Debe ser un email válido" placeholder="Email" required>
+                                                            <label for="inputEmail">Email</label>
+                                                            <p class="help-block"></p>
+                                                        </div>
+                                                    </div><br><br>
+                                                    <p class="px-2">Verifica tu correo electrónico para poder acceder a nuestro sistema.</p>
+                                                    <button type="submit" class="btn btn-primary float-right btn-inline">Enviar verificación</button>
+                                                    </div>
+                                                </div>
+                                            </form>
+                                        {%else%}
+                                            {% if valid_code == True %}
+                                            <p class="px-2">Bienvenido, {{name}} Gracias por registrarte.</p>
+                                            <div class="card-content mb-3">
+                                                <div class="card-body pt-1">
+                                                	<h4>El correo electrónico {{email}} fue verificado correctamente.Ya puedes ingresar al sistema desde tu navegador de internet o en nuesra aplicación móvil.</h4><br><br>
+                                                    <a href="{% url 'login'%}" class="btn btn-outline-primary float-left btn-inline">Inicia sesión</a>
+                                                </div>
+                                            </div>
+                                            {%else%}
+                                            <p class="px-2">No pudimos verificar tu cuenta.</p>
+                                            <div class="card-content mb-3">
+                                                <div class="card-body pt-1">
+                                                {% if expired == True %}
+                                                    <h4>Lo sentimos, el codigo proporcionado ha expirado.</h4><br><br>
+                                                {%else%}
+                                                    <h4>Lo sentimos, el codigo proporcionado no es válido. Puedes contactar con nuestro soporte técnico acerca de este problema.</h4><br><br>
+                                                {%endif%}
+                                                    <a href="{% url 'newuser'%}" class="btn btn-outline-primary float-left btn-inline">Registrarse</a>
+                                                    <a href="{% url 'login'%}" class="btn btn-outline-primary float-left btn-inline">Iniciar sesión</a>
+                                                </div>
+                                            </div>
+                                            {%endif%}
+                                        {%endif%}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </div>
+    </div>
+    <!-- END: Content-->
+
+
+    <!-- BEGIN: Vendor JS-->
+    <script src="{% static 'app-assets/vendors/js/vendors.min.js' %}"></script>
+    <!-- BEGIN Vendor JS-->
+
+    <!-- BEGIN: Theme JS-->
+    <script src="{% static 'app-assets/js/core/app-menu.js' %}"></script>
+    <script src="{% static 'app-assets/js/core/app.js' %}"></script>
+    <script src="{% static 'app-assets/js/scripts/components.js' %}"></script>
+    <script src="{% static 'app-assets/vendors/js/extensions/toastr.min.js' %}"></script>
+    <!-- END: Theme JS-->
+
+    <!-- BEGIN: Page JS-->
+    <script type="text/javascript">
+	$(document).ready(function(){
+        {% if messages %}{% for message in messages %}
+        var msg="{{message}}"
+        // toastr.error('Error',msg);
+        console.log(msg)
+        if (msg=="email_sent"){
+            toastr.success('<h5>Te hemos enviado un correo electrónico. Revisa tu bandeja de entrada.',{positionClass:'toast-bottom-right',containerId:'toast-bottom-right'});
+        }else if (msg=="already_valid"){
+            toastr.warning('Tu correo ya se encuentra validado, ya puedes ingresar al sistema.',{positionClass:'toast-bottom-right',containerId:'toast-bottom-right'});
+        }else if (msg=="not_user_found"){
+            toastr.error('Error','No existe ningun usuario registrado con el correo que proporcionaste.',{positionClass:'toast-bottom-right',containerId:'toast-bottom-right'});
+        }else if (msg=="email_not_provided"){
+            toastr.error('Error','Debes indicar el correo con el que creaste tu cuenta.',{positionClass:'toast-bottom-right',containerId:'toast-bottom-right'});
+        }else if (msg=="email_error"){
+            toastr.error('Error','No pudimos enviarte un correo de confirmación, si tienes problemas contacta con soporte.',{positionClass:'toast-bottom-right',containerId:'toast-bottom-right'});
+        }
+        {% endfor %}{% endif %}
+	});
+    </script>
+    <!-- END: Page JS-->
+
+</body>
+<!-- END: Body-->
+
+</html>

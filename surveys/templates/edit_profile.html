@@ -1,0 +1,386 @@
+{% extends 'index.html'%}
+{% load static %}
+{% block dashboard %}
+<div class="content-overlay"></div>
+<div class="header-navbar-shadow"></div>
+<div class="content-wrapper">
+    <div class="content-header row">
+    </div>
+    <div class="content-body">
+        <!-- account setting page start -->
+        <section id="page-account-settings">
+            <div class="row">
+            <!-- left menu section -->
+            <div class="col-md-3 mb-2 mb-md-0">
+                <ul class="nav nav-pills flex-column mt-md-0 mt-1">
+                    <li class="nav-item">
+                        <a class="nav-link d-flex py-75 active" id="account-pill-general" data-toggle="pill" href="#account-vertical-general" aria-expanded="true">
+                            <i class="feather icon-globe mr-50 font-medium-3"></i>
+                            General
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link d-flex py-75" id="account-pill-password" data-toggle="pill" href="#account-vertical-password" aria-expanded="false">
+                            <i class="feather icon-lock mr-50 font-medium-3"></i>
+                            Cambiar contraseña
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link d-flex py-75" id="account-pill-payment" data-toggle="pill" href="#account-vertical-payment" aria-expanded="false">
+                            <i class="feather icon-credit-card mr-50 font-medium-3"></i>
+                            Mis métodos de pago
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link d-flex py-75" id="account-pill-purchases" data-toggle="pill" href="#account-vertical-purchases" aria-expanded="false">
+                            <i class="feather icon-credit-card mr-50 font-medium-3"></i>
+                            Mis pagos
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <!-- right content section -->
+            <div class="col-md-9">
+                <div class="card">
+                <div class="card-content">
+                <div class="card-body">
+                    <div class="tab-content">
+                        <div role="tabpanel" class="tab-pane active" id="account-vertical-general" aria-labelledby="account-pill-general" aria-expanded="true">
+                            <form id="edit_form" action="." method="post" enctype="multipart/form-data">
+                                {% csrf_token %}
+                                <div class="media">
+                                    <a href="javascript: void(0);">
+                                        <img src="{% if request.user.userapp.image %}/media/{{request.user.userapp.image }}{%else%}{% static 'app-assets/images/portrait/small/avatar-s-1.png' %}{%endif%}" class="rounded mr-75" id="image_preview" alt="profile image" height="64" width="64">
+                                    </a>
+                                    <div class="media-body mt-75">
+                                        <div class="col-12 px-0 d-flex flex-sm-row flex-column justify-content-start">
+                                            <label class="btn btn-sm btn-primary ml-50 mb-50 mb-sm-0 cursor-pointer" for="account-upload">Subir nueva imagen</label>
+                                            <input type="file" id="account-upload" name="file" hidden>
+                                            <button id="clean_preview"class="btn btn-sm btn-outline-warning ml-50">Limpiar</button>
+                                        </div>
+                                        <p class="text-muted ml-75 mt-50"><small>Están permitidos los formatos JPG o PNG de un tamaño máximo de 2.5Mb.</small></p>
+                                    </div>
+                                </div>
+                                <hr>
+                                <div class="row">
+                                    <div class="col-12">
+                                        <div class="form-group">
+                                            <div class="controls">
+                                                <label for="account-e-mail">E-mail <small>(Éste cambio puede tomar un momento en verse reflejado)</small></label>
+                                                <input type="email" class="form-control" id="account-e-mail" placeholder="Email" name="email" value="{{request.user.username}}" required data-validation-required-message="Éste campo es requerido">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="form-group">
+                                            <div class="controls">
+                                                <label for="account-name">Nombre, denominación, razón social de la empresa</label>
+                                                <input type="text" class="form-control" name="name" id="account-name" placeholder="Nombre, denominación, razón social de la empresa" value="{{request.user.userapp.name}}" required data-validation-required-message="Éste campo es requerido">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="form-group">
+                                            <div class="controls">
+                                                <label for="account-phone">Teléfono</label>
+                                                <input type="Text" class="form-control" name="phone" id="account-phone" placeholder="Phone" value="{{request.user.userapp.phone}}" required data-validation-required-message="Éste campo es requerido">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% if false%}
+                                    <div class="col-12">
+                                        <div class="alert alert-warning alert-dismissible mb-2" role="alert">
+                                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                                <span aria-hidden="true">×</span>
+                                            </button>
+                                            <p class="mb-0">Tu dirección de correo no está verificada, revisa tu bandeja de entrada</p>
+                                            <a href="javascript: void(0);">Volver a enviar correo de confirmación</a>
+                                        </div>
+                                    </div>
+                                    {%endif%}
+                                    <div class="col-12 d-flex flex-sm-row flex-column justify-content-end">
+                                        <button type="button" class="save_changes btn btn-primary mr-sm-1 mb-1 mb-sm-0">Guardar cambios</button>
+                                        <button type="reset" class="btn btn-outline-warning">Cancelar</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="tab-pane fade " id="account-vertical-password" role="tabpanel" aria-labelledby="account-pill-password" aria-expanded="false">
+                            <form id="change_password_form" action="." method="post">
+                                {% csrf_token %}
+                                <div class="row">
+                                    <div class="col-12">
+                                        <div class="form-group">
+                                            <div class="controls">
+                                                <label for="old_password">Contraseña anterior</label>
+                                                <input type="password" class="form-control" id="old_password" name="old_password" required placeholder="Contraseña anterior" data-validation-required-message="Se requiere la contraseña anterior">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="form-group">
+                                            <div class="controls">
+                                                <label for="new_password1">Nueva contraseña</label>
+                                                <input type="password"name="new_password1" id="new_password1" class="form-control" placeholder="Nueva contraseña" required data-validation-required-message="Debes ingresar tu nueva contraseña" minlength="6">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="form-group">
+                                            <div class="controls">
+                                                <label for="new_password2">Confirmación de Contraseña</label>
+                                                <input type="password" class="form-control" required id="new_password2" name="new_password2" data-validation-match-match="password" placeholder="Confirmación de Contraseña" data-validation-required-message="Debes confirmar tu contraseña" minlength="6">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-12 d-flex flex-sm-row flex-column justify-content-end">
+                                        <button type="button" class="change_password btn btn-primary mr-sm-1 mb-1 mb-sm-0">Guardar cambios</button>
+                                        <button type="reset" class="btn btn-outline-warning">Cancelar</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="tab-pane fade " id="account-vertical-payment" role="tabpanel" aria-labelledby="account-pill-payment" aria-expanded="false">
+                            <ul class="list-group">
+                            <li class="list-group-item text-center"><b>Tarjetas de crédito o débito</b></li>
+                            {% for item in cards %}
+                            <li class="list-group-item" data-token="{{item.card_token}}">
+                                <div class="media">
+                                    <a class="media-left" href="#" style="width:100px;" >
+                                        <img src="/static/app-assets/images/logo/{{item.brand}}.png" alt="{{item.brand}}" width="100%" style="max-width:100px;" height="50">
+                                    </a>
+                                    <div class="media-body">
+                                        <h4 class="media-heading">{{item.name}}
+                                        <i class="pull-right fa fa-times text-danger delete-card" data-token="{{item.card_token}}" data-toggle="tooltip" title="Eliminar tarjeta"></i>
+                                        </h4>
+                                        <h5>Tarjeta {{item.brand}} que termina en <b>{{item.last4}}</b> <small>Expiración {{item.exp_month}}/{{item.exp_year}}</small></h5>
+                                    </div>
+                                </div>
+                            </li>
+                            {% endfor %}
+                            <li class="list-group-item">
+                                <div class="default-collapse collapse-bordered">
+                                    <div class="card collapse-header">
+                                        <div id="headingCollapse1" class="card-header collapsed" data-toggle="collapse" role="button" data-target="#collapse1"   style="padding: 0rem !important;">
+                                            <span class="lead collapse-title text-primary"><i class="fa fa-plus"></i> Agregar tarjeta de crédito o débito</span>
+                                        </div>
+                                        <div id="collapse1" role="tabpanel" aria-labelledby="headingCollapse1" class="collapse" style="">
+                                        <div class="card-content">
+                                        <div class="card-body">
+                                            <form action="" method="POST" id="card-form">
+                                                <span class="card-errors"></span>
+                                                <div class="row">
+                                                  <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <div class="controls">
+                                                            <label>Nombre del tarjetahabiente</label>
+                                                            <input type="text" class="form-control" placeholder="Nombre del tarjetahabiente" size="20" data-conekta="card[name]">
+                                                        </div>
+                                                    </div>
+                                                  </div>
+                                                  <div  class="col-md-6">
+                                                    <div class="form-group">
+                                                        <div class="controls">
+                                                            <label>Número de tarjeta de crédito o débito</label>
+                                                            <input type="text" class="form-control" placeholder="Número de tarjeta de crédito o débito" size="20" data-conekta="card[number]">
+                                                        </div>
+                                                    </div>
+                                                  </div>
+                                                </div>
+                                                <div class="row">
+                                                  <div class="col-md-4">
+                                                    <div class="form-group">
+                                                        <div class="controls">
+                                                            <label>CCV</label>
+                                                            <input type="text" class="form-control" placeholder="CCV" size="4" data-conekta="card[cvc]">
+                                                        </div>
+                                                    </div>
+                                                  </div>
+                                                  <div class="col-md-4">
+                                                    <div class="form-group">
+                                                        <div class="controls">
+                                                            <label>Mes de expiración (MM)</label>
+                                                            <input type="text" class="form-control" placeholder="Mes de expiración (MM)" size="2" data-conekta="card[exp_month]">
+                                                        </div>
+                                                    </div>
+                                                  </div>
+                                                  <div class="col-md-4">
+                                                    <div class="form-group">
+                                                        <div class="controls">
+                                                            <label>Año de expiración(AAAA)</label>
+                                                            <input type="text" class="form-control" placeholder="Año de expiración(AAAA)" size="4" data-conekta="card[exp_year]">
+                                                        </div>
+                                                    </div>
+                                                  </div>
+                                                </div>
+                                                <button class="btn btn-success pull-right" id="submit-card" type="button">Añadir tarjeta</button>
+                                            </form>
+                                        </div>
+                                        </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+                            </ul>
+                        </div>
+                        <div class="tab-pane fade " id="account-vertical-purchases" role="tabpanel" aria-labelledby="account-pill-purchases" aria-expanded="false">
+                            <ul class="list-group">
+                            <li class="list-group-item text-center"><b>Mis compras</b></li>
+                            {% for item in purchases %}
+                            <li class="list-group-item">
+                                <div class="media">
+                                    <a class="media-left" href="#" style="width:100px;" >
+                                        <img src="/static/app-assets/images/logo/{{item.brand}}.png" alt="{{item.brand}}" width="100%" style="max-width:100px;" height="50">
+                                    </a>
+                                    <div class="media-body">
+                                        <h4 class="media-heading">{{item.name}}</h4>
+                                        <h5>Tarjeta {{item.brand}} que termina en <b>{{item.last4}}</b> <small>Expiración {{item.exp_month}}/{{item.exp_year}}</small></h5>
+                                        <h5>Pago por cantidad de ${{item.amount}}.00</h5>
+                                        <ul>{%for prod in item.products%}
+                                            <li><h5>{{prod.name}} <small>{{prod.quantity}} empleados</small></h5></li>
+                                        {%endfor%}</ul>
+                                    </div>
+                                </div>
+                            </li>
+                            {% empty %}
+                                <li class="list-group-item text-center"><b>Aún no has realizado ningún pago</b></li>
+                            {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                </div>
+                </div>
+            </div>
+            </div>
+        </section>
+        <!-- account setting page end -->
+    </div>
+</div>
+{% endblock%}
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/vendors/css/tables/datatable/datatables.min.css' %}">
+{% block scripts %}
+    
+    <script src="{% static 'app-assets/vendors/js/tables/datatable/datatables.min.js' %}"></script>
+    <script src="{% static 'app-assets/vendors/js/tables/datatable/datatables.buttons.min.js' %}"></script>
+    <script src="{% static 'app-assets/vendors/js/tables/datatable/buttons.bootstrap.min.js' %}"></script>
+    <script src="{% static 'app-assets/vendors/js/tables/datatable/datatables.bootstrap4.min.js' %}"></script>
+    <script type="text/javascript" src="https://cdn.conekta.io/js/latest/conekta.js"></script>
+
+    <script type="text/javascript">
+    $(document).ready(function(){
+        $('[data-toggle="tooltip"]').tooltip()
+        var tab="{{tab}}"
+       	if (tab=="credit-card"){
+       		$("#account-pill-payment").trigger('click')
+       	}
+        var msg="{{msg}}"
+        if (msg!=""){
+            toastr.error(msg,"Error")
+        }
+        var msgok="{{msgok}}"
+        if (msgok!=""){
+            toastr.success(msgok,"Ok")
+        }
+    });
+    $(function(){
+        // Conekta.setPublicKey('key_dnJ39sQFbLVZQR7epkiiCEg');//prod
+        Conekta.setPublicKey('key_AhXYuQnj8pMv4UEmsEz8Hsw');//testing
+
+        var conektaSuccessResponseHandler = function(token){
+            $("#submit-card").prop("disabled", true);
+             $.ajax({
+                url: "/api/addCard/",
+                method: 'POST',
+                contentType :"application/json",
+                data:JSON.stringify({"card_token":token.id}),
+                dataType: 'json',
+                success: function(data){
+                    toastr.success('Tu tarjeta fue registrada con éxito',"ok")
+                    $("#card-form").trigger("reset");
+                  function myTimer() {location.replace("{% url 'edit_profile' %}?d=credit-card")}
+                  var myVar = setInterval(myTimer, 1000);
+                },
+                error:function (xhr, ajaxOptions, thrownError){
+                    console.log(xhr.status)
+                    if (xhr.status!=201) {
+                        toastr.success('Ha ocurrido un error '+xhr.responseText,"Error");
+                    }
+                }
+              });
+        };
+        var conektaErrorResponseHandler = function(response) {
+            var $form = $("#card-form");
+            $form.find(".card-errors").text(response.message_to_purchaser);
+            $("#submit-card").prop("disabled", false);
+        };
+        $("#submit-card").click(function(){
+          var $form = $("#card-form");
+          // Previene hacer submit más de una vez
+          $("#submit-card").prop("disabled", true);
+          Conekta.Token.create($form, conektaSuccessResponseHandler, conektaErrorResponseHandler);
+
+          return false;
+        });
+        function readURL(input) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    $('#image_preview').attr('src', e.target.result);
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+        $("#account-upload").change(function(){
+            readURL(this);
+        })
+        $(".delete-card").click(function(){
+        	var token=$(this).attr("data-token")
+        	$.ajax({
+                url: "/api/addCard/",
+                method: 'DELETE',
+                contentType :"application/json",
+                data:JSON.stringify({"card_token":token}),
+                dataType: 'json',
+                success: function(data){
+                    toastr.success('Tu tarjeta fue eliminada',"ok")
+					function myTimer() {location.replace("{% url 'edit_profile' %}?d=credit-card")}
+					var myVar = setInterval(myTimer, 1000);
+                },
+                error:function (xhr, ajaxOptions, thrownError){
+                    console.log(xhr.status)
+                    if (xhr.status!=201) {
+                        toastr.success('Ha ocurrido un error '+xhr.responseText,"Error");
+                    }
+                }
+              });
+        })
+        $("#clean_preview").click(function(){
+            src="{% if request.user.userapp.image %}/media/{{ request.user.userapp.image }}{%else%}{% static 'app-assets/images/portrait/small/avatar-s-1.png' %}{%endif%}"
+            $('#image_preview').attr('src', src);
+            $("#account-upload").val('')
+        })
+        $(".change_password").click(function(){
+            $("#change_password_form").submit()
+        })
+        $(".save_changes").click(function(){
+            var valid=true
+            if ($("#account-e-mail").val()==""){
+                toastr.error("Debes ingresar tu correo electrónico.")
+                valid=false
+            }
+            if ($("#account-name").val()==""){
+                toastr.error("Debes ingresar el nombre de la empresa o razón social.")
+                valid=false
+            }
+            if ($("#account-phone").val()==""){
+                toastr.error("Debes ingresar tu número telefónico.")
+                valid=false
+            }
+            if (valid == true){
+                $("#edit_form").submit()
+            }
+        })
+    });
+    </script>
+{% endblock%}

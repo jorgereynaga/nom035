@@ -1,0 +1,230 @@
+{% extends 'index.html'%}
+{% load static %}
+{% block dashboard %}
+<div class="content-wrapper">
+    <div class="content-header row">
+    </div>
+    <div class="content-body" id="app">
+        <!-- Dashboard Analytics Start -->
+        <section id="dashboard-analytics">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title">Resultados de centros de trabajo</h4>
+                    {% if user.is_staff %}
+                    <button class="btn btn-primary" type="button" id="evidence_btn">Cargar resultado para centro de trabajo</button>
+                    {% endif %}
+                </div>
+                <div class="card-content">
+                    <div class="card-body">
+                        <select id="select_workplace" class="select2" placeholder="Selecciona un centro de trabajo" v-select2 v-model="workplace" @change="get_results">
+                            {%for item in workplaces%}
+                            <option value="{{item.id}}">{{item.name}}</option>
+                            {%endfor%}
+                        </select><br>
+                        <ul class="list-group" v-for="item in results">
+                            <li class="list-group-item">
+                                <p>Evaluación ${item.evaluation}: ${item.result_type}</p>
+                                <small>${item.date}</small>
+                                <a :href="item.image" target="_blank"><span class="mdl pull-right fa fa-save"></span></a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- Dashboard Analytics end -->
+
+    </div>
+</div>
+
+{% if user.is_staff %}
+<div class="modal fade text-left" id="modal_evidence" >
+    <div class="modal-dialog modal-dialog-scrollable" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="modal_contact">Subir evidencias</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+            </div>
+            <div class="modal-body">
+                <form action="" id="evidence_form">
+                    <span class="card-errors"></span>
+                    <div class="row">
+                      <div class="col-md-12">
+                        <div class="form-label-group">
+                            <select class="select2" data-placeholder="Usuarios/Empresa" id="users" >
+                                <option></option>
+                                {% for item in users%}
+                                    <option value='{{item.id}}'>{{item.text}}</option>
+                                {% endfor%}
+                            </select>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="row">
+                      <div class="col-md-6">
+                        <div class="form-label-group">
+                            <select class="select2" data-placeholder="Centro de trabajo" name="workplace" id="workplace">
+                                <option></option>
+                                {# {% for item in workplaces%} #}
+                                    {# <option value='{{item.id}}'>{{item.name}}</option> #}
+                                {# {% endfor%} #}
+                            </select>
+                            <label for="age">Centro de trabajo</label>
+                            <p class="help-block"></p>
+                        </div>
+                      </div>
+                      <div class="col-md-6">
+                        <div class="form-label-group">
+                            <select class="select2" data-placeholder="Tipo de resultado" name="result_type" id="result_type">
+                                <option></option>
+                                    <option value='0'>Informe de resultados ejecutivo</option>
+                                    <option value='1'>Informe de resultados detallado</option>
+                                    <option value='2'>Resultados del Instrumento para Identificar los Factores de Riesgo Psicosocial</option>
+                                    <option value='3'>Gantt de Actividades</option>
+                                    <option value='4'>Lista de Verificación de Evidencias de la NOM35</option>
+                                    <option value='5'>Propuesta de Política de Prevención de Riesgos Psicosociales</option>
+                            </select>
+                            <label for="result_type">Tipo de resultado</label>
+                            <p class="help-block"></p>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="row">
+                      <div class="col-md-12">
+                        <div class="form-group">
+                            <div class="controls">
+                                <label>Archivo</label>
+                                <input type="file" name="image" id="image" class="form-control" placeholder="Archivo">
+                            </div>
+                        </div>
+                      </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger waves-effect waves-light" data-dismiss="modal">Cerrar</button>
+                <button class="btn btn-success pull-right" id="add_evidence" type="button">Añadir evidencia</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock%}
+{% block style %}
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/plugins/forms/validation/form-validation.min.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/vendors/css/forms/select/select2.css' %}">
+    <style type="text/css">
+        .validation-error{
+            border-bottom: 2px solid #EA5455 !important;
+        }
+        .validation-valid{
+            border-bottom: 2px solid #28c76f !important;
+        }
+    </style>
+{% endblock%}
+{% block scripts %}
+    
+    <script src="{% static 'app-assets/vendors/js/forms/validation/jquery.validate.min.js' %}"></script>
+    <script src="{% static 'app-assets/vendors/js/forms/select/select2.full.js' %}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.min.js"></script>
+    <script type="text/javascript">
+    
+    $(function(){
+        // get_results
+    });
+var app
+Vue.directive('select2', {
+    inserted(el) {
+    $(el).on('select2:select',()=>{const event=new Event('change',{bubbles:true,cancelable:true});el.dispatchEvent(event);});
+    $(el).on('select2:unselect',()=>{const event=new Event('change',{bubbles:true,cancelable:true});el.dispatchEvent(event);});
+    },
+});
+window.onload = function () {
+    app = new Vue({
+        el: '#app',
+        delimiters: ['${','}'],
+        data: {
+            workplace:null,
+            results:[]
+        },
+        methods: {
+            loadJsonData(){
+                var dis=this
+                $(function(){
+                    $("#app").block({ 
+                        message: '<i class="text-primary fa fa-3x fa-spinner fa-spin"></i>',
+                        timeout: 1000, //unblock after 3 seconds
+                        overlayCSS:{backgroundColor:'#fff',opacity:0.8,cursor:'wait'},
+                        css: {border: 0,padding: 0,backgroundColor: 'transparent'}
+                    })
+                });
+            },
+            get_results(){
+                var dis=this
+                $(function(){
+                    $.ajax({
+                        url: "{% url 'get_results'%}",
+                        method: 'GET',
+                        data:{'workplace_id':dis.workplace},
+                        dataType: 'json',
+                        success: function(data){
+                            dis.results=data.results
+                        }
+                    });
+                });
+            }
+        },
+        computed: {},
+        mounted: function () {
+            this.$nextTick(function () {
+                $(document).ready(function(){
+                    $(".select2").select2({
+                        dropdownAutoWidth: true,
+                        width: '100%'
+                    })
+                });
+                 $(function(){
+                    $("#app").css('display','block')
+                    {% if user.is_superuser %}
+                    $("#evidence_btn").click(function(){
+                        $("#modal_evidence").modal("show")
+                    })
+                    $("#add_evidence").click(function(){
+                        var data = new FormData($('#evidence_form')[0]);
+                        data.append('file', $('#image')[0].files);
+                        $.ajax({
+                            url: "{% url 'add_evidence' %}",
+                            data: data,
+                            cache: false,
+                            contentType: false,
+                            processData: false,
+                            method: 'POST',
+                            success: function(data){
+                                toastr.success('Se ha añadido una nueva evidencia',"OK");
+                                $("#modal_evidence").modal("hide")
+                            }
+                        });
+                    })
+                    $("#users").change(function(){
+                        console.log($("#users").val())
+                        $.ajax({
+                            url: "{% url 'get_workplaces'%}",
+                            method: 'GET',
+                            data:{'user_id':$("#users").val()},
+                            dataType: 'json',
+                            success: function(data){
+                                $("#workplace").empty().trigger("change");
+                                $("#workplace").select2({data:data.results,width:"100%"})
+                            }
+                        });
+                    });
+                    {% endif %}
+                    
+                });
+            })
+        }
+    })
+};
+    </script>
+{% endblock%}

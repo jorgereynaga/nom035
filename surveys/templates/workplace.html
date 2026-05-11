@@ -1,0 +1,66 @@
+{% extends 'index.html'%}
+{% load static %}
+{% block dashboard %}
+<div class="content-overlay"></div>
+<div class="header-navbar-shadow"></div>
+<div class="content-wrapper">
+    <div class="content-header row">
+    </div>
+    <div class="content-body">
+        <!-- Dashboard Analytics Start -->
+        <section id="dashboard-analytics">
+            <div class="row">
+                {%for item in workplaces%}
+                <div class="col-lg-3 col-md-6 col-12">
+                    <div class="card" data-id='{{item.id}}'>
+                        <div class="card-header d-flex flex-column align-items-start pb-0">
+                            <div class="avatar bg-rgba-primary p-50 m-0">
+                                <div class="avatar-content">
+                                    <a href="{% url 'single_workplace' item.id %}"><i class="feather icon-briefcase text-primary font-medium-5"></i></a>
+                                </div>
+                            </div>
+                            <a href="{% url 'single_workplace' item.id %}"><p class="mb-0">{{item.name}}</p></a>                            
+                            <h2 class="text-bold-700 mt-1 mb-25">{{item.employee_count}}</h2>
+                            <p class="mb-0">Empleados</p>
+                        </div>
+                        <div class="card-content">
+                            <br>
+                        </div>
+                    </div>
+                </div>
+                {%endfor%}
+                <div class="col-lg-3 col-md-6 col-12">
+                    <div class="card new_workplace">
+                        <div class="card-header d-flex flex-column text-center pb-0">
+                            <div class="avatar bg-rgba-primary p-50 m-0">
+                                <div class="avatar-content">
+                                    <i class="feather icon-plus text-primary font-medium-5"></i>
+                                </div>
+                            </div><br>
+                            <h2 class="text-bold-700 mb-0">Nuevo centro de trabajo</h2>
+                            
+                        </div>
+                        <div class="card-content">
+                            <br><br>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- Dashboard Analytics end -->
+
+    </div>
+</div>
+{% endblock%}
+{% block scripts %}
+
+    <script type="text/javascript">
+    $(document).ready(function(){
+    });
+    $(function(){
+        $(".new_workplace").click(function(){
+            location.href='/workplaceform'
+        })
+    });
+    </script>
+{% endblock%}

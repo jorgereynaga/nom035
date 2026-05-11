@@ -1,0 +1,43 @@
+
+[
+{
+    "model": "surveys.product",
+    "pk": 1,
+    "fields": {
+        "name": "Centro de trabajo categor\u00eda A (1 a 15 empleados)",
+        "description": "Incluye la aplicaci\u00f3n de encuestas los resultados de la evaluaci\u00f3n",
+        "price": 2500,
+        "category": 0
+    }
+},
+{
+    "model": "surveys.product",
+    "pk": 2,
+    "fields": {
+        "name": "Centro de trabajo categor\u00eda B (16 a 50 empleados)",
+        "description": "Incluye la aplicaci\u00f3n de encuestas los resultados de la evaluaci\u00f3n",
+        "price": 3000,
+        "category": 1
+    }
+},
+{
+    "model": "surveys.product",
+    "pk": 3,
+    "fields": {
+        "name": "Centro de trabajo categor\u00eda C (50 a 100 empleados)",
+        "description": "Incluye la aplicaci\u00f3n de encuestas los resultados de la evaluaci\u00f3n",
+        "price": 10000,
+        "category": 2
+    }
+},
+{
+    "model": "surveys.product",
+    "pk": 4,
+    "fields": {
+        "name": "Centro de trabajo categor\u00eda C (M\u00e1s de 100 empleados)",
+        "description": "Incluye la aplicaci\u00f3n de encuestas los resultados de la evaluaci\u00f3n",
+        "price": 10000,
+        "category": 2
+    }
+}
+]

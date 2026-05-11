@@ -1,0 +1,359 @@
+{% load static %}
+<!DOCTYPE html>
+<html class="loading" lang="es">
+<!-- BEGIN: Head-->
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimal-ui">
+    <title>Encuesta NOM-035-STPS-2018</title>
+    <link rel="shortcut icon" type="image/x-icon" href="{% static 'app-assets/images/ico/favicon.ico' %}">
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:300,400,500,600" rel="stylesheet">
+
+    <!-- BEGIN: Vendor CSS-->
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/vendors/css/vendors.min.css' %}">
+    <!-- END: Vendor CSS-->
+
+    <!-- BEGIN: Theme CSS-->
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/bootstrap.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/bootstrap-extended.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/colors.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/components.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/themes/dark-layout.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/themes/semi-dark-layout.css' %}">
+
+    <!-- BEGIN: Page CSS-->
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/core/menu/menu-types/vertical-menu.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/core/colors/palette-gradient.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/pages/authentication.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/vendors/css/extensions/toastr.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/plugins/extensions/toastr.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/core/colors/palette-gradient.css' %}">
+    <!-- END: Page CSS-->
+
+    <!-- BEGIN: Custom CSS-->
+    <link rel="stylesheet" type="text/css" href="{% static 'assets/css/style.css' %}">
+    <style type="text/css">
+        html body.bg-full-screen-image !important{
+            background-color: #daccf0;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='152' height='152' viewBox='0 0 152 152'%3E%3Cg fill-rule='evenodd'%3E%3Cg id='temple' fill='%23ffffff' fill-opacity='0.28'%3E%3Cpath d='M152 150v2H0v-2h28v-8H8v-20H0v-2h8V80h42v20h20v42H30v8h90v-8H80v-42h20V80h42v40h8V30h-8v40h-42V50H80V8h40V0h2v8h20v20h8V0h2v150zm-2 0v-28h-8v20h-20v8h28zM82 30v18h18V30H82zm20 18h20v20h18V30h-20V10H82v18h20v20zm0 2v18h18V50h-18zm20-22h18V10h-18v18zm-54 92v-18H50v18h18zm-20-18H28V82H10v38h20v20h38v-18H48v-20zm0-2V82H30v18h18zm-20 22H10v18h18v-18zm54 0v18h38v-20h20V82h-18v20h-20v20H82zm18-20H82v18h18v-18zm2-2h18V82h-18v18zm20 40v-18h18v18h-18zM30 0h-2v8H8v20H0v2h8v40h42V50h20V8H30V0zm20 48h18V30H50v18zm18-20H48v20H28v20H10V30h20V10h38v18zM30 50h18v18H30V50zm-2-40H10v18h18V10z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+    </style>
+    <!-- END: Custom CSS-->
+
+</head>
+<!-- END: Head-->
+
+<!-- BEGIN: Body-->
+
+<body class="vertical-layout vertical-menu-modern 1-column  navbar-floating footer-static bg-full-screen-image  blank-page blank-page" data-open="click" data-menu="vertical-menu-modern" data-col="1-column">
+    <!-- BEGIN: Content-->
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="header-navbar-shadow"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+            </div>
+            <div class="content-body">
+                <section class="row flexbox-container">
+                    <div class="col-xl-8 col-11 d-flex justify-content-center">
+                        <div class="card bg-authentication rounded-0 mb-0">
+                            <div class="row m-0">
+                                <div class="col-12 p-0" id="app" style="display:none;">
+                                    <div class="card rounded-0 mb-0 px-2 text-center " v-if="actual_question == 0">
+                                        <div class="card-header pb-1" style="display:inline !important;">
+                                            <div class="card-title">
+                                                <h2 class="mb-0">{{form_name}}</h2>
+                                                <h5 class=" mb-0">NOM-035-STPS-2018</h5>
+                                            </div>
+                                        </div>
+                                        {% if form_name != "Ya has completado todos los formularios" and form_name != "Código Inválido" %}
+                                        <p v-if="form_title != 'completed'" class="px-2">Empresa: {{social_reason}}</p>
+                                        <h5 v-if="form_title != 'completed'" class="px-2">Centro de trabajo: {{name}}</h5>
+                                        <p v-if="form_title != 'completed'" class="px-2">Domicilio: {{address}}</p>
+                                        {% endif %}
+                                        {% if employee_name != ""%}
+                                        <h3 class="px-2">Empleado: {{employee_name}}</h3>
+                                        {% endif %}
+                                        <div class="alert alert-secondary" role="alert">
+                                            <h5 class="mb-0" style="font-size:14px;line-height: 1rem;">{{help|linebreaks}}</h5>
+                                        </div>
+                                        <div class="card-content">
+                                            <div class="card-body pt-1">
+                                            {% if form_name != "Ya has completado todos los formularios" and next_form != 999 %}
+                                            <button class="start_survey btn bg-gradient-primary mr-1 mb-1 waves-effect waves-light">Iniciar formulario</button>
+                                            {% endif %}
+                                            </div>
+                                        </div>
+                                        <div class="login-footer">
+                                            <div class="divider">
+                                            </div>
+                                            <div class="footer-btn d-inline" style="display:block !important;">
+                                                <p>COPYRIGHT © 2020IHES SA. de CV. ,Todos los derechos reservados</p>
+                                                
+                                                <p style="font-size:9px;line-height: 1rem;"><b>Aviso de privacidad: </b>Los datos personales recabados en este cuestionario se utilizarán exclusivamente para el cumplimiento de la NOM 035 STPS y serán tratados de forma confidencial.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="card rounded-0 mb-0 px-2" v-else>
+                                        <div class="card-header pb-1">
+                                            <div class="card-title" style="width: 100% !important;">
+                                                <legend class="text-center mb-0">${form_title}</legend>
+                                                <div class="progress progress-bar-primary">
+                                                    <div class="progress-bar" role="progressbar" aria-valuenow="20" aria-valuemin="20" aria-valuemax="100" :style="'width:'+progress_bar_value+'%'"></div>
+                                                </div>
+                                                <h4 class="text-center mb-0">Pregunta #${actual_question} - ${get_title()}</h4>
+                                            </div>
+                                        </div>
+                                        <p></p><p></p><p></p>
+                                        <div class="card-content">
+                                            <ul class="list-unstyled mb-0 text-center" v-if="has_options()">
+	                                            <li class="d-inline-block mr-2" v-if="has_options()" v-for="value in questions[actual_question-1].field_choices">
+	                                                <fieldset>
+	                                                <div class="vs-radio-con" >
+	                                                    <input type="radio" class="question_opt" name="vueradio" v-bind:data-id="value['id']">
+	                                                    <span class="vs-radio"><span class="vs-radio--border"></span>
+	                                                    <span class="vs-radio--circle"></span></span>
+	                                                    <span class="">${value['title']}</span>
+	                                                </div>
+	                                                </fieldset>
+	                                            </li>
+                                            </ul>
+	                                        <div class="form-group" v-else>
+	                                            <div class="controls form-label-group">
+	                                                <input type="text" id="id_answer" name="answer" class="form-control" placeholder="Indique su Respuesta">
+	                                                <label for="id_answer">Indique su Respuesta</label>
+	                                            </div>
+	                                        </div>
+                                        </div>
+                                        <p></p><p></p><p></p>
+                                        <div class="login-footer">
+                                            <div class="divider">
+                                            </div>
+
+                                            <div class="card-body pt-1 text-center">
+                                                <button v-if="actual_question==questions.length" class="btn bg-gradient-primary mr-1 mb-1 waves-effect waves-light" v-on:click="end_evaluation()">Finalizar cuestionario</button>
+                                                <button v-else class="btn bg-gradient-primary mr-1 mb-1 waves-effect waves-light" v-on:click="next_question()">Siguiente Pregunta</button>
+                                            </div>
+                                            <div class="footer-btn d-inline">
+                                                <p>COPYRIGHT © 2020IHES S.C. ,Todos los derechos reservados</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- BEGIN: Vendor JS-->
+    <script src="{% static 'app-assets/vendors/js/vendors.min.js' %}"></script>
+
+    <!-- BEGIN Vendor JS-->
+
+    <!-- BEGIN: Theme JS-->
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.7.16/dist/vue.js"></script>
+    <script src="{% static 'app-assets/js/core/app-menu.js' %}"></script>
+    <script src="{% static 'app-assets/js/core/app.js' %}"></script>
+    <script src="{% static 'app-assets/js/scripts/components.js' %}"></script>
+    <script src="{% static 'app-assets/vendors/js/extensions/toastr.min.js' %}"></script>
+    <script src="{% static 'app-assets/js/scripts/blockUI.js' %}"></script>
+    <!-- END: Theme JS-->
+
+    <!-- BEGIN: Page JS-->
+    <script type="text/javascript">
+       
+    var app
+    window.onload = function () {
+        app = new Vue({
+            el: '#app',
+            delimiters: ['${','}'],
+            data: {
+                questions:[],
+                answers:[],
+                survey_num:0,
+                actual_question:0,
+                form_title:'',
+                progress_bar_value:0,
+                form_name:null,
+            },
+            methods: {
+                loadJsonData(){
+                    var dis=this
+                    $(function(){
+                    	$("#app").block({ 
+							message: '<i class="text-primary fa fa-3x fa-spinner fa-spin"></i>',
+							timeout: 500,
+							overlayCSS:{backgroundColor:'#fff',opacity:0.8,cursor:'wait'},
+							css: {border: 0,padding: 0,backgroundColor: 'transparent'},
+                            onUnblock: function(){$("#app").css('display','block')},
+				  		})
+                        $.ajax({
+                            url: "{% url 'get_questions'%}",
+                            method: 'GET',
+                            data:{'workplace_id':"{{workplaceid}}",'employee_id':"{{employee_id}}", },
+                            dataType: 'json',
+                            success: function(data){
+                                if (data.form_name=='completed'){
+                                   $("#start_survey").prop('disabled',true)
+                                    dis.form_title=data.form_name
+                                }
+                                else{
+                                    dis.questions=data.data.questions
+                                    dis.form_title=data.form_name
+                                    dis.form_name=data.form
+                                    dis.actual_question=1
+                                    dis.progress_bar_value=parseInt(dis.actual_question/dis.questions.length*100)
+                                }
+                            }
+                        });
+                    });
+                },
+                get_title(){
+                    return this.questions[this.actual_question-1].field_desc
+                },
+				has_options(){
+					if (this.questions[this.actual_question-1].field_choices==null){
+						return false
+					}else return true
+				},
+				next_question(){
+					var dis=this
+					$(function(){
+						$("#app").block({ 
+							message: '<i class="text-primary fa fa-3x fa-spinner fa-spin"></i>',
+							timeout: 500, //unblock after 3 seconds
+							overlayCSS:{backgroundColor:'#fff',opacity:0.8,cursor:'wait'},
+							css: {border: 0,padding: 0,backgroundColor: 'transparent'},
+                            onUnblock: function(){$("#app").css('display','block')},
+				  		})
+
+						var fname=dis.questions[dis.actual_question-1].field_name
+                        
+						if (dis.has_options()){
+							if ($("input[name='vueradio']").is(':checked')){
+								dis.answers.push({[""+fname]:$("input[name='vueradio']:checked").attr('data-id')})
+                                if($("input[name='vueradio']:checked").attr('data-id')==1){
+                                    if (fname=="r3_b"||fname=="r2_p_b"){
+                                        dis.ajax_end()
+                                    }else if (fname=="r1_p1"){
+                                        dis.ajax_end()
+                                    }
+                                    if (fname=="r3_a"){
+                                        dis.actual_question=70
+                                        dis.progress_bar_value=parseInt(dis.actual_question/dis.questions.length*100)
+                                    }else if (fname=="r2_p_a"){
+                                        dis.actual_question=45
+                                        dis.progress_bar_value=parseInt(dis.actual_question/dis.questions.length*100)
+                                    }else{
+                                        dis.actual_question=dis.actual_question+1
+                                        dis.progress_bar_value=parseInt(dis.actual_question/dis.questions.length*100)
+                                    }   
+                                }
+                                else{
+                                    dis.actual_question=dis.actual_question+1
+                                    dis.progress_bar_value=parseInt(dis.actual_question/dis.questions.length*100)
+                                }
+								$("input[name='vueradio']:checked").prop('checked',false)
+							}else toastr.error("Debes indicar una respuesta.")
+						}else{
+							if ($("#id_answer").val()==''){
+								toastr.error("Debes escibir una respuesta.")
+							}else{
+								dis.answers.push({[""+fname]:$("#id_answer").val()})
+								$("#id_answer").val('')
+								dis.actual_question=dis.actual_question+1
+								dis.progress_bar_value=parseInt(dis.actual_question/dis.questions.length*100)
+							}
+						}
+					});
+				},
+				ajax_end(){
+                    var dis=this
+                    $.ajax({
+                        url: "{% url 'save_answers'%}",
+                        method: 'POST',
+                        contentType :"application/json",
+                        data:JSON.stringify({'workplace_id':"{{workplaceid}}",'employee_id':"{{employee_id}}",'answers':dis.answers,'form':dis.form_name}),
+                        dataType: 'json',
+                        success: function(data){
+                            toastr.success("Cuestionario finalizado.")
+                            console.log(data)
+                            if (data.status=='ok'){
+                                if(data.employee_url){
+                                    setTimeout(function(){location.replace("https://035.ihes.mx/app/access/?d="+data.employee_url+"&apn=ihes.com.mx.n035")},500)
+                                }else{
+                                    setTimeout(function(){location.reload()},500)
+                                }
+                            }
+                        }
+                    });
+                },
+                end_evaluation(){
+					var dis=this
+					$(function(){
+                        $("#app").block({ 
+                            message: '<i class="text-primary fa fa-3x fa-spinner fa-spin"></i>',
+                            timeout: 2000, //unblock after 3 seconds
+                            overlayCSS:{backgroundColor:'#fff',opacity:0.8,cursor:'wait'},
+                            css: {border: 0,padding: 0,backgroundColor: 'transparent'},
+                            onUnblock: function(){$("#app").css('display','block')},
+                        })
+                        var fname=dis.questions[dis.actual_question-1].field_name
+                        if ($("input[name='vueradio']").is(':checked')){
+                            console.log('checked')
+                            dis.answers.push({[""+fname]:$("input[name='vueradio']:checked").attr('data-id')})
+                            $("input[name='vueradio']:checked").prop('checked',false)
+                            dis.ajax_end()
+                        }else toastr.error("Debes indicar una respuesta.")
+					});
+				},
+            },
+            mounted: function () {
+            	this.$nextTick(function () {
+            		 $(function(){
+    					$("#app").css('display','block')
+                        $.ajaxSetup({ 
+                            beforeSend: function(xhr, settings) {
+                                 function getCookie(name) {
+                                     var cookieValue = null;
+                                     if (document.cookie && document.cookie != '') {
+                                         var cookies = document.cookie.split(';');
+                                         for (var i = 0; i < cookies.length; i++) {
+                                             var cookie = jQuery.trim(cookies[i]);
+                                             // Does this cookie string begin with the name we want?
+                                             if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                                                 cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                                                 break;
+                                             }
+                                         }
+                                     }
+                                     return cookieValue;
+                                 }
+                                 if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
+                                     // Only send the token to relative URLs i.e. locally.
+                                     xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+                                 }
+                             } 
+                        });
+    				});
+                    $(".start_survey").click(function(){
+                        app.loadJsonData()
+                    })
+            	})
+			}
+        })
+    };
+    // end vue script
+    </script>
+    <!-- END: Page JS-->
+
+</body>
+<!-- END: Body-->
+
+</html>

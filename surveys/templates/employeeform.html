@@ -1,0 +1,421 @@
+{% extends 'index.html'%}
+{% load static %}
+{% block dashboard %}
+<div class="content-overlay"></div>
+<div class="header-navbar-shadow"></div>
+<div class="content-wrapper">
+    <div class="content-header row">
+    </div>
+    <div class="content-body">
+        <!-- Dashboard Analytics Start -->
+        <section id="dashboard-analytics">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title">Crear nuevo empleado</h4>
+                </div>
+                <div class="card-content">
+                    <div class="card-body">
+                        <form action="." id="register_form" method="post">
+                            {% csrf_token %}
+                            <div class="form-body">
+                                <input type="hidden" name="workplace" id="workplace" value="{{workplace_id}}">
+                                <div class="row">
+                                    <div class="col-6">
+                                        <div class="form-group">
+                                            <div class="form-label-group position-relative">
+                                                <input type="text" id="name" class="form-control" name="workplace_name" placeholder="Nombre completo" required>
+                                                <label for="name">Nombre completo</label>
+                                                <p class="help-block"></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="form-group">
+                                            <div class="form-label-group">
+                                                <select class="select2" data-placeholder="Sexo" id="gender" name="gender">
+                                                    <option></option>
+                                                        <option value="1">Masculino</option>
+                                                        <option value="2">Femenino</option>
+                                                    </select>
+                                                <label for="gender">Sexo</label>
+                                                <p class="help-block"></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-6">
+                                        <div class="form-group">
+                                            <div class="form-label-group">
+                                                <select class="select2" data-placeholder="Edad en años" name="age" id="age">
+                                                    <option></option>
+                                                        <option value='0'>15-19 años</option>
+                                                        <option value='1'>20-24 años</option>
+                                                        <option value='2'>25-29 años</option>
+                                                        <option value='3'>30-34 años</option>
+                                                        <option value='4'>35-39 años</option>
+                                                        <option value='5'>40-44 años</option>
+                                                        <option value='6'>45-49 años</option>
+                                                        <option value='7'>50-54 años</option>
+                                                        <option value='8'>55-59 años</option>
+                                                        <option value='9'>60-64 años</option>
+                                                        <option value='10'>65-69 años</option>
+                                                        <option value='11'>70 o más años</option>
+                                                </select>
+                                                <label for="age">Edad en años</label>
+                                                <p class="help-block"></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="form-group">
+                                            <div class="form-label-group">
+                                                <select class="select2" data-placeholder="Estado civil" name="civil_state" id="civil_state">
+                                                    <option></option>
+                                                        <option value="0">Casado</option>
+                                                        <option value="1">Divorciado</option>
+                                                        <option value="2">Soltero</option>
+                                                        <option value="3">Viudo</option>
+                                                        <option value="4">Unión Libre</option>
+                                                </select>
+                                                <label for="civil_state">Estado civil</label>
+                                                <p class="help-block"></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-6">
+                                        <div class="form-group">
+                                            <div class="form-label-group">
+                                                <select class="select2" data-placeholder="Nivel de estudios" name="study_level" id="study_level">
+                                                    <option></option>
+                                                    <option value="0">Sin formación</option>
+                                                    <option value="1">Primaria</option>
+                                                    <option value="2">Secundaria</option>
+                                                    <option value="3">Preparatoria o Bachillerato</option>
+                                                    <option value="4">Técnico superior</option>
+                                                    <option value="5">Licenciatura</option>
+                                                    <option value="6">Maestría</option>
+                                                    <option value="7">Doctorado</option>
+                                                </select>
+                                                <label for="study_level">Nivel de estudios</label>
+                                                <p class="help-block"></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="form-group">
+                                            <div class="form-label-group position-relative">
+                                                <input type="text" id="ocupation" class="form-control" name="ocupation" placeholder="Ocupación, Profesión o Puesto" required>
+                                                <label for="ocupation">Ocupación, Profesión o Puesto</label>
+                                                <p class="help-block"></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-6">
+                                        <div class="form-group">
+                                            <div class="form-label-group position-relative">
+                                                <label for="department">Departamento, Sección o Área</label>
+                                                <select class="form-control" id="department" name="department" data-placeholder="Departamento, Sección o Área" required>
+                                                </select>
+                                                <p class="help-block"></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="form-group">
+                                            <div class="form-label-group">
+                                                <select class="select2" data-placeholder="Tipo de puesto" name="charge_type" id="charge_type">
+                                                    <option></option>
+                                                    <option value="0">Operativo</option>
+                                                    <option value="1">Supervisor</option>
+                                                    <option value="2">Profesional o Técnico</option>
+                                                    <option value="3">Gerente</option>
+                                                </select>
+                                                <label for="charge_type">Tipo de puesto</label>
+                                                <p class="help-block"></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-6">
+                                        <div class="form-group">
+                                            <div class="form-label-group">
+                                                <select class="select2" id="contract_type" name="contract_type" data-placeholder="Tipo de contratación">
+                                                    <option></option>
+                                                    <option value="0">Por obra o proyecto</option>
+                                                    <option value="1">Por tiempo determinado (Temporal)</option>
+                                                    <option value="2">Por tiempo indeterminado</option>
+                                                    <option value="3">Por Honorarios</option>
+                                                </select>
+                                                <label for="contract_type">Tipo de contratación</label>
+                                                <p class="help-block"></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="form-group">
+                                            <div class="form-label-group">
+                                                <select class="select2" data-placeholder="Tipo de personal" id="employee_type" name="employee_type">
+                                                    <option></option>
+                                                    <option value="0">Sindicalizado</option>
+                                                    <option value="1">Confianza</option>
+                                                    <option value="2">Ninguno</option>
+                                                </select>
+                                                <label for="employee_type">Tipo de personal</label>
+                                                <p class="help-block"></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-6">
+                                        <div class="form-group">
+                                            <div class="form-label-group">
+                                                <select class="select2" data-placeholder="Tipo de jornada de trabajo" id="shift_type" name="shift_type">
+                                                    <option></option>
+                                                    <option value="0">Fijo Nocturno (Entre las 20:00 y 06:00 horas)</option>
+                                                    <option value="1">Fijo Diurno (Entre las 06:00 y 20:00 horas)</option>
+                                                    <option value="2">Fijo Mixto (Combinación del nocturno y diurno)</option>
+                                                </select>
+                                                <label for="shift_type">Tipo de jornada de trabajo</label>
+                                                <p class="help-block"></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="form-group">
+                                            <div class="form-label-group">
+                                                <select class="select2" data-placeholder="Realiza rotación de turnos" id="shift_rotation" name="shift_rotation">
+                                                    <option></option>
+                                                    <option value="0">Sí</option>
+                                                    <option value="1">No</option>
+                                                </select>
+                                                <label for="shift_rotation">Realiza rotación de turnos</label>
+                                                <p class="help-block"></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-6">
+                                        <div class="form-group">
+                                            <div class="form-label-group">
+                                                <select class="select2" data-placeholder="Tiempo en el puesto actual" id="time_in_charge" name="time_in_charge">
+                                                    <option></option>
+                                                    <option value="0">Menos de 6 meses</option>
+                                                    <option value="1">Entre 6 meses y un año</option>
+                                                    <option value="2">Entre 1 a 4 años</option>
+                                                    <option value="3">Entre 5 a 9 años</option>
+                                                    <option value="4">Entre 10 a 14 años</option>
+                                                    <option value="5">Entre 15 a 19 años</option>
+                                                    <option value="6">Entre 20 a 24 años</option>
+                                                    <option value="7">Entre 25 años o Más</option>
+                                                </select>
+                                                <label for="time_in_charge">Tiempo en el puesto actual</label>
+                                                <p class="help-block"></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="form-group">
+                                            <div class="form-label-group">
+                                                <select class="select2" data-placeholder="Tiempo de experiencia laboral" id="exp" name="exp">
+                                                    <option></option>
+                                                    <option value="0">Menos de 6 meses</option>
+                                                    <option value="1">Entre 6 meses y un año</option>
+                                                    <option value="2">Entre 1 a 4 años</option>
+                                                    <option value="3">Entre 5 a 9 años</option>
+                                                    <option value="4">Entre 10 a 14 años</option>
+                                                    <option value="5">Entre 15 a 19 años</option>
+                                                    <option value="6">Entre 20 a 24 años</option>
+                                                    <option value="7">Entre 25 años o Más</option>
+                                                </select>
+                                                <label for="exp">Tiempo de experiencia laboral</label>
+                                                <p class="help-block"></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary mr-1 mb-1">Guardar</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- Dashboard Analytics end -->
+
+    </div>
+</div>
+{% endblock%}
+{% block style %}
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/plugins/forms/validation/form-validation.min.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/vendors/css/forms/select/select2.css' %}">
+    <style type="text/css">
+        .validation-error{
+            border-bottom: 2px solid #EA5455 !important;
+        }
+        .validation-valid{
+            border-bottom: 2px solid #28c76f !important;
+        }
+    </style>
+{% endblock%}
+{% block scripts %}
+    
+    <script src="{% static 'app-assets/vendors/js/forms/validation/jquery.validate.min.js' %}"></script>
+    <script src="{% static 'app-assets/vendors/js/forms/select/select2.full.js' %}"></script>
+    <script type="text/javascript">
+    $(document).ready(function(){
+        $(".select2").select2({
+            dropdownAutoWidth: true,
+            width: '100%'
+        })
+        
+        $.ajax({
+            url: '{% url "get_departments" %}',
+            method: 'GET',
+            data: { 'workplace_id' : '{{workplace_id}}'},
+            contentType :"application/json",
+            dataType: 'json',
+            success: function(data){
+                $("#department").select2({
+                    tags: true,
+                    data: data.results
+                });
+            },
+            error:function (xhr, ajaxOptions, thrownError){
+                if (xhr.status!=400) {
+                    toastr.success('Ha ocurrido un error: '+xhr.responseText,"Error");
+                }else{
+                    toastr.success('Ha ocurrido un error',"Error");
+                }
+                console.log(xhr.status)
+                console.log(xhr.responseText)
+            }       
+        })
+    });
+    $(function(){
+        var validator = $("#register_form").validate({
+        ignore: 'input[type=hidden], .select2-search__field', // ignore hidden fields
+        errorClass: 'validation-error',
+        successClass: 'validation-valid',
+        errorPlacement: function(error, element){
+            elem=$(element)
+            if (elem.hasClass('select2-hidden-accessible')){
+                elem.next().find('.select2-selection--single').removeClass('validation-valid').addClass('validation-error');
+            }
+            else{
+                elem.removeClass('validation-valid');
+                elem.addClass('validation-error')
+            }
+            // console.log(elem)
+            // elem.find(".help-block").text("Valor del campo inválido");
+            // elem.tooltip()
+            // elem.tooltip('show');
+        },
+        success: function(label,element){
+            elem=$(element)
+            if (elem.hasClass('select2-hidden-accessible')){
+                elem.next().find('.select2-selection--single').removeClass('validation-error').addClass('validation-valid');
+            }
+            else{
+            elem.attr('data-original-title',"")
+            elem.removeClass('validation-error');
+            elem.addClass('validation-valid');
+            }
+            // elem.tooltip()
+            // elem.tooltip('show');
+        },
+        highlight:function(element, errorClass){
+            elem=$(element)
+            if (elem.hasClass('select2-hidden-accessible')){
+                var child=elem.next().find('.select2-selection--single')
+                child.removeClass('validation-valid');
+                child.attr('data-original-title',"Valor inválido");
+                child.tooltip()
+                child.tooltip('show');
+            }else{
+            elem.removeClass('validation-valid');
+            elem.attr('data-original-title',"Valor inválido");
+            elem.tooltip()
+            elem.tooltip('show');
+            }
+        },
+        unhighlight:function(element, errorClass){
+            elem=$(element)
+            if (elem.hasClass('select2-hidden-accessible')){
+                var child=elem.next().find('.select2-selection--single')
+                child.removeClass(errorClass).addClass('validation-valid');
+            }else{
+            elem.attr('data-original-title',"");
+            elem.removeClass(errorClass);
+            elem.addClass('validation-valid');
+            }
+            // elem.tooltip()
+            // elem.tooltip('show');
+        },
+        validClass: "validation-valid",
+        submitHandler: function(form) {
+            $.ajax({
+                url: "/api/employee/",
+                method: 'POST',
+                contentType :"application/json",
+                data:JSON.stringify({
+                    "workplace":$("#workplace").val(),
+                    "name":$("#name").val(),
+                    "gender":$("#gender").val(),
+                    "age":$("#age").val(),
+                    "civil_state":$("#civil_state").val(),
+                    "study_level":$("#study_level").val(),
+                    "charge_type":$("#charge_type").val(),
+                    "contract_type":$("#contract_type").val(),
+                    "employee_type":$("#employee_type").val(),
+                    "shift_type":$("#shift_type").val(),
+                    "shift_rotation":$("#shift_rotation").val(),
+                    "time_in_charge":$("#time_in_charge").val(),
+                    "exp":$("#exp").val(),
+                    "ocupation":$("#ocupation").val(),
+                    "department":$("#department").val(),
+                }),
+                dataType: 'json',
+                success: function(data){
+                    toastr.success('Correcto','Has registrado a un nuevo empleado.',{positionClass:'toast-bottom-right',containerId:'toast-bottom-right'});
+                    setTimeout(function(){location.replace("/workplaces/{{workplace_id}}")},2000)
+                },
+                error:function (xhr, ajaxOptions, thrownError){
+                    if (xhr.status==400) {
+                        toastr.error('Error','Ha ocurrido un error '+xhr.responseText,{positionClass:'toast-bottom-right',containerId:'toast-bottom-right'});
+                    }else if (xhr.status==401|xhr.status==411|xhr.status==412|xhr.status==406|xhr.status==416|xhr.status==417|xhr.status==409) {
+                        toastr.error('Error',xhr.responseText,{positionClass:'toast-bottom-right',containerId:'toast-bottom-right'});
+                    }else if (xhr.status==500) {
+                        toastr.error('Error','Se ha producido un error '+xhr.responseText,{positionClass:'toast-bottom-right',containerId:'toast-bottom-right'});
+                    }
+                }
+            });
+        },
+        rules: {
+            date: {date: true},
+            numbers: {number: true},
+            digits: {digits: true},
+            "name": {required: true,min: 6},
+            "gender": {required: true},
+            "age": {required: true},
+            "civil_state": {required: true},
+            "study_level": {required: true},
+            "charge_type": {required: true},
+            "contract_type": {required: true},
+            "employee_type": {required: true},
+            "shift_type": {required: true},
+            "shift_rotation":{required:true},
+            "time_in_charge":{required:true},
+            "exp":{required:true},
+        },
+    });
+    });
+    </script>
+{% endblock%}

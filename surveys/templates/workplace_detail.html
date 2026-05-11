@@ -1,0 +1,172 @@
+{% extends 'index.html'%}
+{% load static %}
+{% block dashboard %}
+<div class="modal fade text-left" id="confirm_survey_end" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-dialog-scrollable" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="confirm_survey_end">Finalizar encuestas</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+            </div>
+            <div class="modal-body">
+                <h5>Está seguro de finalizar la aplicación de encuestas?</h5>
+                <p>Esta acción suspenderá la aplicación de encuestas, por lo cuál, no se podrán registrar nuevos empleados en este centro de trabajo y ningún empleado podrá responder encuestas adicionales ni responder las que hayan sido pausadas.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger waves-effect waves-light" data-dismiss="modal">Cancelar</button>
+                <button type="button" class="end-evaluation btn btn-primary waves-effect waves-light" data-dismiss="modal">Aceptar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="content-overlay"></div>
+<div class="header-navbar-shadow"></div>
+<div class="content-wrapper">
+    <div class="content-header row">
+    </div>
+    <div class="content-body">
+        <!-- Dashboard Analytics Start -->
+        <section id="dashboard-analytics">
+
+            {% if not employees_available %}
+            <div class="row">
+                <div class="col-12">
+                <div class="alert alert-danger" role="alert">
+                    <h4 class="alert-heading">Alerta</h4>
+                    <p class="mb-0">
+                        No cuentas con más empleados por registrar, dirigete a la sección de compras para habilitar un nuevo centro de trabajo o contacta a un asesor<a href="/payments" class="btn btn-danger">Click aquí</a>
+                        <!--<button class="btn btn-danger">Click aquí</button>-->
+                    </p>
+                </div>
+                </div>
+            </div>
+            {% endif %}
+            <div class="row">
+                <div class="col-lg-12 col-md-12 col-12">
+                    <div class="card" data-id='{{workplace_id}}'>
+                        <div class="card-header d-flex flex-column align-items-start pb-0">
+                            <h3>{{name}} - Domicilio: {{address}}
+                                <div class="chip">
+                                    <div class="chip-body">
+                                        <div class="avatar bg-success">
+                                            <span style="font-size:18px;"><i class="fa fa-whatsapp"></i></span>
+                                        </div>
+                                        <span class="chip-text"><a data-toggle='tooltip' data-original-title='Compartir enlace por WhatsApp para responder encuestas para empleados no registrados previamente.' href="https://api.whatsapp.com/send?text=Para *{{name}}* es importante conocer la opinión de todos los colaboradores. Por eso le invitamos a contestar las encuestas para identificar factores de riesgo psicosocial en el trabajo a travéz de este enlace: https://n035.page.link/?link=https://035.ihes.mx/app/access?d={{access_code}}" target="_blank">Enviar link por WhatsApp</a></span>
+                                        {# %26apn=ihes.com.mx.n035 #}
+                                    </div>
+                                </div>
+                            </h3> 
+                            <p>Actividad Principal: {{main_activity}}</p>
+                            <p>Empleados registrados: {{employees}}</p>
+                            <p>Total de empleados: {{employees_total}}</p>
+                            <p><h5>Evaluación #{{evaluation}}</h5><div class="btn-group">
+                                {%if evaluation > 1 %}
+                                <a href='/workplaces/{{workplace_id}}/{{evaluation|add:"-1"}}/' class="btn btn-xs btn-primary"><i class="fa fa-chevron-left"></i></a>
+                                {%endif%}
+                                {%if last_evaluation > evaluation  %}
+                                <a href='/workplaces/{{workplace_id}}/{{evaluation|add:"1"}}/' class="btn btn-xs btn-primary"><i class="fa fa-chevron-right"></i></a>
+                                {%endif%}
+                            </div></p>
+                            <div class="btn-group">
+                                {% if not employees_available %}
+                                <button disabled="" class="btn bg-gradient-primary waves-effect waves-light">Nuevo empleado</button>
+                                {%else%}
+                                <a href="{% url 'employeeform' workplace_id%}" id="new_employee" class="btn bg-gradient-primary waves-effect waves-light">Nuevo empleado</a>
+                                {%endif%}
+                                {% if not paid %}
+                               <button disabled="" class="btn bg-gradient-primary waves-effect waves-light">Ver resultados</button>
+                                <button disabled="" class="btn bg-gradient-primary waves-effect waves-light">Finalizar aplicación de encuestas</button>
+                                {%else%}
+                                <button type="button" id="end_evaluation_confirm" class="btn bg-gradient-primary waves-effect waves-light">Finalizar aplicación de encuestas</button>
+                                <a href="{% url 'workplace_result' workplace_id%}" class="btn bg-gradient-primary waves-effect waves-light">Ver resultados</a>
+                                {%endif%}
+                            </div>
+                        </div>
+                        <div class="card-content">
+                            <div class="card-body card-dashboard">
+                                <div class="table-responsive">
+                                    <table id = "list" class="display table">
+                                        <thead>
+                                            <tr>
+                                                <th>Nombre</th>
+                                                <th>Sexo</th>
+                                                <th>Ocupación, Profesión o Puesto</th>
+                                                <th>Departamento, Sección o Área</th>
+                                                <th>Estado</th>
+                                                <th>Enlace a encuestas</th>
+                                            </tr>
+                                        </thead>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- Dashboard Analytics end -->
+
+    </div>
+</div>
+{% endblock%}
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/vendors/css/tables/datatable/datatables.min.css' %}">
+{% block scripts %}
+    
+    <script src="{% static 'app-assets/vendors/js/tables/datatable/datatables.min.js' %}"></script>
+    <script src="{% static 'app-assets/vendors/js/tables/datatable/datatables.buttons.min.js' %}"></script>
+    <script src="{% static 'app-assets/vendors/js/tables/datatable/buttons.bootstrap.min.js' %}"></script>
+    <script src="{% static 'app-assets/vendors/js/tables/datatable/datatables.bootstrap4.min.js' %}"></script>
+
+    <script type="text/javascript">
+    $(document).ready(function(){
+        $('[data-toggle="tooltip"]').tooltip()
+        var table=$("#list").DataTable({
+            "lengthMenu": [[5,10,25,50,100], [5,10,25,50,100]],
+            "ajax": '/employees_dt/{{workplace_id}}/0/{{evaluation}}/',
+            "serverSide":true,
+            "columns": [
+                    {"data":"name"},
+                    {"data":"gender"},
+                    {"data":"ocupation"},
+                    {"data":"department"},
+                    {"data":"status"},
+                    {"data":"code"},
+                ],
+            "oLanguage": {
+                "sProcessing": "<i class='fa fa-refresh fa-spin'></i> &nbsp; Espere un momento, cargando datos ...",
+                "sLengthMenu": "Registros por página _MENU_",
+                "sZeroRecords": "No se encontraron registros",
+                "sInfo": "Mostrando la página _PAGE_ de _PAGES_",
+                "sInfoEmpty": "",
+                "sInfoFiltered": "(Filtrando de un total de _MAX_ registros)",
+                "oPaginate": {
+                    "sNext": "Siguiente",
+                    "sPrevious": "Anterior",
+                    "sFirst": "Primero",
+                    "sLast": "Último"
+                },
+                "sSearch": "Búsqueda"
+            }
+          });
+        $('#list').on('draw.dt', function () {$('[data-toggle="tooltip"]').tooltip();});
+        $("#list_filter").addClass('pull-right').css("margin-right:16px;")
+        $("#end_evaluation_confirm").click(function(){
+            $("#confirm_survey_end").modal("show")
+        })
+
+    });
+    $(function(){
+        $(".end-evaluation").click(function(){
+            $.ajax({
+                url: "api/end_evaluation/",
+                method: 'GET',
+                data:{'workplace_id':"{{workplaceid}}"},
+                dataType: 'json',
+                success: function(data){
+                    toastr.success("Se ha cerrado la evaluación","ok")
+                }
+            });
+        })
+    });
+    </script>
+{% endblock%}

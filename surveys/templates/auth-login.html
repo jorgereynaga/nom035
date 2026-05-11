@@ -1,0 +1,170 @@
+{% load static %}
+<!DOCTYPE html>
+<html class="loading" lang="en" data-textdirection="ltr">
+<!-- BEGIN: Head-->
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="keywords" content="NOM 035 Factores de riesgo psicosocial en el trabajo Identificación análisis prevención" />
+    <meta name="description" content="NOM 035 - Servicio Profesional para el cumplimiento de las obligaciones de las NOM-035-STPS-2018">
+    <title>Inicio de sesión</title>
+    <link rel="apple-touch-icon" href="{% static 'app-assets/images/ico/apple-icon-120.png' %}">
+    <link rel="shortcut icon" type="image/x-icon" href="{% static 'app-assets/images/ico/favicon.ico' %}">
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:300,400,500,600" rel="stylesheet">
+
+    <!-- BEGIN: Vendor CSS-->
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/vendors/css/vendors.min.css' %}">
+    <!-- END: Vendor CSS-->
+
+    <!-- BEGIN: Theme CSS-->
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/bootstrap.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/bootstrap-extended.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/colors.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/components.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/themes/dark-layout.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/themes/semi-dark-layout.css' %}">
+
+    <!-- BEGIN: Page CSS-->
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/core/menu/menu-types/vertical-menu.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/core/colors/palette-gradient.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/pages/authentication.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/vendors/css/extensions/toastr.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/plugins/extensions/toastr.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/core/colors/palette-gradient.css' %}">
+    <!-- END: Page CSS-->
+
+    <!-- BEGIN: Custom CSS-->
+    <link rel="stylesheet" type="text/css" href="{% static 'assets/css/style.css' %}">
+    <!-- END: Custom CSS-->
+
+</head>
+<!-- END: Head-->
+
+<!-- BEGIN: Body-->
+
+<body class="vertical-layout vertical-menu-modern 1-column  navbar-floating footer-static bg-full-screen-image  blank-page blank-page" data-open="click" data-menu="vertical-menu-modern" data-col="1-column">
+    <!-- BEGIN: Content-->
+    <div class="app-content content">
+        <div class="content-overlay"></div>
+        <div class="header-navbar-shadow"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+            </div>
+            <div class="content-body">
+                <section class="row flexbox-container">
+                    <div class="col-xl-8 col-11 d-flex justify-content-center">
+                        <div class="card bg-authentication rounded-0 mb-0">
+                            <div class="row m-0">
+                                <div class="col-lg-6 d-lg-block d-none text-center align-self-center px-1 py-0">
+                                    <img src="{% static 'app-assets/images/pages/login_nom035.png' %}" alt="branding logo">
+                                    <br><br><br>
+                                    <p class="clearfix blue-grey lighten-2 mb-0"><span class="float-md-left d-block d-md-inline-block mt-25">COPYRIGHT © 2020 <a class="text-bold-800 grey darken-2" href="#" target="_blank">Instituto Hispanoamericano de Estudios Superiores S.C.,</a>Todos los derechos reservados</span>
+                                    </p>
+                                </div>
+                                <div class="col-lg-6 col-12 p-0">
+                                    <div class="card rounded-0 mb-0 px-2">
+                                        <div class="card-header pb-1">
+                                            <div class="card-title">
+                                                <h4 class="mb-0">Login</h4>
+                                            </div>
+                                        </div>
+                                        <p class="px-2">Bienvenido, inicia sesión en tu cuenta.</p>
+                                        <div class="card-content mb-3">
+                                            <div class="card-body pt-1">
+                                                <form action="." method="post">
+                                                	{% csrf_token %}
+                                                    <fieldset class="form-label-group form-group position-relative has-icon-left">
+                                                        <input type="text" class="form-control" id="username" name="username" placeholder="E-mail" required>
+                                                        <div class="form-control-position">
+                                                            <i class="feather icon-user"></i>
+                                                        </div>
+                                                        <label for="username">E-mail</label>
+                                                    </fieldset>
+
+                                                    <fieldset class="form-label-group position-relative has-icon-left">
+                                                        <input type="password" class="form-control" name="password" id="password" placeholder="Contraseña" required>
+                                                        <div class="form-control-position">
+                                                            <i class="feather icon-lock"></i>
+                                                        </div>
+                                                        <label for="password">Contraseña</label>
+                                                    </fieldset>
+                                                    <div class="form-group d-flex justify-content-between align-items-center">
+                                                        <!--<div class="text-left">
+                                                            <fieldset class="checkbox">
+                                                                <div class="vs-checkbox-con vs-checkbox-primary">
+                                                                    <input type="checkbox">
+                                                                    <span class="vs-checkbox">
+                                                                        <span class="vs-checkbox- -check">
+                                                                            <i class="vs-icon feather icon-check"></i>
+                                                                        </span>
+                                                                    </span>
+                                                                    <span class="">Remember me</span>
+                                                                </div>
+                                                            </fieldset>
+                                                        </div>-->
+                                                        <div class="text-right"><a href="{% url 'password_recover'%}" class="card-link">Olvidaste tu contraseña?</a></div>
+                                                    </div>
+                                                    <a href="{% url 'newuser'%}" class="btn btn-outline-primary float-left btn-inline">Registrarse</a>
+                                                    <button type="submit" class="btn btn-primary float-right btn-inline">Iniciar sesión</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                        <!--<div class="login-footer">
+                                            <div class="divider">
+                                                <div class="divider-text">Ó</div>
+                                            </div>
+                                            <div class="footer-btn d-inline">
+                                                <a href="#" class="btn btn-facebook"><span class="fa fa-facebook"></span></a>
+                                                <a href="#" class="btn btn-twitter white"><span class="fa fa-twitter"></span></a>
+                                                <a href="#" class="btn btn-google"><span class="fa fa-google"></span></a>
+                                                <a href="#" class="btn btn-github"><span class="fa fa-github-alt"></span></a>
+                                            </div>
+                                        </div>-->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </div>
+    </div>
+    <!-- END: Content-->
+
+
+    <!-- BEGIN: Vendor JS-->
+    <script src="{% static 'app-assets/vendors/js/vendors.min.js' %}"></script>
+    <!-- BEGIN Vendor JS-->
+
+    <!-- BEGIN: Theme JS-->
+    <script src="{% static 'app-assets/js/core/app-menu.js' %}"></script>
+    <script src="{% static 'app-assets/js/core/app.js' %}"></script>
+    <script src="{% static 'app-assets/js/scripts/components.js' %}"></script>
+    <script src="{% static 'app-assets/vendors/js/extensions/toastr.min.js' %}"></script>
+    <!-- END: Theme JS-->
+
+    <!-- BEGIN: Page JS-->
+    <script type="text/javascript">
+	$(document).ready(function(){
+		{% if messages %}{% for message in messages %}
+		var msg="{{message}}"
+		// toastr.error('Error',msg);
+		console.log(msg)
+		if (msg=="not_verified_email"){
+			toastr.warning('<h5>Tu correo electrónico no esta verificado. </h5><a href="/email_verification" class="btn btn-md btn-outline-danger">Verificar aquí</a>',{positionClass:'toast-bottom-right',containerId:'toast-bottom-right'});
+		}else if (msg=="wrong_credentials"){
+            toastr.error('Error','Usuario o contraseña incorrecto',{positionClass:'toast-bottom-right',containerId:'toast-bottom-right'});
+        }
+		// }else 
+		// toastr.success('OK','Se ha guardado correctamente');
+		{% endfor %}{% endif %}
+	});
+    </script>
+    <!-- END: Page JS-->
+
+</body>
+<!-- END: Body-->
+
+</html>

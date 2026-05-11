@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>CUESTIONARIO PARA IDENTIFICAR A LOS TRABAJADORES QUE FUERON SUJETOS A ACONTECIMIENTOS TRAUMÁTICOS SEVEROS</title>
+
+	<style type="text/css">
+		@page{size: letter;margin: 1cm; @bottom-right{content: counter(page) " de " counter(pages);}
+			@bottom-left {content:  string(title);}
+		}
+		footer{
+			position:fixed;
+			left:0;
+			bottom:0;
+			margin-bottom:-10mm;
+			height:10mm;
+			text-align:left;
+			font-size:10px;
+		}
+		li{FONT-FAMILY: FreeSerif_1q;color: rgb(53,55,68);}
+		@font-face {
+			font-family: FreeSerif_1q;
+			src: url("https://035.ihes.mx/static/app-assets/fonts/FreeSerif_1q.woff") format("woff");
+		}
+		/*.table > tbody > tr > td, .table > tbody > tr > th, .table > tfoot > tr > td, .table > tfoot > tr > th, .table > thead > tr > td, .table > thead > tr > th {padding: 5px 15px !important;font-size: 10px !important;}*/
+		.super-small-text{font-size: 8px;}
+		.medium-text{font-size: 14px !important;}
+		.row{background-color: white; width: 780px;}
+		small{font-size: 12px !important;}
+		p{font-size: 12px !important;}
+		body{width: 100% !important;background-color: white;}
+	</style>
+</head>
+<body>
+<!-- Page content -->
+<div class="container">
+	<!-- Invoice template -->
+	<div class="row"><div class="col">
+		<h6 class="text-primary">CUESTIONARIO PARA IDENTIFICAR A LOS TRABAJADORES QUE FUERON <br> SUJETOS A ACONTECIMIENTOS TRAUMÁTICOS SEVEROS</h6>
+	</div></div><br><br>
+	<div class="row">
+		<p class="text-sm-left "><b>{{name}}</b></p>
+	</div>
+	<div class="row">
+		<div class="col-6">
+			<p>Domicilio: <b>{{address}}</b></p>
+			<b> {{address_postal_code}}, {{address_locality}}, {{address_state}}</b>
+			<b> {{phone}}</b>
+		</div>
+	</div><br><br>
+	<div class="row">
+		<legend class="text-sm-left "><h6>Perfil de {{emp_name}}</h6></legend>
+		<div class="col-6">
+			<p>Sexo: <b>{{gender}}</b></p>
+			<p>Estado Civil: <b>{{civil_state}}</b></p>
+			<p>Tipo de Puesto: <b>{{charge_type}}</b></p>
+			<p>Rotación de Turnos: <b>{{shift_rotation}}</b></p>
+			<p>Experiencia Laboral: <b>{{exp}}</b></p>
+			<p>Profesión/Puesto: <b>{{ocupation}}</b></p>
+			<p>Tipo de Jornada: <b>{{shift_type}}</b></p>
+		</div>
+		<div class="col-6">
+			<p>Edad: <b>{{age}}</b></p>
+			<p>Nivel de Estudios: <b>{{study_level}}</b></p>
+			<p>Tipo de Personal: <b>{{employee_type}}</b></p>
+			<p>Tiempo en el Puesto Actual: <b>{{time_in_charge}}</b></p>
+			<p>Tipo de Contratación: <b>{{contract_type}}</b></p>
+			<p>Departamento/Área: <b>{{department}}</b></p>
+		</div>
+	</div>
+	<div class="row" >
+		<div class="col medium-text">
+		<p>Los resultados de esta evaluación para: {{emp_name}}
+		que requiere valoración y/o atención clínica ya que muestra indicios de:</p>
+		<ul>
+			<li>➔Haber sufrido algún acontecimiento traumático severo</li>
+			<li>➔Tener recuerdos persistentes sobre algún acontecimiento traumático.</li>
+			<li>➔Esfuerzo por evitar circunstancias parecida o asociadas al acontecimiento</li>
+			<li>➔Afectación</li>
+		</ul>
+		</div>
+	</div>
+	<div class="row" >
+		<div class="col medium-text">
+		<p>Si la persona labora en su empresa se recomienda referirlo a una institución pública o privada para su valoración y/o tratamiento, ya que la NOM-035-STPS-2018 establece en el numeral 5.5 como
+			obligación del patrón el identificar a los trabajadores que fueron sujetos a acontecimientos traumáticos
+			severos durante o con motivo del trabajo y canalizarlos para su atención a la institución de seguridad
+			social o privada o al médico del centro de trabajo o de la empresa.¹</p><!--¹²³-->
+		</div>
+	</div>
+	<div class="row" >
+		<div class="col">
+		<legend class="text-sm-left "><h6>RESPUESTAS DADAS POR EL TRABAJADOR</h6></legend>
+		</div>
+	</div>
+	{%for question in trauma_survey%}
+	<div class="row" >
+		<h6 class="text-primary">{{question.title}}</h6>
+	</div>
+	<div class="row" >
+		<div class="col medium-text">
+			<ul>
+				{%for item in question.answers%}
+				<li>{{item}}</li>
+				{%endfor%}
+			</ul>
+		</div>
+	</div>
+	{%endfor%}
+
+	<div class="row" >
+		<div class="col medium-text">
+			<p>Notas sobre la aplicación del presente cuestionario:</p><!--¹²³-->
+		</div>
+	</div>
+	<div class="row" >
+		<div class="col">
+		<p>Este cuestionario es íntegro al que aparece en la Guía de Referencia I incluido en la NOM-035-STPS- 2018 y se aplicó conforme a lo siguiente:
+a) Si todas las respuestas a la Sección I Acontecimiento traumático severo, son 'NO', no es necesario responder las demás secciones, y el
+trabajador no requiere una valoración clínica, y b) En caso contrario, si alguna respuesta a la Sección I es 'SÍ', se requiere contestar las
+secciones: II Recuerdos persistentes sobre el acontecimiento, III Esfuerzo por evitar circunstancias parecidas o asociadas al acontecimiento y
+IV Afectación, el trabajador requerirá atención clínica en cualquiera de los casos siguientes: 1) Cuando responda 'Sí', en alguna de las
+preguntas de la Sección II Recuerdos persistentes sobre acontecimiento; 2) Cuando responda Sí', en tres o más de las preguntas de la
+Sección III Esfuerzo por evitar circunstancias parecidas o asociadas al acontecimiento, o Cuando responda 'Sí', en dos o más de las preguntas
+de la Sección IV Afectación</p><!--¹²³-->
+		</div>
+	</div>
+</div>
+<!-- /page content -->
+</body>
+<footer class="text-primary">INSTITUTO HISPANOAMERICANO DE ESTUDIOS SUPERIORES S.C.</footer>
+</html>
+

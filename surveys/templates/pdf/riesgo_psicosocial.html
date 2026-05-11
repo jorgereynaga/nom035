@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>CUESTIONARIO PARA IDENTIFICAR LOS FACTORES DE RIESGO PSICOSOCIAL Y EVALUACIÓN DEL ENTORNO ORGANIZACIONAL EN LOS CENTROS DE TRABAJO</title>
+
+	<style type="text/css">
+		@page{size: letter;margin: 1cm; @bottom-right{content: counter(page) " de " counter(pages);}
+			@bottom-left {content:  string(title);}
+		}
+		footer{
+			position:fixed;
+			left:0;
+			bottom:0;
+			margin-bottom:-10mm;
+			height:10mm;
+			text-align:left;
+			font-size:10px;
+		}
+		li{FONT-FAMILY: FreeSerif_1q;color: rgb(53,55,68);}
+		@font-face {
+			font-family: FreeSerif_1q;
+			src: url("https://035.ihes.mx/static/app-assets/fonts/FreeSerif_1q.woff") format("woff");
+		}
+		/*.table > tbody > tr > td, .table > tbody > tr > th, .table > tfoot > tr > td, .table > tfoot > tr > th, .table > thead > tr > td, .table > thead > tr > th {padding: 5px 15px !important;font-size: 10px !important;}*/
+		.super-small-text{font-size: 8px;}
+		.medium-text{font-size: 14px !important;}
+		.row{background-color: white; width: 780px;}
+		small{font-size: 12px !important;}
+		p{font-size: 12px !important;}
+		body{width: 100% !important;background-color: white;}
+	</style>
+</head>
+<body>
+<!-- Page content -->
+<div class="container">
+	<!-- Invoice template -->
+	<div class="row"><div class="col">
+		<h6 class="text-primary">CUESTIONARIO PARA IDENTIFICAR LOS FACTORES DE RIESGO PSICOSOCIAL<br>Y EVALUACIÓN DEL ENTORNO ORGANIZACIONAL EN LOS CENTROS DE TRABAJO</h6>
+	</div></div><br><br>
+	<div class="row">
+		<legend class="text-sm-left "><h6>Centro de trabajo <b>{{name}}</b></h6></legend>
+	</div>
+	<div class="row">
+		<div class="col-6">
+			<p>Domicilio: <b>{{address}}</b></p>
+			<b> {{address_postal_code}}, {{address_locality}}, {{address_state}}</b>
+			<b> {{phone}}</b>
+		</div>
+	</div><br><br>
+	<div class="row">
+		<legend class="text-sm-left "><h6>Perfil de {{emp_name}}</h6></legend>
+		<div class="col-6">
+			<p>Sexo: <b>{{gender}}</b></p>
+			<p>Estado Civil: <b>{{civil_state}}</b></p>
+			<p>Tipo de Puesto: <b>{{charge_type}}</b></p>
+			<p>Rotación de Turnos: <b>{{shift_rotation}}</b></p>
+			<p>Experiencia Laboral: <b>{{exp}}</b></p>
+			<p>Profesión/Puesto: <b>{{ocupation}}</b></p>
+			<p>Tipo de Jornada: <b>{{shift_type}}</b></p>
+		</div>
+		<div class="col-6">
+			<p>Edad: <b>{{age}}</b></p>
+			<p>Nivel de Estudios: <b>{{study_level}}</b></p>
+			<p>Tipo de Personal: <b>{{employee_type}}</b></p>
+			<p>Tiempo en el Puesto Actual: <b>{{time_in_charge}}</b></p>
+			<p>Tipo de Contratación: <b>{{contract_type}}</b></p>
+			<p>Departamento/Área: <b>{{department}}</b></p>
+		</div>
+	</div>
+	<div class="row" >
+		<div class="col-4">
+			<p>NIVEL DE RIESGO</p>
+			<table style="margin:0 !important;"><tbody>
+				<tr>
+					<td>{{result_text}}</td>
+				</tr>
+				<tr>
+					<td style="background-color:{{result_class}};"></td>
+				</tr>
+			</tbody></table>
+
+		</div>
+		<div class="col-4">
+			<p>PUNTAJES</p>
+			<p class="super-small-text">POSIBLES/TOTALES</p>
+			<p><b>{{result_val}}</b></p>
+		</div>
+		<div class="col-4">
+			<p>PORCENTAJE</p>
+			<p><b>{{promedio}}%</b></p>
+		</div>
+	</div>
+	<div class="row" >
+		<div class="col medium-text">
+		<p>A continuación se presentan las respuestas que el evaluado proporcionó clasificados por categoría y dominio:</p>
+		</div>
+	</div>
+	{%for item in survey_result%}
+	<div class="row" >
+		<div class="col-4">
+			<p>{{item.type}}:</p>
+			<p><b>{{item.cat_dom}}</b></p>
+		</div>
+		<div class="col-2">
+			<p>Puntos:</p>
+			<p><b>{{item.value}}</b></p>
+		</div>
+		<div class="col-2">
+			<p>Porcentaje:</p>
+			<p><b>{{item.promedio}}%</b></p>
+		</div>
+		<div class="col-2">
+			<p>Riesgo</p>
+			<table style="margin:0 !important;"><tbody>
+				<tr>
+					<td>{{item.result_text}}</td>
+				</tr>
+				<tr>
+					<td style="background-color:{{item.result_class}};"></td>
+				</tr>
+			</tbody></table>
+			
+		</div>
+	</div>
+	{%endfor%}
+</div>
+<!-- /page content -->
+</body>
+<footer class="text-primary">INSTITUTO HISPANOAMERICANO DE ESTUDIOS SUPERIORES S.C.</footer>
+</html>
+

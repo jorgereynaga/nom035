@@ -1,0 +1,280 @@
+{% extends 'index.html'%}
+{% load static %}
+{% block dashboard %}
+<div class="content-overlay"></div>
+<div class="header-navbar-shadow"></div>
+<div class="content-wrapper">
+    <div class="content-header row">
+    </div>
+    <div class="content-body">
+        <!-- Dashboard Analytics Start -->
+        <section id="dashboard-analytics">
+
+            {% if false %}<!--workplaces_available == 0 or -->
+            <div class="row">
+                <div class="col-12">
+                <div class="alert alert-danger" role="alert">
+                    <h4 class="alert-heading">Alerta</h4>
+                    <p class="mb-0">
+                        No cuentas con centros de trabajo disponibles, dirigete a la sección de compras para habilitar un nuevo centro de trabajo <button class="btn btn-danger">Click aquí</button>
+                    </p>
+                </div>
+                </div>
+            </div>
+            {% endif %}
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title">Crear nuevo centro de trabajo</h4>
+                </div>
+                <div class="card-content">
+                    <div class="card-body">
+                        <form action="." id="register_form" method="post">
+                            {% csrf_token %}
+                            <div class="form-body">
+                                <div class="row">
+                                    <div class="col-6">
+                                        <div class="form-group">
+                                            <div class="form-label-group position-relative controls has-icon-left">
+                                                <input type="text" id="workplace_name" class="form-control" name="workplace_name" data-validation-required-message="Debes indicar un nombre o denominación del centro de trabajo" placeholder="Nombre o Denominación" data-validation-regex-regex="[\d\wáéíóúÁÉÍÓÚÑñüÜ\. -]{6,150}" data-validation-regex-message="Debes ingresar un nombre válido, puede usar puntos(.) y guión medio (-)." required>
+                                                <div class="form-control-position">
+                                                    <i class="feather icon-briefcase"></i>
+                                                </div>
+                                                <label for="workplace_name">Nombre o Denominación</label>
+                                                <p class="help-block"></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="form-group">
+                                            <div class="form-label-group controls position-relative has-icon-left">
+                                                <input type="text" id="main_activity" class="form-control" name="main_activity" data-validation-required-message="Debes indicar una actividad principal" placeholder="Actividad principal" required>
+                                                <div class="form-control-position">
+                                                    <i class="feather icon-zap"></i>
+                                                </div>
+                                                <label for="main_activity">Actividad principal</label>
+                                                <p class="help-block"></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-6">
+                                        <div class="form-group">
+                                            <div class="form-label-group controls position-relative has-icon-left">
+                                                <input type="text" id="objective" class="form-control" name="objective"  data-validation-required-message="Debes indicar el objetivo de tu centro de trabajo"placeholder="Objetivo de la empresa" required>
+                                                <div class="form-control-position">
+                                                    <i class="feather icon-check-circle"></i>
+                                                </div>
+                                                <label for="objective">Objetivo de la empresa</label>
+                                                <p class="help-block"></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="form-group">
+                                            <div class="form-label-group controls position-relative has-icon-left">
+                                                <input type="text" id="other_activities" class="form-control" name="other_activities" data-validation-required-message="Debes indicar tus actividades principales" placeholder="Principales actividades" required>
+                                                <div class="form-control-position">
+                                                    <i class="feather icon-zap"></i>
+                                                </div>
+                                                <label for="other_activities">Principales actividades</label>
+                                                <p class="help-block"></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-6">
+                                        <div class="form-group">
+                                            <div class="form-label-group controls position-relative has-icon-left">
+                                                <input type="text" id="address" class="form-control" name="address" data-validation-required-message="Debes indicar un domicilio" placeholder="Domicilio" required>
+                                                <div class="form-control-position">
+                                                    <i class="feather icon-map-pin"></i>
+                                                </div>
+                                                <label for="address">Domicilio</label>
+                                                <p class="help-block"></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="form-group">
+                                            <div class="form-label-group controls position-relative has-icon-left">
+                                                <input type="text" id="address_locality" class="form-control" name="address_locality" data-validation-required-message="Debes indicar una localidad" placeholder="Localidad" required>
+                                                <div class="form-control-position">
+                                                    <i class="feather icon-map"></i>
+                                                </div>
+                                                <label for="address_locality">Localidad</label>
+                                                <p class="help-block"></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-6">
+                                        <div class="form-group">
+                                            <div class="form-label-group controls position-relative has-icon-left">
+                                                <input type="text" id="address_state" class="form-control" name="address_state" data-validation-required-message="Debes indicar un estado" placeholder="Estado" required>
+                                                <div class="form-control-position">
+                                                    <i class="feather icon-globe"></i>
+                                                </div>
+                                                <label for="address_state">Estado</label>
+                                                <p class="help-block"></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="form-group">
+                                            <div class="form-label-group controls position-relative has-icon-left">
+                                                <input type="text" id="address_postal_code" class="form-control" name="address_postal_code" data-validation-required-message="Debes indicar un código postal" placeholder="Código postal" required>
+                                                <div class="form-control-position">
+                                                    <i class="feather icon-mail"></i>
+                                                </div>
+                                                <label for="address_postal_code">Código postal</label>
+                                                <p class="help-block"></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-6">
+                                        <div class="form-group">
+                                            <div class="form-label-group controls position-relative has-icon-left">
+                                                <input type="number" id="employee_num" class="form-control" name="employee_num" data-validation-required-message="Debes indicar una cantidad" placeholder="Cantidad de empleados" required>
+                                                <div class="form-control-position">
+                                                    <i class="feather icon-users"></i>
+                                                </div>
+                                                <label for="employee_num">Cantidad de empleados</label>
+                                                <p class="help-block"></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% if false %}<!--workplaces_available == 0-->
+                            <button type="button" disabled class="btn btn-primary mr-1 mb-1">Guardar</button>
+                            {% else %}
+                            <button type="submit" class="save_workplace btn btn-primary mr-1 mb-1">Guardar</button>
+                            {% endif %}
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- Dashboard Analytics end -->
+
+    </div>
+</div>
+{% endblock%}
+{% block style %}
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/plugins/forms/validation/form-validation.min.css' %}">
+    <style type="text/css">
+        .validation-error{
+            border-bottom: 2px solid #EA5455 !important;
+        }
+        .validation-valid{
+            border-bottom: 2px solid #28c76f !important;
+        }
+    </style>
+{% endblock%}
+{% block scripts %}
+    
+    <script src="{% static 'app-assets/vendors/js/forms/validation/jquery.validate.min.js' %}"></script>
+    <script type="text/javascript">
+    $(document).ready(function(){
+        // $("input,select,textarea").not("[type=submit]").not("[type=hidden]").jqBootstrapValidation({
+        //     submitSuccess: function ($form, event) { 
+        //         console.log("submit")
+        //         return false;
+        //     },
+        //     submitError: function ($form, event, errors) { 
+        //         console.log(errors)
+        //     }
+
+        // });
+        console.log($("#workplace_name"))
+    });
+    $(function(){
+        var validator = $("#register_form").validate({
+        ignore: 'input[type=hidden], .select2-search__field', // ignore hidden fields
+        errorClass: 'validation-error',
+        successClass: 'validation-valid',
+        errorPlacement: function(error, element){
+            elem=$(element)
+            elem.removeClass('validation-valid');
+            elem.addClass('validation-error')
+            // elem.find(".help-block").text("Valor del campo inválido");
+            // elem.tooltip()
+            // elem.tooltip('show');
+        },
+        success: function(label,element){
+            elem=$(element)
+            elem.attr('data-original-title',"")
+            elem.removeClass('validation-error');
+            elem.addClass('validation-valid');
+            // elem.tooltip()
+            // elem.tooltip('show');
+        },
+        highlight:function(element, errorClass){
+            $(element).removeClass('validation-valid');
+            $(element).attr('data-original-title',"Valor inválido");
+            $(element).tooltip()
+            $(element).tooltip('show');},
+        unhighlight:function(element, errorClass){
+            elem=$(element)
+            elem.attr('data-original-title',"");
+            elem.removeClass(errorClass);
+            elem.addClass('validation-valid');
+            // elem.tooltip()
+            // elem.tooltip('show');
+        },
+        validClass: "validation-valid",
+        submitHandler: function(form) {
+            $.ajax({
+                url: "/api/workplace/",
+                method: 'POST',
+                contentType :"application/json",
+                data:JSON.stringify({
+                      "name":$("#workplace_name").val(),
+                      "main_activity":$("#main_activity").val(),
+                      "objective":$("#objective").val(),
+                      "other_activities":$("#other_activities").val(),
+                      "address":$("#address").val(),
+                      "address_locality":$("#address_locality").val(),
+                      "address_state":$("#address_state").val(),
+                      "address_postal_code":$("#address_postal_code").val(),
+                      "employee_num":$("#employee_num").val(),
+                    }),
+                dataType: 'json',
+                success: function(data){
+                    toastr.success('Correcto','Has registrado un nuevo centro de trabajo. Recargando la página',{positionClass:'toast-bottom-right',containerId:'toast-bottom-right'});
+                    setTimeout(function(){location.replace("/workplaces")},2000)
+                },
+                error:function (xhr, ajaxOptions, thrownError){
+                    if (xhr.status==400) {
+                        toastr.error('Error','Ha ocurrido un error '+xhr.responseText,{positionClass:'toast-bottom-right',containerId:'toast-bottom-right'});
+                    }else if (xhr.status==401|xhr.status==411|xhr.status==412|xhr.status==406|xhr.status==416|xhr.status==417|xhr.status==409) {
+                        toastr.error('Error',xhr.responseText,{positionClass:'toast-bottom-right',containerId:'toast-bottom-right'});
+                    }else if (xhr.status==500) {
+                        toastr.error('Error','Se ha producido un error '+xhr.responseText,{positionClass:'toast-bottom-right',containerId:'toast-bottom-right'});
+                    }
+                }
+            });
+        },
+        rules: {
+            date: {date: true},
+            numbers: {number: true},
+            digits: {digits: true},
+            "name": {required: true,min: 6},
+            "main_activity": {required: true},
+            "objective": {required: true},
+            "other_activities": {required: true},
+            "address": {required: true},
+            "address_locality": {required: true},
+            "address_state": {required: true},
+            "address_postal_code": {required: true},
+            "employee_num":{required:true,number: true}
+        },
+    });
+    });
+    </script>
+{% endblock%}

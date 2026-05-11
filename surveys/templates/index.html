@@ -1,0 +1,488 @@
+{% load static %}
+<!DOCTYPE html>
+<html class="loading" lang="en" data-textdirection="ltr">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="IHES NOM 035" content="width=device-width, initial-scale=1.0, user-scalable=0, minimal-ui">
+    <meta name="keywords" content="NOM 035 Factores de riesgo psicosocial en el trabajo Identificación análisis prevención" />
+    <meta name="description" content="NOM 035 - Servicio Profesional para el cumplimiento de las obligaciones de las NOM-035-STPS-2018">
+    <title>Inicio</title>
+    <link rel="shortcut icon" type="image/x-icon" href="{% static 'app-assets/images/ico/favicon.ico' %}">
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:300,400,500,600" rel="stylesheet">
+
+    <!-- BEGIN: Vendor CSS-->
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/vendors/css/vendors.min.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/vendors/css/charts/apexcharts.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/vendors/css/extensions/tether-theme-arrows.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/vendors/css/extensions/tether.min.css' %}">
+
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/bootstrap.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/bootstrap-extended.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/colors.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/components.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/themes/dark-layout.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/themes/semi-dark-layout.css' %}">
+
+    <!-- BEGIN: Page CSS-->
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/core/menu/menu-types/vertical-menu.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/core/colors/palette-gradient.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/pages/dashboard-analytics.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/pages/card-analytics.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/plug|/tour/tour.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/vendors/css/extensions/toastr.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/plugins/extensions/toastr.css' %}">
+    {% block style %}
+    {% endblock%}
+    <!-- END: Page CSS-->
+    <!-- BEGIN: Custom CSS-->
+    <link rel="stylesheet" type="text/css" href="{% static 'assets/css/style.css' %}">
+    <style type="text/css">
+        .tooltip-inner{
+            background-color:#7367f0 !important;
+            opacity: 0.8;
+        }
+        .arrow:before{
+            border-top-color:#7367f0 !important;
+        }
+    </style>
+
+    <!-- END: Custom CSS-->
+
+</head>
+<!-- END: Head-->
+
+<!-- BEGIN: Body-->
+
+<body class="vertical-layout vertical-menu-modern 2-columns  navbar-floating footer-static  " data-open="click" data-menu="vertical-menu-modern" data-col="2-columns">
+
+    <!-- BEGIN: Header-->
+    <nav class="header-navbar navbar-expand-lg navbar navbar-with-menu floating-nav navbar-light navbar-shadow">
+        <div class="navbar-wrapper">
+            <div class="navbar-container content">
+                <div class="navbar-collapse" id="navbar-mobile">
+                    <div class="mr-auto float-left bookmark-wrapper d-flex align-items-center">
+                        <ul class="nav navbar-nav">
+                        </ul>
+                        <ul class="nav navbar-nav bookmark-icons">
+                            <li class="nav-item nav-toggle"><a class="nav-link modern-nav-toggle pr-0" data-toggle="collapse"><i class="feather icon-menu d-block d-xl-none font-medium-4 primary toggle-icon"></i><i class="toggle-icon feather icon-menu font-medium-4 d-none d-xl-block collapse-toggle-icon primary" data-ticon="icon-menu"></i></a></li>
+                        </ul>
+                    </div>
+                    <ul class="nav navbar-nav float-right">
+                        <li class="dropdown dropdown-user nav-item"><a class="dropdown-toggle nav-link dropdown-user-link" href="#" data-toggle="dropdown">
+                                <div class="user-nav d-sm-flex d-none"><span class="user-name text-bold-600">{{request.user.username}}</span><span class="user-status">Empresa</span></div><span><img class="round" src="{% if request.user.userapp.image %}/media/{{request.user.userapp.image }}{%else%}{% static 'app-assets/images/portrait/small/avatar-s-1.png' %}{%endif%}" alt="avatar" height="40" width="40"></span>
+                            </a>
+                            <div class="dropdown-menu dropdown-menu-right">
+                                <a class="dropdown-item" href="{% url 'edit_profile'%}"><i class="feather icon-user"></i> Editar mis datos</a>
+                                <a class="dropdown-item" href="{% url 'edit_profile'%}?d=credit-card"><i class="feather icon-credit-card"></i> Opciones de pago</a>
+                                <div class="dropdown-divider"></div><a class="dropdown-item" href="{% url 'logout' %}"><i class="feather icon-power"></i> Cerrar sesión</a>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </nav>
+    <!-- END: Header-->
+    <!-- BEGIN: Main Menu-->
+    <div class="main-menu menu-fixed menu-light menu-accordion menu-shadow" data-scroll-to-active="true">
+        <div class="navbar-header">
+            <ul class="nav navbar-nav flex-row">
+                <li class="nav-item mr-auto"><a class="navbar-brand" href="{% url 'index' %}">
+                        <img src="{% static '/app-assets/images/logo/logo.png'%}" style="height:auto;width:50px;">
+                        <h2 class="brand-text mb-0">NOM - 035</h2>
+                    </a></li>
+            </ul>
+        </div>
+        <div class="shadow-bottom"></div>
+        <div class="main-menu-content">
+            <ul class="navigation navigation-main" id="main-menu-navigation" data-menu="menu-navigation">
+                <li class=" nav-item"><a href="{% url 'index'%}"><i class="feather icon-home"></i><span class="menu-title">Dashboard</span></a></li>
+                <li class=" nav-item"><a href="{% url 'workplaces'%}"><i class="feather icon-briefcase"></i><span class="menu-title">Centros de Trabajo</span></a></li>
+                <li class="nav-item"><a href="{% url 'workplaceform'%}"><i class="feather icon-plus-square"></i><div class="textBox"><span class="menu-title">Añadir un Centro</span></div></a></li>
+                <li class=" navigation-header"><span>Cuestionarios</span></li>
+                {% for item in workplaces %}
+                <li class="nav-item" {% if item.name|length >= 19 %} data-toggle="tooltip" data-popup="tooltip-custom"  data-original-title="{{item.name}}" {%endif%}><a href="{% url 'single_workplace' item.id %}"><i class="feather icon-users"></i><span class="menu-title">{{item.name}}</span></a></li>
+                {%endfor%}
+                <li class=" navigation-header"><span>Evaluación y resultados</span>
+                <li class=" nav-item"><a href="{% url 'evidence'%}"><i class="feather icon-file-text"></i><span class="menu-title">Portafolio de <br>evidencias</span></a></li>
+                <li class=" navigation-header"><span>Pagos</span>
+                <li class=" nav-item"><a href="{% url 'payments'%}"><i class="feather icon-shopping-cart"></i><span class="menu-title">Servicio NOM035</span></a></li>
+            </ul>
+        </div>
+    </div>
+    <!-- END: Main Menu-->
+    <!-- BEGIN: Content-->
+    <div class="app-content content">
+        {% block dashboard %}
+        <div class="content-overlay"></div>
+        <div class="header-navbar-shadow"></div>
+        <div class="content-wrapper">
+            <div class="content-header row">
+            </div>
+            <div class="content-body">
+
+                <!-- Página de información de la Empresa -->
+                <section class="page-users-view">
+                    {% if not has_workplaces %}
+                    <div class="row">
+                        <div class="col-12">
+							<div class="alert alert-danger">
+                                <p> <i class="feather icon-info mr-1 align-middle"></i> No cuentas con centros de trabajo disponibles, dirigete a la sección de centros de trabajo desde el menú o inicia el registro desde <a href="/workplaceform/">aquí</a>.</p>
+                            </div>
+						</div>
+                    </div>
+                    {% endif %}
+
+
+                <!-- account setting page start -->
+                <section id="page-account-settings">
+                    <div class="row">
+                        <!-- left menu section -->
+                        <div class="col-md-3 mb-2 mb-md-0">
+                            <ul class="nav nav-pills flex-column mt-md-0 mt-1">
+                                <li class="nav-item">
+                                    <a class="nav-link d-flex py-75 active" id="account-pill-general" data-toggle="pill" href="#account-vertical-general" aria-expanded="true">
+                                        <i class="feather icon-globe mr-50 font-medium-3"></i>
+                                        Información de la cuenta
+                                    </a>
+                                </li>
+                                {% for item in workplaces %}
+                                <li class="nav-item">
+                                    <a class="nav-link d-flex py-75" id="account-pill-{{item.id}}" data-toggle="pill" href="#account-vertical-{{item.id}}" aria-expanded="false">
+                                        <i class="feather icon-briefcase mr-50 font-medium-3"></i>
+                                        Centro de Trabajo {{item.name}} 
+                                    </a>
+                                </li>
+                                {%endfor%}
+                            </ul>
+                        </div>
+                        <!-- right content section -->
+                        <div class="col-md-9">
+                            <div class="card">
+                                <div class="card-content">
+                                    <div class="card-body">
+                                        <div class="tab-content">
+                                            <div role="tabpanel" class="tab-pane active" id="account-vertical-general" aria-labelledby="account-pill-general" aria-expanded="true">
+                                                <div class="media">
+                                                    <a href="javascript: void(0);">
+                                                        <img src="{% if request.user.userapp.image %}/media/{{ request.user.userapp.image }}{%else%}{% static 'app-assets/images/portrait/small/avatar-s-1.png' %}{%endif%}" class="rounded mr-75" alt="logo Empresa" height="64" width="64">
+                                                    </a>
+                                                    <div class="media-body mt-75">
+                                                        <h3>{{name}}</h3>
+                                                    </div>
+                                                </div>
+                                                <hr>
+                                                <div class="row">
+                                                    <div class="col-12">
+														<div class="mt-1">
+															<h6 class="mb-0">
+																Centros de Trabajo Registrados:
+                                                                <div class="badge badge-primary">{{len_workplaces}}</div>
+															</h6>
+														</div>
+														<div class="mt-1">
+															<h6 class="mb-0">Teléfono:</h6>
+															<p>{{phone}}</p>
+														</div>
+														<div class="mt-1">
+															<h6 class="mb-0">Email:</h6>
+															<p>{{email}}</p>
+														</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            {% for item in workplaces %}
+                                            <div class="tab-pane fade " id="account-vertical-{{item.id}}" role="tabpanel" aria-labelledby="account-pill-{{item.id}}" aria-expanded="false">
+					                        	<div class="card">
+					                                <div class="card-header">
+					                                    <h4>{{item.name}}</h4>
+					                                    <i class="feather icon-more-horizontal cursor-pointer"></i>
+					                                </div>
+					                                <div class="card-body">
+					                                    <p>{{item.address}}</p>
+					                                    <div class="mt-1">
+					                                        <h6 class="mb-0">Empleados:</h6>
+					                                        <div class="badge badge-primary">{{item.employee_count}}</div>
+					                                    </div>
+					                                    <div class="mt-1">
+					                                        <h6 class="mb-0">Categoria:</h6>
+                                                            {% if item.cat == 1%}
+					                                        <p>DI (Entre 1 y 15 empleados)</p>
+                                                            {% elif item.cat == 2%}
+                                                            <p>DII (Entre 16 y 50 empleados)</p>
+                                                            {% elif item.cat == 3%}
+                                                            <p>DIII (Más de 50 empleados)</p>
+                                                            {% endif %}
+					                                    </div>
+					                                    <div class="mt-1">
+					                                        <h6 class="mb-0">Enlace directo a encuestas:</h6>
+					                                        <a href="{{item.access_code}}">{{item.access_code}}</a>
+					                                    </div>
+					                                </div>
+
+						                            <div class="card">
+						                                <div class="card-header">
+						                                    <h4 class="card-title">Porcentaje de Avance</h4>
+						                                </div>
+						                                <div class="card-content">
+						                                    <div class="card-body">
+						                                        <div class="d-flex justify-content-between mb-25">
+						                                            <div class="browser-primary">
+						                                                <p class="mb-25">Empleados Registrados</p>
+						                                                <h4>{{item.employee_completion}}%</h4>
+						                                            </div>
+						                                            <div class="stastics-primary text-right">
+						                                                <span>{{item.employee_total}}/<span class="text-muted">{{item.employee_count}} </span><i class="feather icon-user text-primary"></i></span>
+						                                                <span class="text-muted d-block">-</span>
+						                                            </div>
+						                                        </div>
+						                                        <div class="progress progress-bar-primary mb-2">
+						                                            <div class="progress-bar" role="progressbar" aria-valuenow="{{item.employee_completion}}" aria-valuemin="{{item.employee_completion}}" aria-valuemax="100" style="width:{{item.employee_completion}}%"></div>
+						                                        </div>
+						                                        <div class="d-flex justify-content-between mb-25">
+						                                            <div class="browser-primary">
+						                                                <p class="mb-25">Cuestionarios Aplicados</p>
+						                                                <h4>{{item.survey_completion}}%</h4>
+						                                            </div>
+						                                            <div class="stastics-primary text-right">
+						                                                <span>{{item.survey_completed}}/<span class="text-muted">{{item.employee_count}} </span><i class="feather icon-file-text text-primary"></i></span>
+						                                                <span class="text-muted d-block">-</span>
+						                                            </div>
+						                                        </div>
+						                                        <div class="progress progress-bar-primary mb-2">
+						                                            <div class="progress-bar" role="progressbar" aria-valuenow="{{item.survey_completion}}" aria-valuemin="{{item.survey_completion}}" aria-valuemax="100" style="width:{{item.survey_completion}}%"></div>
+						                                        </div>
+						                                        <div class="d-flex justify-content-between mb-25">
+						                                            <div class="browser-primary">
+						                                                <p class="mb-25">Análisis de Información</p>
+						                                                <h4>0%</h4>
+						                                            </div>
+						                                            <div class="stastics-primary text-right">
+						                                                <span> <i class="feather icon-user-check text-primary"></i></span>
+						                                                <span class="text-muted d-block">-</span>
+						                                            </div>
+						                                        </div>
+						                                        <div class="progress progress-bar-primary mb-2">
+						                                            <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width:0%"></div>
+						                                        </div>
+						                                        <div class="d-flex justify-content-between mb-25">
+						                                            <div class="browser-primary">
+						                                                <p class="mb-25">Generación de Resultados</p>
+						                                                <h4>0%</h4>
+						                                            </div>
+						                                            <div class="stastics-primary text-right">
+						                                                <span> <i class="feather icon-settings text-primary"></i></span>
+						                                                <span class="text-muted d-block">-</span>
+						                                            </div>
+						                                        </div>
+						                                        <div class="progress progress-bar-primary mb-2">
+						                                            <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width:0%"></div>
+						                                        </div>
+						                                        <div class="d-flex justify-content-between mb-25">
+						                                            <div class="browser-primary">
+						                                                <p class="mb-25">Proceso Completo</p>
+						                                                <h4>0%</h4>
+						                                            </div>
+						                                            <div class="stastics-primary text-right">
+						                                                <span> <i class="feather icon-layers text-primary"></i></span>
+						                                                <span class="text-muted d-block">-</span>
+						                                            </div>
+						                                        </div>
+						                                        <div class="progress progress-bar-primary mb-50">
+						                                            <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width:0%"></div>
+						                                        </div>
+						                                    </div>
+						                                </div>
+						                            </div>
+
+					                            </div>
+                                            </div>
+                                            {%endfor%}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Anuncios -->
+
+				<section id="bg-variants">
+                    <div class="row">
+                        <div class="col-12 mt-3 mb-1">
+                            <h4 class="text-uppercase">Información</h4>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-4 col-md-6 col-sm-12">
+                            <div class="card text-white bg-gradient-primary text-center">
+                                <div class="card-content d-flex">
+                                    <div class="card-body">
+                                        <h4 class="card-title text-white mt-3">NOM-035-STPS-2018</h4>
+                                        <p class="card-text">Norma Oficial Mexicana NOM-035-STPS-2018, Factores de riesgo psicosocial en el trabajo-Identificación, análisis y prevención. Públicada en el Diario Oficial de la Federación el 23 de Octubre del 2018</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4 col-md-6 col-sm-12">
+                            <div class="card border-info text-center bg-transparent">
+                                <div class="card-content">
+                                    <div class="card-body">
+                                        <h4 class="card-title mt-3">1ª. Etapa – 23 de octubre de 2019</h4>
+                                        <p class="card-text mb-25">La política; las medidas de prevención; la identificación de los trabajadores expuestos a acontecimientos traumáticos severos, y la difusión de la información.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4 col-md-6 col-sm-12">
+                            <div class="card text-white bg-gradient-danger text-center">
+                                <div class="card-content d-flex">
+                                    <div class="card-body">
+                                        <h4 class="card-title text-white mt-3">2ª. Etapa – 23 de octubre de 2020</h4>
+                                        <p class="card-text">La identificación y análisis de los factores de riesgo psicosocial; la evaluación del entorno organizacional; las medidas y acciones de control; la práctica de exámenes médicos, y los registros.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </section>
+
+            </div>
+        </div>
+        {% endblock%}
+        <div id="fb-root"></div>
+        <div class="fb-customerchat" attribution=setup_tool page_id="102250801403500" theme_color="#7367f0" logged_in_greeting="Hola, ¿necesitas ayuda?" logged_out_greeting="Hola, ¿necesitas ayuda?"></div>
+    </div>
+    <!-- END: Content-->
+    <div class="sidenav-overlay"></div>
+    <div class="drag-target"></div>
+
+    <!-- BEGIN: Footer-->
+    <footer class="footer footer-static footer-light">
+        <p class="clearfix blue-grey lighten-2 mb-0"><span class="float-md-left d-block d-md-inline-block mt-25">COPYRIGHT &copy; 2020<a class="text-bold-800 grey darken-2" href="#" target="_blank">IHES S.C. ,</a>Todos los derechos reservados</span>
+            <button class="btn btn-primary btn-icon scroll-top" type="button"><i class="feather icon-arrow-up"></i></button>
+        </p>
+    </footer>
+    <!-- END: Footer-->
+
+
+    <!-- BEGIN: Vendor JS-->
+    <script src="{% static 'app-assets/vendors/js/vendors.min.js' %}"></script>
+    <!-- BEGIN Vendor JS-->
+
+    <!-- BEGIN: Page Vendor JS-->
+    <script src="{% static 'app-assets/vendors/js/charts/apexcharts.min.js' %}"></script>
+    <script src="{% static 'app-assets/vendors/js/extensions/tether.min.js' %}"></script>
+    <!-- 
+    <script src="{% static 'app-assets/vendors/js/extensions/shepherd.min.js' %}"></script>
+        END: Page Vendor JS-->
+
+    <!-- BEGIN: Theme JS-->
+    <script src="{% static 'app-assets/js/core/app-menu.js' %}"></script>
+    <script src="{% static 'app-assets/js/core/app.js' %}"></script>
+    <script src="{% static 'app-assets/js/scripts/components.js' %}"></script>
+    <script src="{% static 'app-assets/vendors/js/extensions/toastr.min.js' %}"></script>
+
+    <!-- END: Theme JS-->
+
+    <!-- BEGIN: Page JS
+    <script src="{% static 'app-assets/js/scripts/pages/dashboard-analytics.js' %}"></script>
+    -->
+    <script type="text/javascript">
+    $.ajaxSetup({ 
+        beforeSend: function(xhr, settings) {
+             function getCookie(name) {
+                 var cookieValue = null;
+                 if (document.cookie && document.cookie != '') {
+                     var cookies = document.cookie.split(';');
+                     for (var i = 0; i < cookies.length; i++) {
+                         var cookie = jQuery.trim(cookies[i]);
+                         // Does this cookie string begin with the name we want?
+                         if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                             cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                             break;
+                         }
+                     }
+                 }
+                 return cookieValue;
+             }
+             if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
+                 // Only send the token to relative URLs i.e. locally.
+                 xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+             }
+         } 
+    });
+    </script>
+    
+<!-- 
+
+    <script>
+        // var len = $('script[src="https://connect.facebook.net/es_MX/sdk.js"]').length;
+        // console.log(document.querySelector('script[src="https://connect.facebook.net/es_MX/sdk.js"]'))
+        // if (len===0){
+
+        window.fbAsyncInit = function() {
+            console.log("1")
+            var len = $('script[src="https://connect.facebook.net/es_LA/sdk/xfbml.customerchat.js"]').length
+            if (len===0){
+                console.log("not loaded")
+            }else{
+                console.log("loaded")
+            }
+            FB.init({xfbml:true,version:'v8.0'});
+            console.log("2")
+        };
+        try{
+
+        (function(d, s, id) {
+            // whenNoTrackingProtection()
+            console.log("3")
+            var js, fjs = d.getElementsByTagName(s)[0];
+            if (d.getElementById(id)) return;
+            js = d.createElement(s); js.id = id;
+            js.src = 'https://connect.facebook.net/es_LA/sdk/xfbml.customerchat.js';
+            fjs.parentNode.insertBefore(js, fjs);
+            console.log("4")
+        }(document, 'script', 'facebook-jssdk'));
+        } catch{
+            console.log("error")
+
+        }
+        function whenNoTrackingProtection() {
+            if (!whenNoTrackingProtection.promise) {
+                var dfd = new $.Deferred();
+                whenNoTrackingProtection.promise = dfd.promise();
+
+                var time = Date.now();
+                $('<img/>')
+                    .attr('src', '//www.facebook.com/tr/')
+                    .on('load', dfd.resolve)
+                    .on('error', function() {
+                        if ((Date.now() - time) < 50) {
+                            dfd.reject();
+                        } else {
+                            // The request took to long, it seems this is a network error.
+                            dfd.resolve();
+                        }
+                    });
+            }
+
+            return whenNoTrackingProtection.promise;
+        }
+
+    </script>
+
+-->
+
+    //m.me/prepara035
+    {% block scripts %}
+    {% endblock%}
+    <!-- END: Page JS-->
+
+</body>
+<!-- END: Body-->
+
+</html>

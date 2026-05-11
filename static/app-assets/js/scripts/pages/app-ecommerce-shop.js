@@ -1,0 +1,83 @@
+/*=========================================================================================
+    File Name: app-ecommerce-shop.js
+    Description: Ecommerce Shop
+    ----------------------------------------------------------------------------------------
+    Item Name: Vuexy  - Vuejs, HTML & Laravel Admin Dashboard Template
+    Author: PIXINVENT
+    Author URL: http://www.themeforest.net/user/pixinvent
+==========================================================================================*/
+$(document).ready(function () {
+  "use strict";
+  // RTL Support
+  var direction = 'ltr';
+  if ($('html').data('textdirection') == 'rtl') {
+    direction = 'rtl';
+  }
+
+  var sidebarShop = $(".sidebar-shop"),
+    shopOverlay = $(".shop-content-overlay"),
+    sidebarToggler = $(".shop-sidebar-toggler"),
+    priceFilter = $(".price-options"),
+    gridViewBtn = $(".grid-view-btn"),
+    listViewBtn = $(".list-view-btn"),
+    ecommerceProducts = $("#ecommerce-products"),
+    cart = $(".cart"),
+    wishlist = $(".wishlist");
+
+
+
+  // // Checkout Wizard
+  // var checkoutWizard = $(".checkout-tab-steps"),
+  //   checkoutValidation = checkoutWizard.show();
+  // if (checkoutWizard.length > 0) {
+  //   $(checkoutWizard).steps({
+  //     headerTag: "h6",
+  //     bodyTag: "fieldset",
+  //     transitionEffect: "fade",
+  //     titleTemplate: '<span class="step">#index#</span> #title#',
+  //     enablePagination: false,
+  //     onStepChanging: function (event, currentIndex, newIndex) {
+  //       // allows to go back to previous step if form is
+  //       if (currentIndex > newIndex) {
+  //         return true;
+  //       }
+  //       // Needed in some cases if the user went back (clean up)
+  //       if (currentIndex < newIndex) {
+  //         // To remove error styles
+  //         checkoutValidation.find(".body:eq(" + newIndex + ") label.error").remove();
+  //         checkoutValidation.find(".body:eq(" + newIndex + ") .error").removeClass("error");
+  //       }
+  //       // check for valid details and show notification accordingly
+  //       if (currentIndex === 1 && Number($(".form-control.required").val().length) < 1) {
+  //         toastr.warning('Error', 'Please Enter Valid Details', { "positionClass": "toast-bottom-right" });
+  //       }
+  //       checkoutValidation.validate().settings.ignore = ":disabled,:hidden";
+  //       return checkoutValidation.valid();
+  //     },
+  //   });
+  //   // to move to next step on place order and save address click
+  //   $(".place-order, .delivery-address").on("click", function () {
+  //     $(".checkout-tab-steps").steps("next", {});
+  //   });
+  //   // check if user has entered valid cvv
+  //   // $(".btn-cvv").on("click", function () {
+  //   //   if ($(".input-cvv").val().length == 3) {
+  //   //     toastr.success('Success', 'Payment received Successfully', { "positionClass": "toast-bottom-right" });
+  //   //   }
+  //   //   else {
+  //   //     toastr.warning('Error', 'Please Enter Valid Details', { "positionClass": "toast-bottom-right" });
+  //   //   }
+  //   // })
+  // }
+});
+
+// on window resize hide sidebar
+$(window).on("resize", function () {
+  if ($(window).width() <= 991) {
+    $(".sidebar-shop").removeClass("show");
+    $(".shop-content-overlay").removeClass("show");
+  }
+  else {
+    $(".sidebar-shop").addClass("show");
+  }
+});
