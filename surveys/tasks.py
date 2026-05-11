@@ -1,6 +1,11 @@
 from celery import shared_task
 from django.template.loader import render_to_string
-from weasyprint import HTML
+try:
+    from weasyprint import HTML
+    WEASYPRINT_AVAILABLE = True
+except (ImportError, OSError):
+    WEASYPRINT_AVAILABLE = False
+    HTML = None
 from django.conf import settings
 import logging,os
 p_= logging.getLogger(__name__)
