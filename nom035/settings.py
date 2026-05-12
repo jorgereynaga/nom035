@@ -165,7 +165,7 @@ STATICFILES_DIRS = [
 PROTECTED_MEDIA_ROOT=os.path.join(BASE_DIR, 'files')
 STATIC_ROOT = "/static/"
 STATIC_URL = '/static/'
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 # Stripe
 STRIPE_PUBLIC_KEY = os.environ.get('STRIPE_PUBLIC_KEY', '')
