@@ -20,11 +20,11 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-dev-key-local')
+SECRET_KEY = os.environ.get('SECRET_KEY', '$g6e6mar#04g1dt(!sme&gknk7s$+e66g855=ul@08x)2l=&aun_mas-seguro!')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # DEBUG =False
-DEBUG = os.environ.get('DEBUG', 'False') == 'True'
+DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
 APPEND_SLASH = True
 # SECURE_SSL_REDIRECT=True
@@ -106,6 +106,7 @@ WSGI_APPLICATION = 'nom035.wsgi.application'
 
 import dj_database_url
 import os
+import dj_database_url
 
 DATABASES = {
     'default': dj_database_url.config(
@@ -165,3 +166,6 @@ STATIC_ROOT = "/static/"
 STATIC_URL = '/static/'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+# Stripe
+STRIPE_PUBLIC_KEY = os.environ.get('STRIPE_PUBLIC_KEY', '')
+STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY', '')
