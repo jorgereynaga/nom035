@@ -19,7 +19,7 @@ from surveys.views import *
 from surveys.stripe_views import (
     StripePlansView, StripeCheckoutView, StripePortalView,
     StripeWebhookView, PaymentSuccessView, PaymentCancelView
-)*
+)
 from django.conf import settings
 from django.conf.urls.static import static
 from rest_framework.authtoken import views
