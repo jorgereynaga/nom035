@@ -15,7 +15,11 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path,re_path,include
-from surveys.views import *
+from surveys.views import 
+from surveys.stripe_views import (
+    StripePlansView, StripeCheckoutView, StripePortalView,
+    StripeWebhookView, PaymentSuccessView, PaymentCancelView
+)*
 from django.conf import settings
 from django.conf.urls.static import static
 from rest_framework.authtoken import views
@@ -77,6 +81,14 @@ urlpatterns = [
     #re_path(r'^(?:663egpo6oxo1uuwg7y2hcttf3hqcga.html)?$', serve, kwargs={'path': '/663egpo6oxo1uuwg7y2hcttf3hqcga.html'}),
     # Urls Web Page
     path('', WebIndex.as_view(), name="webindex"),
+
+    # Stripe
+    path('stripe/planes/', StripePlansView.as_view(), name='stripe_planes'),
+    path('stripe/checkout/', StripeCheckoutView.as_view(), name='stripe_checkout'),
+    path('stripe/portal/', StripePortalView.as_view(), name='stripe_portal'),
+    path('stripe/webhook/', StripeWebhookView.as_view(), name='stripe_webhook'),
+    path('payments/success/', PaymentSuccessView.as_view(), name='payment_success'),
+    path('payments/cancel/', PaymentCancelView.as_view(), name='payment_cancel'),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
