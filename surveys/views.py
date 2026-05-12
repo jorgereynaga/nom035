@@ -153,13 +153,31 @@ class Index(LoginRequiredMixin,View):
 			"survey_completed":survey_completed,
 			"survey_completion":ceil((survey_completed/item.employee_num)*100),
 			})
-		ctx={"workplaces":wk} 
+		ctx={"workplaces":wk}
 		ctx['workplaces_available']=request.user.userapp.workplaces_available
 		ctx['has_workplaces']=Workplace.objects.filter(user_id=self.request.user.id).exists()
 		ctx['name']=request.user.userapp.name
 		ctx['phone']=request.user.userapp.phone
 		ctx['email']=request.user.email
 		ctx['len_workplaces']=len(ctx["workplaces"])
+		ctx['total_employees']=sum(item['employee_count'] for item in wk)
+		ctx['total_surveys']=sum(item['survey_completed'] for item in wk)
+		userapp=request.user.userapp
+		ctx['psico_disponibles']=getattr(userapp,'psico_evaluaciones_disponibles',0)
+		plan_key=getattr(userapp,'stripe_plan_key','')
+		if plan_key:
+			try:
+				from surveys.stripe_plans import PLANS
+				plan=PLANS.get(plan_key,{})
+				ctx['plan_activo']=plan.get('name','')
+				ctx['plan_precio']='{:,}'.format(plan.get('precio',0))
+				ctx['plan_periodo']=plan.get('periodo','')
+				ctx['plan_empleados_max']=plan.get('empleados_max')
+				ctx['plan_evaluaciones']=plan.get('evaluaciones_mes')
+			except Exception:
+				ctx['plan_activo']=None
+		else:
+			ctx['plan_activo']=None
 		return render(request, 'index.html',ctx)
 class PaymentView(LoginRequiredMixin,View):
 	login_url = reverse_lazy('login')
@@ -2264,7 +2282,8 @@ class BotView(View):
 
 	def post(self, request, *args, **kwargs):
 		incoming_message = json.loads(self.request.body.decode('utf-8'))
-		facebook_token = os.environ.get('FACEBOOK_TOKEN', '')
+		# TOKEN="EAAM7xv9LqRsBADjhZAdkzTZClkFtgqsLYrATjHZAt2da23rQXG6UyUudLFqajVrTNkUcRRS56Bbtm3LGIktk9pKVW2SlaHDqZAK7ILwiGmyma0dPGmC8C34NK8ZAu4hf2uRS0ofYnpFZCf7RZBJemiRVUFZCQKjSTUOo9Juxjli1XpsBzmXNAZBWY"##pruebabot
+		TOKEN="EAAM7xv9LqRsBAJH0bFL5ZCS8dZAO01qkBJsqzMwvUjtgElqYypH7ZCEOiEuQZA7VMW7GVLGUdpyNcNdJSaR8MFX8NDdOXkKPn4tCO4MvZBakqjUCpYJUqZAYCXZCl0BGeegn9mVHtNjNsGyQEz8xfrUV8CEfPGZAuzGXKhXDJlq9LgZDZD"
 
 		# {"greeting": [{"locale":"default","text":"Bienvenido {{user_first_name}}, NOM-035-STPS-2018 Servicio Profesional, Te ayudamos a dar cumplimiento a las obligaciones patronales en la identificación, análisis y prevención de factores de los riesgos psicosociales en el trabajo."}],"get_started": {"payload": "USER_START_CHAT"}}
 		# import requests,json
