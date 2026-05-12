@@ -15,7 +15,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path,re_path,include
-from surveys.views import 
+from surveys.views import *
 from surveys.stripe_views import (
     StripePlansView, StripeCheckoutView, StripePortalView,
     StripeWebhookView, PaymentSuccessView, PaymentCancelView
