@@ -4,8 +4,15 @@ from django.contrib.auth.admin import UserAdmin
 # Register your models here.
 admin.site.unregister(User)
 class UserInline(admin.StackedInline):
-	model = Userapp
-	can_delete = False
+    model = Userapp
+    can_delete = False
+    fields = (
+        'name', 'phone', 'client_id', 'validated_email',
+        'workplaces_available', 'workplaces_availableB', 'workplaces_availableC',
+        'stripe_customer_id', 'stripe_subscription_id',
+        'stripe_plan_key', 'psico_evaluaciones_disponibles',
+        'image',
+    )
 
 UserAdmin.list_display += ('nombre','telefono','fecha_creacion',)
 class UserAdmin(UserAdmin):

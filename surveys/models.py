@@ -26,12 +26,26 @@ class Userapp(models.Model):
 	workplaces_available=models.IntegerField(u'Centros pagados A', default=0)
 	workplaces_availableB=models.IntegerField(u'Centros pagados B', default=0)
 	workplaces_availableC=models.IntegerField(u'Centros pagados C', default=0)
+	workplaces_availableC = models.IntegerField(u'Centros pagados C', default=0)
+
+# Stripe
+stripe_customer_id = models.CharField(
+    u'Stripe Customer ID', max_length=100, blank=True, null=True)
+stripe_subscription_id = models.CharField(
+    u'Stripe Subscription ID', max_length=100, blank=True, null=True)
+stripe_plan_key = models.CharField(
+    u'Plan activo', max_length=100, blank=True, default='')
+psico_evaluaciones_disponibles = models.IntegerField(
+    u'Evaluaciones psicométricas disponibles', default=0)
+
+record_create = models.DateTimeField(auto_now_add=True)
 	#cus_2fkJPFjQKABcmiZWz
 	#email
 	#username=correo
 	record_create=models.DateTimeField(auto_now_add=True)
 	record_update=models.DateTimeField(auto_now=True)
 	image=models.FileField(u'Logo de la empresa', upload_to=user_directory_path,validators=[validate_file_extension], blank=True, null=True)
+
 
 class Workplace(models.Model):
 	user=models.ForeignKey(User,related_name="workplaces",on_delete=models.CASCADE)
