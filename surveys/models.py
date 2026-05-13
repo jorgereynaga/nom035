@@ -13,9 +13,9 @@ def validate_file_extension(value):
 		raise ValidationError(u'Archivo muy pesado. Limite de 2.5Mb')
 
 def user_directory_path(instance, filename):
-    return 'logos/{0}/{1}'.format(instance.user.id, filename)
+	return 'logos/{0}/{1}'.format(instance.user.id, filename)
 def result_directory_path(instance, filename):
-    return 'results/{0}/{1}/{2}'.format(instance.workplace.id,instance.evaluation,filename)
+	return 'results/{0}/{1}/{2}'.format(instance.workplace.id,instance.evaluation,filename)
 class Userapp(models.Model):
 	#empresa
 	user=models.OneToOneField(User,related_name="userapp",on_delete=models.CASCADE)
@@ -28,17 +28,11 @@ class Userapp(models.Model):
 	workplaces_availableC=models.IntegerField(u'Centros pagados C', default=0)
 	workplaces_availableC = models.IntegerField(u'Centros pagados C', default=0)
 
-# Stripe
-stripe_customer_id = models.CharField(
-    u'Stripe Customer ID', max_length=100, blank=True, null=True)
-stripe_subscription_id = models.CharField(
-    u'Stripe Subscription ID', max_length=100, blank=True, null=True)
-stripe_plan_key = models.CharField(
-    u'Plan activo', max_length=100, blank=True, default='')
-psico_evaluaciones_disponibles = models.IntegerField(
-    u'Evaluaciones psicométricas disponibles', default=0)
-
-record_create = models.DateTimeField(auto_now_add=True)
+	# Stripe
+	stripe_customer_id = models.CharField(u'Stripe Customer ID', max_length=100, blank=True, null=True)
+	stripe_subscription_id = models.CharField(u'Stripe Subscription ID', max_length=100, blank=True, null=True)
+	stripe_plan_key = models.CharField(u'Plan activo', max_length=100, blank=True, default='')
+	psico_evaluaciones_disponibles = models.IntegerField(u'Evaluaciones psicométricas disponibles', default=0)
 	#cus_2fkJPFjQKABcmiZWz
 	#email
 	#username=correo
