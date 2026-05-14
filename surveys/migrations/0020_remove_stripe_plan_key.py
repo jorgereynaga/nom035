@@ -1,4 +1,4 @@
-from django.db import migrations, models
+from django.db import migrations
 
 
 class Migration(migrations.Migration):
@@ -8,24 +8,20 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(
-            model_name='userapp',
-            name='stripe_customer_id',
-            field=models.CharField(blank=True, max_length=100, null=True, verbose_name='Stripe Customer ID'),
-        ),
-        migrations.AddField(
-            model_name='userapp',
-            name='stripe_subscription_id',
-            field=models.CharField(blank=True, max_length=100, null=True, verbose_name='Stripe Subscription ID'),
-        ),
-        migrations.AddField(
-            model_name='userapp',
-            name='stripe_plan_key',
-            field=models.CharField(blank=True, default='', max_length=100, verbose_name='Plan activo'),
-        ),
-        migrations.AddField(
-            model_name='userapp',
-            name='psico_evaluaciones_disponibles',
-            field=models.IntegerField(default=0, verbose_name='Evaluaciones psicométricas disponibles'),
+        migrations.RunSQL(
+            sql="""
+                ALTER TABLE surveys_userapp
+                ADD COLUMN IF NOT EXISTS stripe_customer_id VARCHAR(100) NULL,
+                ADD COLUMN IF NOT EXISTS stripe_subscription_id VARCHAR(100) NULL,
+                ADD COLUMN IF NOT EXISTS stripe_plan_key VARCHAR(100) NOT NULL DEFAULT '',
+                ADD COLUMN IF NOT EXISTS psico_evaluaciones_disponibles INTEGER NOT NULL DEFAULT 0;
+            """,
+            reverse_sql="""
+                ALTER TABLE surveys_userapp
+                DROP COLUMN IF EXISTS stripe_customer_id,
+                DROP COLUMN IF EXISTS stripe_subscription_id,
+                DROP COLUMN IF EXISTS stripe_plan_key,
+                DROP COLUMN IF EXISTS psico_evaluaciones_disponibles;
+            """
         ),
     ]
