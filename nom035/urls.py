@@ -17,6 +17,10 @@ from django.contrib import admin
 from django.urls import path,re_path,include
 from surveys.views import *
 from surveys.stripe_views import (
+from surveys.psico_views import (
+    CandidateListView, CandidateCreateView, CandidateDetailView,
+    AssignTestView, TestSessionView, TestCompleteView,
+)
     StripePlansView, StripeCheckoutView, StripePortalView,
     StripeWebhookView, PaymentSuccessView, PaymentCancelView
 )
@@ -89,6 +93,13 @@ urlpatterns = [
     path('stripe/webhook/', StripeWebhookView.as_view(), name='stripe_webhook'),
     path('payments/success/', PaymentSuccessView.as_view(), name='payment_success'),
     path('payments/cancel/', PaymentCancelView.as_view(), name='payment_cancel'),
+    # Psicometría
+    path('psico/candidatos/', CandidateListView.as_view(), name='candidatos'),
+    path('psico/candidatos/nuevo/', CandidateCreateView.as_view(), name='candidato_nuevo'),
+    path('psico/candidatos/<int:candidate_id>/', CandidateDetailView.as_view(), name='candidato_detalle'),
+    path('psico/asignar/<int:candidate_id>/', AssignTestView.as_view(), name='asignar_test'),
+    path('psico/test/<str:token>/', TestSessionView.as_view(), name='test_session'),
+    path('psico/test/<str:token>/completar/', TestCompleteView.as_view(), name='test_completar'),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
