@@ -1,0 +1,209 @@
+{% load static %}
+<!DOCTYPE html>
+<html class="loading" lang="es" data-textdirection="ltr">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimal-ui">
+    <title>Candidatos — IHES NOM-035</title>
+    <link rel="shortcut icon" type="image/x-icon" href="{% static 'app-assets/images/ico/favicon.ico' %}">
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:300,400,500,600" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/vendors/css/vendors.min.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/bootstrap.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/bootstrap-extended.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/colors.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/components.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/core/menu/menu-types/vertical-menu.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'assets/css/style.css' %}">
+    <style>
+        .candidate-card { border-radius: 10px; border: 1px solid #e4e4e4; padding: 16px 20px; background: #fff; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; }
+        .candidate-card:hover { box-shadow: 0 4px 16px rgba(115,103,240,.1); }
+        .candidate-avatar { width: 42px; height: 42px; border-radius: 50%; background: #7367f0; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; flex-shrink: 0; }
+        .badge-externo { background: #e8f4fd; color: #1e88e5; border-radius: 20px; padding: 2px 10px; font-size: 11px; font-weight: 600; }
+        .badge-empleado { background: #e8f5e9; color: #43a047; border-radius: 20px; padding: 2px 10px; font-size: 11px; font-weight: 600; }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,.5); z-index: 9999; align-items: center; justify-content: center; }
+        .modal-overlay.activo { display: flex; }
+        .modal-box { background: #fff; border-radius: 12px; padding: 32px; width: 100%; max-width: 480px; }
+    </style>
+</head>
+<body class="vertical-layout vertical-menu-modern 2-columns navbar-floating footer-static" data-open="click" data-menu="vertical-menu-modern" data-col="2-columns">
+
+<nav class="header-navbar navbar-expand-lg navbar navbar-with-menu floating-nav navbar-light navbar-shadow">
+    <div class="navbar-wrapper">
+        <div class="navbar-container content">
+            <div class="navbar-collapse" id="navbar-mobile">
+                <div class="mr-auto float-left bookmark-wrapper d-flex align-items-center">
+                    <ul class="nav navbar-nav">
+                        <li class="nav-item nav-toggle"><a class="nav-link modern-nav-toggle pr-0" data-toggle="collapse"><i class="feather icon-menu d-block d-xl-none font-medium-4 primary toggle-icon"></i><i class="toggle-icon feather icon-menu font-medium-4 d-none d-xl-block collapse-toggle-icon primary" data-ticon="icon-menu"></i></a></li>
+                    </ul>
+                </div>
+                <ul class="nav navbar-nav float-right">
+                    <li class="dropdown dropdown-user nav-item">
+                        <a class="dropdown-toggle nav-link dropdown-user-link" href="#" data-toggle="dropdown">
+                            <div class="user-nav d-sm-flex d-none"><span class="user-name text-bold-600">{{request.user.username}}</span><span class="user-status">Empresa</span></div>
+                            <span><img class="round" src="{% static 'app-assets/images/portrait/small/avatar-s-1.png' %}" alt="avatar" height="40" width="40"></span>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-right">
+                            <a class="dropdown-item" href="{% url 'edit_profile'%}"><i class="feather icon-user"></i> Editar mis datos</a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="{% url 'logout' %}"><i class="feather icon-power"></i> Cerrar sesión</a>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div class="main-menu menu-fixed menu-light menu-accordion menu-shadow" data-scroll-to-active="true">
+    <div class="navbar-header">
+        <ul class="nav navbar-nav flex-row">
+            <li class="nav-item mr-auto"><a class="navbar-brand" href="{% url 'index' %}"><img src="{% static '/app-assets/images/logo/logo.png'%}" style="height:auto;width:50px;"><h2 class="brand-text mb-0">NOM - 035</h2></a></li>
+        </ul>
+    </div>
+    <div class="shadow-bottom"></div>
+    <div class="main-menu-content">
+        <ul class="navigation navigation-main" id="main-menu-navigation" data-menu="menu-navigation">
+            <li class="nav-item"><a href="{% url 'index'%}"><i class="feather icon-home"></i><span class="menu-title">Dashboard</span></a></li>
+            <li class="nav-item"><a href="{% url 'workplaces'%}"><i class="feather icon-briefcase"></i><span class="menu-title">Centros de Trabajo</span></a></li>
+            <li class="nav-item"><a href="{% url 'workplaceform'%}"><i class="feather icon-plus-square"></i><span class="menu-title">Añadir un Centro</span></a></li>
+            <li class="navigation-header"><span>NOM-035</span></li>
+            <li class="nav-item"><a href="{% url 'evidence'%}"><i class="feather icon-file-text"></i><span class="menu-title">Portafolio de evidencias</span></a></li>
+            <li class="navigation-header"><span>Psicometría</span></li>
+            <li class="nav-item"><a href="#"><i class="feather icon-target"></i><span class="menu-title">Evaluaciones</span></a></li>
+            <li class="nav-item active"><a href="{% url 'candidatos' %}"><i class="feather icon-user-check"></i><span class="menu-title">Candidatos</span></a></li>
+            <li class="navigation-header"><span>Cuenta</span></li>
+            <li class="nav-item"><a href="{% url 'stripe_planes' %}"><i class="feather icon-credit-card"></i><span class="menu-title">Mi plan</span></a></li>
+            <li class="nav-item"><a href="{% url 'edit_profile'%}"><i class="feather icon-settings"></i><span class="menu-title">Configuración</span></a></li>
+        </ul>
+    </div>
+</div>
+
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        <div class="content-header row">
+            <div class="content-header-left col-12 mb-2 d-flex align-items-center justify-content-between">
+                <div>
+                    <h3 class="content-header-title mb-0">Candidatos</h3>
+                    <p class="text-muted mb-0">Gestiona evaluaciones psicométricas</p>
+                </div>
+                <button class="btn btn-primary" onclick="document.getElementById('modalNuevo').classList.add('activo')">
+                    <i class="feather icon-plus"></i> Nuevo candidato
+                </button>
+            </div>
+        </div>
+
+        <div class="content-body">
+            {% if candidates %}
+                {% for c in candidates %}
+                <div class="candidate-card">
+                    <div class="d-flex align-items-center">
+                        <div class="candidate-avatar mr-3">{{ c.nombre|first|upper }}</div>
+                        <div>
+                            <div style="font-weight:600;color:#5e5873;">{{ c.nombre }}</div>
+                            <div style="font-size:12px;color:#b9b9c3;">{{ c.puesto|default:"Sin puesto" }}</div>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center" style="gap:12px;">
+                        <span class="{% if c.tipo == 'externo' %}badge-externo{% else %}badge-empleado{% endif %}">
+                            {{ c.get_tipo_display }}
+                        </span>
+                        <span style="font-size:12px;color:#b9b9c3;">
+                            {{ c.sessions.count }} prueba{{ c.sessions.count|pluralize }}
+                        </span>
+                        <a href="{% url 'candidato_detalle' c.id %}" class="btn btn-sm btn-outline-primary">
+                            Ver detalle
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="feather icon-user-check" style="font-size:48px;color:#b9b9c3;"></i>
+                    <p class="text-muted mt-2">No tienes candidatos registrados aún.</p>
+                    <button class="btn btn-primary mt-1" onclick="document.getElementById('modalNuevo').classList.add('activo')">
+                        Agregar primer candidato
+                    </button>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Modal nuevo candidato -->
+<div class="modal-overlay" id="modalNuevo">
+    <div class="modal-box">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 style="margin:0;font-weight:700;">Nuevo candidato</h5>
+            <button onclick="document.getElementById('modalNuevo').classList.remove('activo')" style="background:none;border:none;font-size:20px;cursor:pointer;">×</button>
+        </div>
+        <div class="form-group">
+            <label>Nombre completo *</label>
+            <input type="text" class="form-control" id="inp_nombre" placeholder="Nombre y apellidos">
+        </div>
+        <div class="form-group">
+            <label>Correo electrónico</label>
+            <input type="email" class="form-control" id="inp_email" placeholder="correo@empresa.com">
+        </div>
+        <div class="form-group">
+            <label>Puesto al que aplica</label>
+            <input type="text" class="form-control" id="inp_puesto" placeholder="Ej. Gerente de ventas">
+        </div>
+        <div class="form-group">
+            <label>Tipo</label>
+            <select class="form-control" id="inp_tipo">
+                <option value="externo">Candidato externo</option>
+                <option value="empleado">Empleado actual</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Notas</label>
+            <textarea class="form-control" id="inp_notas" rows="2" placeholder="Notas opcionales"></textarea>
+        </div>
+        <button class="btn btn-primary btn-block" id="btnGuardar">Guardar candidato</button>
+    </div>
+</div>
+
+<div class="sidenav-overlay"></div>
+<div class="drag-target"></div>
+
+<script src="{% static 'app-assets/vendors/js/vendors.min.js' %}"></script>
+<script src="{% static 'app-assets/js/core/app-menu.js' %}"></script>
+<script src="{% static 'app-assets/js/core/app.js' %}"></script>
+<script>
+document.getElementById('btnGuardar').addEventListener('click', function() {
+    var nombre = document.getElementById('inp_nombre').value.trim();
+    if (!nombre) { alert('El nombre es requerido'); return; }
+
+    this.disabled = true;
+    this.innerHTML = 'Guardando...';
+    var self = this;
+
+    fetch("{% url 'candidato_nuevo' %}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: new URLSearchParams({
+            nombre: nombre,
+            email: document.getElementById('inp_email').value,
+            puesto: document.getElementById('inp_puesto').value,
+            tipo: document.getElementById('inp_tipo').value,
+            notas: document.getElementById('inp_notas').value,
+        })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.status === 'ok') {
+            window.location.reload();
+        } else {
+            alert(data.error || 'Error al guardar');
+            self.disabled = false;
+            self.innerHTML = 'Guardar candidato';
+        }
+    });
+});
+</script>
+</body>
+</html>
