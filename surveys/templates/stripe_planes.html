@@ -123,7 +123,7 @@
                         {% if plan.periodo == 'anual' %}<span class="plan-tag">Más popular</span>{% endif %}
                         <div class="plan-nombre">{{ plan.name }}</div>
                         <div class="plan-desc">{{ plan.descripcion }}</div>
-                        <div class="plan-precio">${{ plan.precio|floatformat:0 }}<span> MXN / {{ plan.periodo }}</span></div>
+                        <div class="plan-precio">${{ plan.precio|floatformat:0|stringformat:"s" }}<span> MXN / {{ plan.periodo }}</span></div>
                         <div class="mt-3 mb-2">
                             <div class="plan-feature"><i class="feather icon-users"></i>Hasta {{ plan.empleados_max }} empleados</div>
                             <div class="plan-feature"><i class="feather icon-check"></i>Cuestionarios NOM-035 ilimitados</div>
@@ -132,7 +132,7 @@
                         </div>
                         <div class="btn-contratar">
                             <button class="btn btn-primary btn-block btn-contratar-plan" data-plan="{{ key }}">
-                                Contratar — ${{ plan.precio|floatformat:0 }} MXN
+                                Contratar — ${{ plan.precio|floatformat:0|stringformat:"s" }} MXN
                             </button>
                         </div>
                     </div>
@@ -150,7 +150,7 @@
                         {% if plan.periodo == 'mensual' and plan.evaluaciones_mes == 50 %}<span class="plan-tag">Más popular</span>{% endif %}
                         <div class="plan-nombre">{{ plan.name }}</div>
                         <div class="plan-desc">{{ plan.descripcion }}</div>
-                        <div class="plan-precio">${{ plan.precio|floatformat:0 }}<span> MXN / {{ plan.periodo }}</span></div>
+                        <div class="plan-precio">${{ plan.precio|floatformat:0|stringformat:"s" }}<span> MXN / {{ plan.periodo }}</span></div>
                         <div class="mt-3 mb-2">
                             <div class="plan-feature"><i class="feather icon-target"></i>
                                 {% if plan.evaluaciones_mes == -1 %}Evaluaciones ilimitadas{% else %}{{ plan.evaluaciones_mes }} evaluaciones{% endif %}
@@ -161,7 +161,7 @@
                         </div>
                         <div class="btn-contratar">
                             <button class="btn btn-primary btn-block btn-contratar-plan" data-plan="{{ key }}">
-                                Contratar — ${{ plan.precio|floatformat:0 }} MXN
+                                Contratar — ${{ plan.precio|floatformat:0|stringformat:"s" }} MXN
                             </button>
                         </div>
                     </div>
@@ -179,7 +179,7 @@
                         {% if plan.periodo == 'anual' %}<span class="plan-tag">Mejor valor</span>{% endif %}
                         <div class="plan-nombre">{{ plan.name }}</div>
                         <div class="plan-desc">{{ plan.descripcion }}</div>
-                        <div class="plan-precio">${{ plan.precio|floatformat:0 }}<span> MXN / {{ plan.periodo }}</span></div>
+                        <div class="plan-precio">${{ plan.precio|floatformat:0|stringformat:"s" }}<span> MXN / {{ plan.periodo }}</span></div>
                         <div class="mt-3 mb-2">
                             <div class="plan-feature"><i class="feather icon-users"></i>NOM-035 hasta {{ plan.empleados_max }} empleados</div>
                             <div class="plan-feature"><i class="feather icon-target"></i>
@@ -190,7 +190,7 @@
                         </div>
                         <div class="btn-contratar">
                             <button class="btn btn-primary btn-block btn-contratar-plan" data-plan="{{ key }}">
-                                Contratar — ${{ plan.precio|floatformat:0 }} MXN
+                                Contratar — ${{ plan.precio|floatformat:0|stringformat:"s" }} MXN
                             </button>
                         </div>
                     </div>

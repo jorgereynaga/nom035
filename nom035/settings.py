@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'import_export',
     'fcm_django',
+    'django.contrib.humanize',
 ]
 
 MIDDLEWARE = [
