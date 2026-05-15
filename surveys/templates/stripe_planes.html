@@ -1,0 +1,260 @@
+{% load static %}
+<!DOCTYPE html>
+<html class="loading" lang="es" data-textdirection="ltr">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimal-ui">
+    <title>Planes y Precios — IHES NOM-035</title>
+    <link rel="shortcut icon" type="image/x-icon" href="{% static 'app-assets/images/ico/favicon.ico' %}">
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:300,400,500,600" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/vendors/css/vendors.min.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/bootstrap.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/bootstrap-extended.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/colors.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/components.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/core/menu/menu-types/vertical-menu.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/vendors/css/extensions/toastr.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'assets/css/style.css' %}">
+    <style>
+        .plan-card { border-radius: 12px; border: 1px solid #e4e4e4; padding: 28px 24px; background: #fff; transition: box-shadow .2s, transform .2s; height: 100%; display: flex; flex-direction: column; }
+        .plan-card:hover { box-shadow: 0 8px 32px rgba(115,103,240,.15); transform: translateY(-4px); }
+        .plan-card.destacado { border: 2px solid #7367f0; box-shadow: 0 4px 24px rgba(115,103,240,.2); }
+        .plan-tag { font-size: 11px; font-weight: 600; background: #7367f0; color: #fff; border-radius: 20px; padding: 2px 12px; display: inline-block; margin-bottom: 8px; }
+        .plan-precio { font-size: 36px; font-weight: 700; color: #5e5873; }
+        .plan-precio span { font-size: 14px; font-weight: 400; color: #b9b9c3; }
+        .plan-nombre { font-size: 16px; font-weight: 600; color: #5e5873; margin-bottom: 4px; }
+        .plan-desc { font-size: 13px; color: #b9b9c3; margin-bottom: 20px; }
+        .plan-feature { font-size: 13px; color: #6e6b7b; padding: 5px 0; border-bottom: 1px solid #f5f5f5; }
+        .plan-feature i { color: #7367f0; margin-right: 6px; }
+        .btn-contratar { margin-top: auto; padding-top: 20px; }
+        .tab-modulo .nav-link { border-radius: 6px; padding: 8px 20px; font-weight: 500; color: #6e6b7b; }
+        .tab-modulo .nav-link.active { background: #7367f0; color: #fff; }
+        .seccion-planes { display: none; }
+        .seccion-planes.activo { display: flex; }
+        .plan-actual-badge { background: #d4edda; color: #155724; border-radius: 20px; padding: 3px 12px; font-size: 12px; font-weight: 500; }
+    </style>
+</head>
+<body class="vertical-layout vertical-menu-modern 2-columns navbar-floating footer-static" data-open="click" data-menu="vertical-menu-modern" data-col="2-columns">
+
+<nav class="header-navbar navbar-expand-lg navbar navbar-with-menu floating-nav navbar-light navbar-shadow">
+    <div class="navbar-wrapper">
+        <div class="navbar-container content">
+            <div class="navbar-collapse" id="navbar-mobile">
+                <div class="mr-auto float-left bookmark-wrapper d-flex align-items-center">
+                    <ul class="nav navbar-nav">
+                        <li class="nav-item nav-toggle"><a class="nav-link modern-nav-toggle pr-0" data-toggle="collapse"><i class="feather icon-menu d-block d-xl-none font-medium-4 primary toggle-icon"></i><i class="toggle-icon feather icon-menu font-medium-4 d-none d-xl-block collapse-toggle-icon primary" data-ticon="icon-menu"></i></a></li>
+                    </ul>
+                </div>
+                <ul class="nav navbar-nav float-right">
+                    <li class="dropdown dropdown-user nav-item">
+                        <a class="dropdown-toggle nav-link dropdown-user-link" href="#" data-toggle="dropdown">
+                            <div class="user-nav d-sm-flex d-none"><span class="user-name text-bold-600">{{request.user.username}}</span><span class="user-status">Empresa</span></div>
+                            <span><img class="round" src="{% if request.user.userapp.image %}/media/{{request.user.userapp.image}}{%else%}{% static 'app-assets/images/portrait/small/avatar-s-1.png' %}{%endif%}" alt="avatar" height="40" width="40"></span>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-right">
+                            <a class="dropdown-item" href="{% url 'edit_profile'%}"><i class="feather icon-user"></i> Editar mis datos</a>
+                            <a class="dropdown-item" href="{% url 'stripe_portal' %}"><i class="feather icon-credit-card"></i> Gestionar plan</a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="{% url 'logout' %}"><i class="feather icon-power"></i> Cerrar sesión</a>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div class="main-menu menu-fixed menu-light menu-accordion menu-shadow" data-scroll-to-active="true">
+    <div class="navbar-header">
+        <ul class="nav navbar-nav flex-row">
+            <li class="nav-item mr-auto"><a class="navbar-brand" href="{% url 'index' %}"><img src="{% static '/app-assets/images/logo/logo.png'%}" style="height:auto;width:50px;"><h2 class="brand-text mb-0">NOM - 035</h2></a></li>
+        </ul>
+    </div>
+    <div class="shadow-bottom"></div>
+    <div class="main-menu-content">
+        <ul class="navigation navigation-main" id="main-menu-navigation" data-menu="menu-navigation">
+            <li class="nav-item"><a href="{% url 'index'%}"><i class="feather icon-home"></i><span class="menu-title">Dashboard</span></a></li>
+            <li class="nav-item"><a href="{% url 'workplaces'%}"><i class="feather icon-briefcase"></i><span class="menu-title">Centros de Trabajo</span></a></li>
+            <li class="nav-item"><a href="{% url 'workplaceform'%}"><i class="feather icon-plus-square"></i><span class="menu-title">Añadir un Centro</span></a></li>
+            <li class="navigation-header"><span>NOM-035</span></li>
+            <li class="nav-item"><a href="{% url 'evidence'%}"><i class="feather icon-file-text"></i><span class="menu-title">Portafolio de evidencias</span></a></li>
+            <li class="navigation-header"><span>Psicometría</span></li>
+            <li class="nav-item"><a href="#"><i class="feather icon-target"></i><span class="menu-title">Evaluaciones</span></a></li>
+            <li class="nav-item"><a href="#"><i class="feather icon-user-check"></i><span class="menu-title">Candidatos</span></a></li>
+            <li class="navigation-header"><span>Cuenta</span></li>
+            <li class="nav-item active"><a href="{% url 'stripe_planes' %}"><i class="feather icon-credit-card"></i><span class="menu-title">Mi plan</span></a></li>
+            <li class="nav-item"><a href="{% url 'edit_profile'%}"><i class="feather icon-settings"></i><span class="menu-title">Configuración</span></a></li>
+        </ul>
+    </div>
+</div>
+
+<div class="app-content content">
+    <div class="content-overlay"></div>
+    <div class="content-wrapper">
+        <div class="content-header row">
+            <div class="content-header-left col-12 mb-2">
+                <h3 class="content-header-title mb-0">Planes y Precios</h3>
+                <p class="text-muted mb-0">Elige el plan que mejor se adapte a tu empresa</p>
+                {% if plan_activo %}
+                <div class="mt-1">
+                    <span class="plan-actual-badge"><i class="feather icon-check-circle"></i> Plan activo: <strong>{{ plan_activo }}</strong></span>
+                    &nbsp;<a href="{% url 'stripe_portal' %}" class="btn btn-sm btn-outline-primary ml-1">Gestionar suscripción</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="content-body">
+            <!-- Tabs de módulos -->
+            <div class="d-flex justify-content-center mb-3">
+                <ul class="nav tab-modulo" id="tabModulo">
+                    <li class="nav-item"><a class="nav-link active" href="#" data-modulo="nom035">NOM-035</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#" data-modulo="psicometria">Psicometría</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#" data-modulo="suite">Suite</a></li>
+                </ul>
+            </div>
+
+            <!-- NOM-035 -->
+            <div class="row seccion-planes activo" id="planes-nom035">
+                {% for key, plan in planes.items %}
+                {% if plan.modulo == 'nom035' %}
+                <div class="col-12 col-md-4 mb-3">
+                    <div class="plan-card {% if plan.periodo == 'anual' %}destacado{% endif %}">
+                        {% if plan.periodo == 'anual' %}<span class="plan-tag">Más popular</span>{% endif %}
+                        <div class="plan-nombre">{{ plan.name }}</div>
+                        <div class="plan-desc">{{ plan.descripcion }}</div>
+                        <div class="plan-precio">${{ plan.precio|floatformat:0 }}<span> MXN / {{ plan.periodo }}</span></div>
+                        <div class="mt-3 mb-2">
+                            <div class="plan-feature"><i class="feather icon-users"></i>Hasta {{ plan.empleados_max }} empleados</div>
+                            <div class="plan-feature"><i class="feather icon-check"></i>Cuestionarios NOM-035 ilimitados</div>
+                            <div class="plan-feature"><i class="feather icon-file-text"></i>Reportes y portafolio de evidencias</div>
+                            <div class="plan-feature"><i class="feather icon-shield"></i>Cumplimiento STPS</div>
+                        </div>
+                        <div class="btn-contratar">
+                            <button class="btn btn-primary btn-block btn-contratar-plan" data-plan="{{ key }}">
+                                Contratar — ${{ plan.precio|floatformat:0 }} MXN
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                {% endfor %}
+            </div>
+
+            <!-- Psicometría -->
+            <div class="row seccion-planes" id="planes-psicometria">
+                {% for key, plan in planes.items %}
+                {% if plan.modulo == 'psicometria' %}
+                <div class="col-12 col-md-4 mb-3">
+                    <div class="plan-card {% if plan.periodo == 'mensual' and plan.evaluaciones_mes == 50 %}destacado{% endif %}">
+                        {% if plan.periodo == 'mensual' and plan.evaluaciones_mes == 50 %}<span class="plan-tag">Más popular</span>{% endif %}
+                        <div class="plan-nombre">{{ plan.name }}</div>
+                        <div class="plan-desc">{{ plan.descripcion }}</div>
+                        <div class="plan-precio">${{ plan.precio|floatformat:0 }}<span> MXN / {{ plan.periodo }}</span></div>
+                        <div class="mt-3 mb-2">
+                            <div class="plan-feature"><i class="feather icon-target"></i>
+                                {% if plan.evaluaciones_mes == -1 %}Evaluaciones ilimitadas{% else %}{{ plan.evaluaciones_mes }} evaluaciones{% endif %}
+                            </div>
+                            <div class="plan-feature"><i class="feather icon-check"></i>Pruebas DISC, Raven, Zavic, Moss</div>
+                            <div class="plan-feature"><i class="feather icon-file-text"></i>Reporte PDF por candidato</div>
+                            <div class="plan-feature"><i class="feather icon-users"></i>Panel RH para comparar candidatos</div>
+                        </div>
+                        <div class="btn-contratar">
+                            <button class="btn btn-primary btn-block btn-contratar-plan" data-plan="{{ key }}">
+                                Contratar — ${{ plan.precio|floatformat:0 }} MXN
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                {% endfor %}
+            </div>
+
+            <!-- Suite -->
+            <div class="row seccion-planes" id="planes-suite">
+                {% for key, plan in planes.items %}
+                {% if plan.modulo == 'suite' %}
+                <div class="col-12 col-md-6 mb-3">
+                    <div class="plan-card {% if plan.periodo == 'anual' %}destacado{% endif %}">
+                        {% if plan.periodo == 'anual' %}<span class="plan-tag">Mejor valor</span>{% endif %}
+                        <div class="plan-nombre">{{ plan.name }}</div>
+                        <div class="plan-desc">{{ plan.descripcion }}</div>
+                        <div class="plan-precio">${{ plan.precio|floatformat:0 }}<span> MXN / {{ plan.periodo }}</span></div>
+                        <div class="mt-3 mb-2">
+                            <div class="plan-feature"><i class="feather icon-users"></i>NOM-035 hasta {{ plan.empleados_max }} empleados</div>
+                            <div class="plan-feature"><i class="feather icon-target"></i>
+                                {% if plan.evaluaciones_mes == -1 %}Psicometría ilimitada{% else %}{{ plan.evaluaciones_mes }} evaluaciones/mes{% endif %}
+                            </div>
+                            <div class="plan-feature"><i class="feather icon-file-text"></i>Reportes PDF completos</div>
+                            <div class="plan-feature"><i class="feather icon-shield"></i>Cumplimiento STPS + Panel RH</div>
+                        </div>
+                        <div class="btn-contratar">
+                            <button class="btn btn-primary btn-block btn-contratar-plan" data-plan="{{ key }}">
+                                Contratar — ${{ plan.precio|floatformat:0 }} MXN
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                {% endfor %}
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<div class="sidenav-overlay"></div>
+<div class="drag-target"></div>
+
+<script src="{% static 'app-assets/vendors/js/vendors.min.js' %}"></script>
+<script src="{% static 'app-assets/js/core/app-menu.js' %}"></script>
+<script src="{% static 'app-assets/js/core/app.js' %}"></script>
+<script>
+    // Tabs de módulos
+    document.querySelectorAll('#tabModulo .nav-link').forEach(function(tab) {
+        tab.addEventListener('click', function(e) {
+            e.preventDefault();
+            document.querySelectorAll('#tabModulo .nav-link').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.seccion-planes').forEach(s => s.classList.remove('activo'));
+            this.classList.add('active');
+            document.getElementById('planes-' + this.dataset.modulo).classList.add('activo');
+        });
+    });
+
+    // Checkout
+    document.querySelectorAll('.btn-contratar-plan').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var planKey = this.dataset.plan;
+            var originalText = this.innerHTML;
+            this.innerHTML = '<i class="feather icon-loader"></i> Redirigiendo...';
+            this.disabled = true;
+            var self = this;
+
+            fetch("{% url 'stripe_checkout' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({ plan_key: planKey })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.checkout_url) {
+                    window.location.href = data.checkout_url;
+                } else {
+                    alert('Error: ' + (data.error || 'No se pudo iniciar el pago'));
+                    self.innerHTML = originalText;
+                    self.disabled = false;
+                }
+            })
+            .catch(function() {
+                alert('Error de conexión, intenta de nuevo');
+                self.innerHTML = originalText;
+                self.disabled = false;
+            });
+        });
+    });
+</script>
+</body>
+</html>

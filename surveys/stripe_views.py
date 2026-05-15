@@ -19,10 +19,19 @@ stripe.api_key = settings.STRIPE_SECRET_KEY
 # ─────────────────────────────────────────────────────────────
 # 1. LISTA DE PLANES (pública — para mostrar en la landing)
 # ─────────────────────────────────────────────────────────────
-class StripePlansView(View):
-    def get(self, request):
-        return JsonResponse({'plans': PLANS})
+class StripePlansView(LoginRequiredMixin, View):
+    login_url = '/login/'
 
+    def get(self, request):
+        from django.shortcuts import render
+        from .stripe_plans import PLANS
+        userapp = request.user.userapp
+        plan_key = getattr(userapp, 'stripe_plan_key', '')
+        plan_activo = PLANS.get(plan_key, {}).get('name', '') if plan_key else ''
+        return render(request, 'stripe_planes.html', {
+            'planes': PLANS,
+            'plan_activo': plan_activo,
+        })
 
 # ─────────────────────────────────────────────────────────────
 # 2. CREAR SESIÓN DE CHECKOUT (el usuario elige un plan)
