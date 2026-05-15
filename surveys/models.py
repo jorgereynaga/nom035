@@ -412,6 +412,172 @@ class PurchasedProducts(models.Model):
 		verbose_name_plural=u'Productos comparados'
 		ordering = ['-pk']
 
+# ============================================================
+# MÓDULO DE PSICOMETRÍA
+# ============================================================
+
+class PsychoInstrument(models.Model):
+	"""Catálogo de instrumentos psicométricos"""
+	TIPOS = (
+		('disc', 'DISC'),
+		('zavic', 'Valores e Intereses (Zavic)'),
+		('raven', 'Razonamiento (Raven)'),
+		('moss', 'Supervisión (Moss)'),
+	)
+	nombre = models.CharField(u'Nombre', max_length=100)
+	tipo = models.CharField(u'Tipo', max_length=20, choices=TIPOS)
+	descripcion = models.TextField(u'Descripción', blank=True)
+	activo = models.BooleanField(u'Activo', default=True)
+	tiempo_limite = models.IntegerField(u'Tiempo límite (minutos)', default=30)
+	instrucciones = models.TextField(u'Instrucciones para el evaluado', blank=True)
+	record_create = models.DateTimeField(auto_now_add=True)
+
+	def __str__(self):
+		return self.nombre
+
+	class Meta:
+		verbose_name = 'Instrumento Psicométrico'
+		verbose_name_plural = 'Instrumentos Psicométricos'
+
+
+class PsychoItem(models.Model):
+	"""Reactivos/preguntas de cada instrumento"""
+	TIPOS_ITEM = (
+		('disc_group', 'Grupo DISC (más/menos)'),
+		('distribute', 'Distribución de puntos'),
+		('multiple', 'Opción múltiple'),
+	)
+	instrumento = models.ForeignKey(
+		PsychoInstrument, related_name='items',
+		on_delete=models.CASCADE
+	)
+	numero = models.IntegerField(u'Número de reactivo')
+	tipo = models.CharField(u'Tipo de reactivo', max_length=20, choices=TIPOS_ITEM)
+	texto = models.TextField(u'Texto del reactivo', blank=True)
+	dificultad = models.CharField(
+		u'Dificultad', max_length=10,
+		choices=(('facil','Fácil'),('medio','Medio'),('dificil','Difícil')),
+		blank=True
+	)
+	opciones = models.JSONField(u'Opciones (JSON)', default=list)
+	respuesta_correcta = models.CharField(u'Respuesta correcta', max_length=10, blank=True)
+	record_create = models.DateTimeField(auto_now_add=True)
+
+	def __str__(self):
+		return f"{self.instrumento.nombre} — Item {self.numero}"
+
+	class Meta:
+		verbose_name = 'Reactivo'
+		verbose_name_plural = 'Reactivos'
+		ordering = ['instrumento', 'numero']
+
+
+class Candidate(models.Model):
+	"""Candidato externo o empleado en proceso de evaluación psicométrica"""
+	TIPOS = (
+		('externo', 'Candidato externo'),
+		('empleado', 'Empleado actual'),
+	)
+	user = models.ForeignKey(
+		User, related_name='candidates',
+		on_delete=models.CASCADE,
+		verbose_name='Empresa RH'
+	)
+	nombre = models.CharField(u'Nombre completo', max_length=150)
+	email = models.EmailField(u'Correo electrónico', blank=True)
+	puesto = models.CharField(u'Puesto al que aplica', max_length=100, blank=True)
+	tipo = models.CharField(u'Tipo', max_length=20, choices=TIPOS, default='externo')
+	employee = models.ForeignKey(
+		Employee, related_name='psico_sessions',
+		on_delete=models.SET_NULL,
+		null=True, blank=True,
+		verbose_name='Empleado relacionado'
+	)
+	notas = models.TextField(u'Notas', blank=True)
+	record_create = models.DateTimeField(auto_now_add=True)
+
+	def __str__(self):
+		return f"{self.nombre} — {self.puesto or 'sin puesto'}"
+
+	class Meta:
+		verbose_name = 'Candidato'
+		verbose_name_plural = 'Candidatos'
+		ordering = ['-record_create']
+
+
+class TestSession(models.Model):
+	"""Sesión de evaluación psicométrica"""
+	STATUS = (
+		('pendiente', 'Pendiente'),
+		('en_proceso', 'En proceso'),
+		('completada', 'Completada'),
+		('expirada', 'Expirada'),
+	)
+	candidate = models.ForeignKey(
+		Candidate, related_name='sessions',
+		on_delete=models.CASCADE
+	)
+	instrumento = models.ForeignKey(
+		PsychoInstrument, related_name='sessions',
+		on_delete=models.PROTECT
+	)
+	token = models.CharField(u'Token único', max_length=64, unique=True)
+	status = models.CharField(u'Estado', max_length=20, choices=STATUS, default='pendiente')
+	fecha_envio = models.DateTimeField(u'Fecha de envío', auto_now_add=True)
+	fecha_inicio = models.DateTimeField(u'Fecha de inicio', null=True, blank=True)
+	fecha_completado = models.DateTimeField(u'Fecha de completado', null=True, blank=True)
+	expira_en = models.DateTimeField(u'Expira en', null=True, blank=True)
+	record_create = models.DateTimeField(auto_now_add=True)
+
+	def __str__(self):
+		return f"{self.candidate.nombre} — {self.instrumento.nombre} ({self.status})"
+
+	class Meta:
+		verbose_name = 'Sesión de Evaluación'
+		verbose_name_plural = 'Sesiones de Evaluación'
+		ordering = ['-record_create']
+
+
+class TestResponse(models.Model):
+	"""Respuestas del candidato a cada reactivo"""
+	session = models.ForeignKey(
+		TestSession, related_name='responses',
+		on_delete=models.CASCADE
+	)
+	item = models.ForeignKey(
+		PsychoItem, related_name='responses',
+		on_delete=models.PROTECT
+	)
+	respuesta = models.JSONField(u'Respuesta (JSON)', default=dict)
+	record_create = models.DateTimeField(auto_now_add=True)
+
+	def __str__(self):
+		return f"Sesión {self.session.id} — Item {self.item.numero}"
+
+	class Meta:
+		verbose_name = 'Respuesta'
+		verbose_name_plural = 'Respuestas'
+		ordering = ['session', 'item']
+
+
+class TestResult(models.Model):
+	"""Resultado calculado de una sesión completada"""
+	session = models.OneToOneField(
+		TestSession, related_name='result',
+		on_delete=models.CASCADE
+	)
+	scores = models.JSONField(u'Puntuaciones (JSON)', default=dict)
+	interpretacion = models.TextField(u'Interpretación', blank=True)
+	perfil_narrativo = models.TextField(u'Perfil narrativo (IA)', blank=True)
+	record_create = models.DateTimeField(auto_now_add=True)
+
+	def __str__(self):
+		return f"Resultado — {self.session.candidate.nombre}"
+
+	class Meta:
+		verbose_name = 'Resultado'
+		verbose_name_plural = 'Resultados'
+
 # class MessengerUsers(models.Model):
 # 	first_name=models.CharField('Nombre',max_length=70)
 # 	last_name=models.CharField('Apellidos',max_length=70)
