@@ -24,9 +24,6 @@ from surveys.psico_views import (
     CandidateListView, CandidateCreateView, CandidateDetailView,
     AssignTestView, TestSessionView, TestCompleteView,
 )
-    StripePlansView, StripeCheckoutView, StripePortalView,
-    StripeWebhookView, PaymentSuccessView, PaymentCancelView
-)
 from django.conf import settings
 from django.conf.urls.static import static
 from rest_framework.authtoken import views
