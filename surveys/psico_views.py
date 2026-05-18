@@ -228,90 +228,130 @@ class TestCompleteView(View):
 
         return {}
 
-class TestResultView(LoginRequiredMixin, View):
-	login_url = reverse_lazy('login')
+        
+        class TestResultView(LoginRequiredMixin, View):
+    login_url = reverse_lazy('login')
 
-	def get(self, request, session_id):
-		session = get_object_or_404(
-			TestSession,
-			id=session_id,
-			candidate__user=request.user,
-			status='completada'
-		)
-		result = get_object_or_404(TestResult, session=session)
-		scores = result.scores
-		tipo = session.instrumento.tipo
-		ctx = {
-			'session': session,
-			'candidate': session.candidate,
-			'instrumento': session.instrumento,
-			'scores': scores,
-			'tipo': tipo,
-			'name': request.user.userapp.name,
-		}
-		if tipo == 'disc':
-			pct = {k: round((v / 28) * 100) for k, v in scores.items()}
-			dominante = max(scores, key=scores.get)
-			segundo = sorted(scores, key=scores.get, reverse=True)[1]
-			perfiles = {
-				'D': {'nombre': 'Dominante', 'color': '#ea5455', 'desc': 'Orientado a resultados, directo y decidido.', 'fortalezas': ['Toma decisiones rapidas', 'Alta orientacion a resultados', 'Liderazgo natural'], 'desarrollo': ['Puede ser impaciente', 'Necesita escucha activa'], 'puestos': 'Direccion, gerencia, ventas, proyectos'},
-				'I': {'nombre': 'Influyente', 'color': '#ff9f43', 'desc': 'Comunicativo, entusiasta y orientado a las personas.', 'fortalezas': ['Excelente comunicacion', 'Genera entusiasmo', 'Construye relaciones'], 'desarrollo': ['Puede descuidar detalles', 'Necesita estructura'], 'puestos': 'Ventas, relaciones publicas, capacitacion'},
-				'S': {'nombre': 'Estable', 'color': '#28c76f', 'desc': 'Paciente, confiable y orientado al equipo.', 'fortalezas': ['Alta confiabilidad', 'Trabajo en equipo', 'Manejo de presion'], 'desarrollo': ['Puede resistir cambios', 'Necesita apoyo para decidir'], 'puestos': 'Administracion, soporte, recursos humanos'},
-				'C': {'nombre': 'Cumplidor', 'color': '#7367f0', 'desc': 'Analitico, preciso y orientado a la calidad.', 'fortalezas': ['Alta precision', 'Pensamiento analitico', 'Respeto por procesos'], 'desarrollo': ['Puede ser perfeccionista', 'Necesita comunicacion asertiva'], 'puestos': 'Finanzas, calidad, tecnologia, auditoria'},
-			}
-			ctx['pct'] = pct
-			ctx['dominante'] = dominante
-			ctx['segundo'] = segundo
-			ctx['perfil_dominante'] = perfiles[dominante]
-			ctx['perfil_segundo'] = perfiles[segundo]
-			ctx['perfiles'] = perfiles
-			ctx['perfil_nombre'] = f"Perfil {dominante}-{segundo}: {perfiles[dominante]['nombre']} con tendencia {perfiles[segundo]['nombre']}"
-		elif tipo == 'moss':
-			total = scores.get('total', 0)
-			pct = round((total / 90) * 100)
-			if pct >= 80:
-				nivel, color, apto, interpretacion = 'Muy alto', '#28c76f', True, 'Excelentes habilidades de supervision. Altamente recomendado para liderazgo.'
-			elif pct >= 60:
-				nivel, color, apto, interpretacion = 'Alto', '#7367f0', True, 'Buenas habilidades de supervision. Recomendado con desarrollo continuo.'
-			elif pct >= 40:
-				nivel, color, apto, interpretacion = 'Medio', '#ff9f43', False, 'Habilidades en desarrollo. Recomendado para puestos operativos.'
-			else:
-				nivel, color, apto, interpretacion = 'Bajo', '#ea5455', False, 'Habilidades limitadas. No recomendado para gestion de personas.'
-			ctx['total'] = total
-			ctx['pct'] = pct
-			ctx['nivel'] = nivel
-			ctx['color'] = color
-			ctx['apto'] = apto
-			ctx['interpretacion'] = interpretacion
-		elif tipo == 'raven':
-			correctas = scores.get('correctas', 0)
-			total = scores.get('total', 60)
-			pct = scores.get('porcentaje', 0)
-			if pct >= 85:
-				nivel, color, desc = 'Muy Superior', '#28c76f', 'Capacidad intelectual sobresaliente.'
-			elif pct >= 70:
-				nivel, color, desc = 'Superior', '#7367f0', 'Capacidad por encima del promedio.'
-			elif pct >= 50:
-				nivel, color, desc = 'Normal', '#ff9f43', 'Capacidad dentro del promedio esperado.'
-			else:
-				nivel, color, desc = 'Inferior', '#ea5455', 'Capacidad limitada para puestos de alta complejidad.'
-			ctx['correctas'] = correctas
-			ctx['total_items'] = total
-			ctx['pct'] = pct
-			ctx['nivel'] = nivel
-			ctx['color'] = color
-			ctx['desc'] = desc
-		elif tipo == 'zavic':
-			total_pts = sum(scores.values()) or 1
-			pct = {k: round((v / total_pts) * 100) for k, v in scores.items()}
-			alerta_corrupcion = scores.get('C', 0) > scores.get('M', 0)
-			escalas = {
-				'M': {'nombre': 'Moral', 'color': '#28c76f'},
-				'L': {'nombre': 'Legal', 'color': '#7367f0'},
-				'I': {'nombre': 'Indiferente', 'color': '#ff9f43'},
-				'C': {'nombre': 'Corrupcion', 'color': '#ea5455'},
-			}
-			ctx['pct'] = pct
-			ctx['escalas'] = escalas
-			ctx['alerta_corrupcion'] = alerta_corrupcion
-		return render(request, 'psico_resultado.html', ctx)
+    def get(self, request, session_id):
+        from django.shortcuts import render
+        session = get_object_or_404(
+            TestSession,
+            id=session_id,
+            candidate__user=request.user,
+            status='completada'
+        )
+        result = get_object_or_404(TestResult, session=session)
+        scores = result.scores
+        tipo = session.instrumento.tipo
+
+        ctx = {
+            'session': session,
+            'candidate': session.candidate,
+            'instrumento': session.instrumento,
+            'scores': scores,
+            'tipo': tipo,
+            'name': request.user.userapp.name,
+        }
+
+        # Interpretación DISC
+        if tipo == 'disc':
+            total = sum(scores.values()) or 1
+            pct = {k: max(0, round((v / 28) * 100)) for k, v in scores.items()}
+            dominante = max(scores, key=scores.get)
+            segundo = sorted(scores, key=scores.get, reverse=True)[1]
+
+            perfiles = {
+                'D': {'nombre': 'Dominante', 'color': '#ea5455', 'desc': 'Orientado a resultados, directo y decidido. Toma iniciativa y enfrenta desafíos con determinación.', 'fortalezas': ['Toma decisiones rápidas', 'Alta orientación a resultados', 'Liderazgo natural en situaciones de presión'], 'desarrollo': ['Puede ser percibido como impaciente', 'Necesita desarrollar escucha activa'], 'puestos': 'Dirección, gerencia, ventas, proyectos'},
+                'I': {'nombre': 'Influyente', 'color': '#ff9f43', 'desc': 'Comunicativo, entusiasta y orientado a las personas. Motiva a otros con facilidad.', 'fortalezas': ['Excelente comunicación interpersonal', 'Genera entusiasmo en el equipo', 'Facilidad para construir relaciones'], 'desarrollo': ['Puede descuidar los detalles', 'Necesita estructura para mantener el enfoque'], 'puestos': 'Ventas, relaciones públicas, servicio al cliente, capacitación'},
+                'S': {'nombre': 'Estable', 'color': '#28c76f', 'desc': 'Paciente, confiable y orientado al equipo. Brinda estabilidad y consistencia.', 'fortalezas': ['Alta confiabilidad y constancia', 'Excelente trabajo en equipo', 'Manejo efectivo de situaciones de presión'], 'desarrollo': ['Puede resistirse a cambios rápidos', 'Necesita apoyo para tomar decisiones bajo incertidumbre'], 'puestos': 'Administración, soporte, recursos humanos, atención al cliente'},
+                'C': {'nombre': 'Cumplidor', 'color': '#7367f0', 'desc': 'Analítico, preciso y orientado a la calidad. Sigue procesos y estándares con rigor.', 'fortalezas': ['Alta precisión y atención al detalle', 'Pensamiento analítico', 'Respeto por procesos y normas'], 'desarrollo': ['Puede ser perfeccionista en exceso', 'Necesita trabajar la comunicación asertiva'], 'puestos': 'Finanzas, calidad, tecnología, auditoría, investigación'},
+            }
+
+            ctx['pct'] = pct
+            ctx['dominante'] = dominante
+            ctx['segundo'] = segundo
+            ctx['perfil_dominante'] = perfiles[dominante]
+            ctx['perfil_segundo'] = perfiles[segundo]
+            ctx['perfiles'] = perfiles
+            ctx['perfil_nombre'] = f"Perfil {dominante}-{segundo}: {perfiles[dominante]['nombre']} con tendencia {perfiles[segundo]['nombre']}"
+
+        # Interpretación Moss
+        elif tipo == 'moss':
+            total = scores.get('total', 0)
+            max_score = 90
+            pct = round((total / max_score) * 100)
+            if pct >= 80:
+                nivel = 'Muy alto'
+                color = '#28c76f'
+                apto = True
+                interpretacion = 'Excelentes habilidades de supervisión. Perfil altamente recomendado para puestos de liderazgo y gestión de equipos.'
+            elif pct >= 60:
+                nivel = 'Alto'
+                color = '#7367f0'
+                apto = True
+                interpretacion = 'Buenas habilidades de supervisión. Recomendado para puestos de liderazgo con desarrollo continuo.'
+            elif pct >= 40:
+                nivel = 'Medio'
+                color = '#ff9f43'
+                apto = False
+                interpretacion = 'Habilidades de supervisión en desarrollo. Se recomienda para puestos operativos con potencial de crecimiento.'
+            else:
+                nivel = 'Bajo'
+                color = '#ea5455'
+                apto = False
+                interpretacion = 'Habilidades de supervisión limitadas. Se recomienda para puestos sin responsabilidad de gestión de personas.'
+            ctx['total'] = total
+            ctx['pct'] = pct
+            ctx['nivel'] = nivel
+            ctx['color'] = color
+            ctx['apto'] = apto
+            ctx['interpretacion'] = interpretacion
+
+        # Interpretación Raven
+        elif tipo == 'raven':
+            correctas = scores.get('correctas', 0)
+            total = scores.get('total', 60)
+            pct = scores.get('porcentaje', 0)
+            if pct >= 85:
+                nivel = 'Muy Superior'
+                color = '#28c76f'
+                desc = 'Capacidad intelectual sobresaliente. Aprende con rapidez y resuelve problemas complejos.'
+            elif pct >= 70:
+                nivel = 'Superior'
+                color = '#7367f0'
+                desc = 'Capacidad intelectual por encima del promedio. Buen potencial de aprendizaje.'
+            elif pct >= 50:
+                nivel = 'Normal'
+                color = '#ff9f43'
+                desc = 'Capacidad intelectual dentro del promedio esperado para el puesto.'
+            elif pct >= 30:
+                nivel = 'Inferior al promedio'
+                color = '#ea5455'
+                desc = 'Capacidad intelectual por debajo del promedio. Se recomienda evaluar para puestos operativos.'
+            else:
+                nivel = 'Inferior'
+                color = '#ea5455'
+                desc = 'Capacidad intelectual limitada para puestos que requieren razonamiento complejo.'
+            ctx['correctas'] = correctas
+            ctx['total_items'] = total
+            ctx['pct'] = pct
+            ctx['nivel'] = nivel
+            ctx['color'] = color
+            ctx['desc'] = desc
+
+        # Interpretación Zavic
+        elif tipo == 'zavic':
+            total_pts = sum(scores.values()) or 1
+            pct = {k: round((v / total_pts) * 100) for k, v in scores.items()}
+            alerta_corrupcion = scores.get('C', 0) > scores.get('M', 0)
+            escalas = {
+                'M': {'nombre': 'Moral', 'color': '#28c76f', 'desc': 'Actúa guiado por principios éticos personales'},
+                'L': {'nombre': 'Legal', 'color': '#7367f0', 'desc': 'Respeta normas y reglamentos establecidos'},
+                'I': {'nombre': 'Indiferente', 'color': '#ff9f43', 'desc': 'Tendencia a no involucrarse ante situaciones'},
+                'C': {'nombre': 'Corrupción', 'color': '#ea5455', 'desc': 'Tendencia a actuar en beneficio propio indebidamente'},
+            }
+            ctx['pct'] = pct
+            ctx['escalas'] = escalas
+            ctx['alerta_corrupcion'] = alerta_corrupcion
+
+        return render(request, 'psico_resultado.html', ctx)
