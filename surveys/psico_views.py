@@ -7,6 +7,8 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
 from django.http import JsonResponse
 from .models import Candidate, TestSession, PsychoInstrument, TestResponse, TestResult, PsychoItem
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 import json
 
 
@@ -135,7 +137,7 @@ class TestSessionView(View):
         }
         return render(request, 'psico_test.html', ctx)
 
-
+@method_decorator(csrf_exempt, name='dispatch')
 class TestCompleteView(View):
     """Recibe las respuestas del candidato"""
 
