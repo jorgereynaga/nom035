@@ -139,9 +139,10 @@
                                 </button>
                             </div>
                             {% endif %}
-                            {% if s.status == 'completada' %}
+                           {% if s.status == 'completada' %}
                             <div class="mt-2">
                                 <span style="font-size:12px;color:#28c76f;"><i class="feather icon-check-circle"></i> Completada el {{ s.fecha_completado|date:"d/m/Y H:i" }}</span>
+                                <a href="{% url 'test_resultado' s.id %}" class="btn btn-sm btn-primary ml-2">Ver resultados</a>
                             </div>
                             {% endif %}
                         </div>
