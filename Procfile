@@ -1,1 +1,1 @@
-web: python manage.py migrate --noinput && python manage.py cargar_disc && gunicorn nom035.wsgi --log-file - --timeout 120 --workers 1 --threads 2 --preload
+web: python manage.py migrate --noinput && python manage.py cargar_disc && python manage.py cargar_moss && gunicorn nom035.wsgi --log-file - --timeout 120 --workers 1 --threads 2 --preload
