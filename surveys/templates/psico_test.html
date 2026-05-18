@@ -1,0 +1,202 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ instrumento.nombre }} — IHES</title>
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:300,400,500,600" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/vendors/css/vendors.min.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/bootstrap.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/bootstrap-extended.css' %}">
+    <style>
+        body { background: #f8f8f8; font-family: 'Montserrat', sans-serif; }
+        .test-header { background: #fff; border-bottom: 1px solid #e4e4e4; padding: 16px 24px; position: sticky; top: 0; z-index: 100; }
+        .progress-bar-custom { height: 6px; background: #e4e4e4; border-radius: 3px; margin-top: 8px; }
+        .progress-fill { height: 6px; background: #7367f0; border-radius: 3px; transition: width .3s; }
+        .grupo-card { background: #fff; border-radius: 12px; border: 1px solid #e4e4e4; padding: 24px; margin-bottom: 20px; }
+        .grupo-titulo { font-size: 13px; font-weight: 600; color: #b9b9c3; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px; }
+        .opcion-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border: 1px solid #e4e4e4; border-radius: 8px; margin-bottom: 8px; cursor: pointer; transition: all .15s; }
+        .opcion-row:hover { border-color: #7367f0; background: #f0effe; }
+        .opcion-texto { font-size: 14px; color: #5e5873; flex: 1; }
+        .opcion-botones { display: flex; gap: 8px; flex-shrink: 0; }
+        .btn-mas, .btn-menos { border: 2px solid #e4e4e4; border-radius: 6px; padding: 4px 12px; font-size: 11px; font-weight: 600; cursor: pointer; background: #fff; transition: all .15s; white-space: nowrap; }
+        .btn-mas.activo { background: #7367f0; border-color: #7367f0; color: #fff; }
+        .btn-menos.activo { background: #ea5455; border-color: #ea5455; color: #fff; }
+        .btn-mas:hover:not(.activo) { border-color: #7367f0; color: #7367f0; }
+        .btn-menos:hover:not(.activo) { border-color: #ea5455; color: #ea5455; }
+        .sticky-footer { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-top: 1px solid #e4e4e4; padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; z-index: 100; }
+        .contador { font-size: 13px; color: #b9b9c3; }
+        .contador span { color: #7367f0; font-weight: 700; }
+        .alerta { background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 10px 16px; font-size: 13px; color: #856404; display: none; margin-bottom: 16px; }
+    </style>
+</head>
+<body>
+
+<div class="test-header">
+    <div class="d-flex align-items-center justify-content-between">
+        <div>
+            <div style="font-weight:700;color:#5e5873;font-size:16px;">{{ instrumento.nombre }}</div>
+            <div style="font-size:12px;color:#b9b9c3;">{{ candidate.nombre }} — {{ instrumento.tiempo_limite }} minutos</div>
+        </div>
+        <div style="font-size:13px;color:#b9b9c3;">Grupo <span id="grupoActual">1</span> de {{ items|length }}</div>
+    </div>
+    <div class="progress-bar-custom">
+        <div class="progress-fill" id="progressFill" style="width:0%"></div>
+    </div>
+</div>
+
+<div class="container" style="max-width:700px;padding:24px 16px 120px;">
+
+    <div class="alerta" id="alertaError">
+        ⚠️ Debes seleccionar una opción que te describe MÁS y una que te describe MENOS antes de continuar.
+    </div>
+
+    <div style="background:#f0effe;border-radius:8px;padding:12px 16px;margin-bottom:20px;font-size:13px;color:#5e5873;">
+        <strong>Instrucciones:</strong> {{ instrumento.instrucciones }}
+    </div>
+
+    {% for item in items %}
+    <div class="grupo-card" id="grupo-{{ forloop.counter }}" style="{% if not forloop.first %}display:none;{% endif %}">
+        <div class="grupo-titulo">Grupo {{ item.numero }} de {{ items|length }}</div>
+        {% for op in item.opciones %}
+        <div class="opcion-row">
+            <div class="opcion-texto">{{ op.texto }}</div>
+            <div class="opcion-botones">
+                <button class="btn-mas" 
+                    data-grupo="{{ item.id }}" 
+                    data-dim="{{ op.dimension }}"
+                    data-tipo="mas"
+                    onclick="seleccionar(this, {{ item.id }}, '{{ op.dimension }}', 'mas')">
+                    + Más
+                </button>
+                <button class="btn-menos"
+                    data-grupo="{{ item.id }}"
+                    data-dim="{{ op.dimension }}"
+                    data-tipo="menos"
+                    onclick="seleccionar(this, {{ item.id }}, '{{ op.dimension }}', 'menos')">
+                    − Menos
+                </button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endfor %}
+
+</div>
+
+<div class="sticky-footer">
+    <div class="contador">Completados: <span id="completados">0</span> / {{ items|length }}</div>
+    <div style="display:flex;gap:10px;">
+        <button class="btn btn-outline-secondary btn-sm" id="btnAnterior" onclick="anterior()" style="display:none;">Anterior</button>
+        <button class="btn btn-primary btn-sm" id="btnSiguiente" onclick="siguiente()">Siguiente</button>
+        <button class="btn btn-success btn-sm" id="btnEnviar" onclick="enviar()" style="display:none;">Enviar evaluación</button>
+    </div>
+</div>
+
+<script>
+var totalGrupos = {{ items|length }};
+var grupoActual = 1;
+var respuestas = {};
+
+// estructura: respuestas[item_id] = {mas: 'D', menos: 'C', item_id: X}
+
+function seleccionar(btn, itemId, dimension, tipo) {
+    // Deseleccionar otros del mismo tipo en este grupo
+    var grupo = document.getElementById('grupo-' + grupoActual);
+    var botones = grupo.querySelectorAll('.btn-' + tipo);
+    botones.forEach(function(b) { b.classList.remove('activo'); });
+
+    btn.classList.add('activo');
+
+    if (!respuestas[itemId]) respuestas[itemId] = { item_id: itemId };
+    respuestas[itemId][tipo] = dimension;
+
+    actualizarContador();
+    document.getElementById('alertaError').style.display = 'none';
+}
+
+function grupoCompleto(grupoNum) {
+    var grupo = document.getElementById('grupo-' + grupoNum);
+    if (!grupo) return false;
+    var itemId = parseInt(grupo.querySelector('.btn-mas').dataset.grupo);
+    var r = respuestas[itemId];
+    return r && r.mas && r.menos && r.mas !== r.menos;
+}
+
+function actualizarContador() {
+    var completados = 0;
+    for (var i = 1; i <= totalGrupos; i++) {
+        if (grupoCompleto(i)) completados++;
+    }
+    document.getElementById('completados').innerText = completados;
+    var pct = (grupoActual / totalGrupos) * 100;
+    document.getElementById('progressFill').style.width = pct + '%';
+    document.getElementById('grupoActual').innerText = grupoActual;
+}
+
+function siguiente() {
+    if (!grupoCompleto(grupoActual)) {
+        document.getElementById('alertaError').style.display = 'block';
+        return;
+    }
+    document.getElementById('alertaError').style.display = 'none';
+    document.getElementById('grupo-' + grupoActual).style.display = 'none';
+    grupoActual++;
+    document.getElementById('grupo-' + grupoActual).style.display = 'block';
+    document.getElementById('btnAnterior').style.display = grupoActual > 1 ? 'inline-block' : 'none';
+
+    if (grupoActual === totalGrupos) {
+        document.getElementById('btnSiguiente').style.display = 'none';
+        document.getElementById('btnEnviar').style.display = 'inline-block';
+    }
+    actualizarContador();
+    window.scrollTo(0, 0);
+}
+
+function anterior() {
+    document.getElementById('grupo-' + grupoActual).style.display = 'none';
+    grupoActual--;
+    document.getElementById('grupo-' + grupoActual).style.display = 'block';
+    document.getElementById('btnAnterior').style.display = grupoActual > 1 ? 'inline-block' : 'none';
+    document.getElementById('btnSiguiente').style.display = 'inline-block';
+    document.getElementById('btnEnviar').style.display = 'none';
+    actualizarContador();
+    window.scrollTo(0, 0);
+}
+
+function enviar() {
+    if (!grupoCompleto(grupoActual)) {
+        document.getElementById('alertaError').style.display = 'block';
+        return;
+    }
+
+    var btn = document.getElementById('btnEnviar');
+    btn.disabled = true;
+    btn.innerHTML = 'Enviando...';
+
+    var respuestasArray = Object.values(respuestas).map(function(r) {
+        return { item_id: r.item_id, respuesta: { mas: r.mas, menos: r.menos } };
+    });
+
+    fetch("{% url 'test_completar' session.token %}", {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ respuestas: respuestasArray })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.status === 'ok') {
+            window.location.href = "{% url 'test_session' session.token %}";
+        } else {
+            alert('Error al enviar: ' + (data.error || 'intenta de nuevo'));
+            btn.disabled = false;
+            btn.innerHTML = 'Enviar evaluación';
+        }
+    });
+}
+
+actualizarContador();
+</script>
+</body>
+</html>
