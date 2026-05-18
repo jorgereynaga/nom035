@@ -22,6 +22,10 @@ from surveys.stripe_views import (
 )
 from surveys.psico_views import (
     CandidateListView, CandidateCreateView, CandidateDetailView,
+    AssignTestView, TestSessionView, TestCompleteView, TestResultView,
+)
+from surveys.psico_views import (
+    CandidateListView, CandidateCreateView, CandidateDetailView,
     AssignTestView, TestSessionView, TestCompleteView,
 )
 from django.conf import settings
@@ -100,6 +104,7 @@ urlpatterns = [
     path('psico/asignar/<int:candidate_id>/', AssignTestView.as_view(), name='asignar_test'),
     path('psico/test/<str:token>/', TestSessionView.as_view(), name='test_session'),
     path('psico/test/<str:token>/completar/', TestCompleteView.as_view(), name='test_completar'),
+    path('psico/resultado/<int:session_id>/', TestResultView.as_view(), name='test_resultado'),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
