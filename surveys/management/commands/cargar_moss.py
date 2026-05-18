@@ -17,7 +17,7 @@ class Command(BaseCommand):
 			}
 		)
 
-			if not created:
+		if not created:
 			if instrumento.items.exists():
 				self.stdout.write(self.style.WARNING('El instrumento Moss ya esta cargado, omitiendo.'))
 				return
