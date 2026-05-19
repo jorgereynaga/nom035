@@ -1,5 +1,6 @@
 {% load static %}
 {% load psico_filters %}
+{% load psico_filters %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -125,7 +126,7 @@
         {% if r.perfil_narrativo %}
         <div style="margin-top:16px;">
             <div style="font-size:12px;font-weight:600;color:#7367f0;margin-bottom:6px;">🤖 Perfil Narrativo (IA)</div>
-            <div class="narrativo">{{ r.perfil_narrativo }}</div>
+            <div class="narrativo">{{ r.perfil_narrativo|clean_markdown|linebreaks }}</div>
         </div>
         {% endif %}
     </div>
