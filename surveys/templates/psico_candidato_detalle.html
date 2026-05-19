@@ -88,7 +88,7 @@
                 <div>
                     <a href="{% url 'candidatos' %}" class="text-muted" style="font-size:13px;"><i class="feather icon-arrow-left"></i> Candidatos</a>
                     <h3 class="content-header-title mb-0 mt-1">{{ candidate.nombre }}</h3>
-                    <a href="{% url 'reporte_candidato' candidate.id %}" class="btn btn-success btn-sm ml-2">
+                    <a href="{% url 'reporte_candidato' candidate.id %}" style="display:inline-flex;align-items:center;gap:6px;background:#7367f0;color:#fff;padding:7px 16px;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;margin-top:8px;">
                     <i class="feather icon-file-text"></i> Ver reporte unificado
                     </a>
                     <p class="text-muted mb-0">{{ candidate.puesto|default:"Sin puesto asignado" }}</p>
