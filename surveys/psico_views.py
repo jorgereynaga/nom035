@@ -315,3 +315,66 @@ class TestResultView(LoginRequiredMixin, View):
             ctx['escalas'] = escalas
             ctx['alerta_corrupcion'] = alerta_corrupcion
         return render(request, 'psico_resultado.html', ctx)
+
+
+class GenerarPerfilNarrativoView(LoginRequiredMixin, View):
+    login_url = reverse_lazy('login')
+
+    def post(self, request, session_id):
+        import os
+        import json
+        import urllib.request
+        session = get_object_or_404(
+            TestSession,
+            id=session_id,
+            candidate__user=request.user,
+            status='completada'
+        )
+        result = get_object_or_404(TestResult, session=session)
+        scores = result.scores
+        tipo = session.instrumento.tipo
+        candidato = session.candidate.nombre
+        puesto = session.candidate.puesto or 'no especificado'
+        if tipo == 'disc':
+            dominante = max(scores, key=scores.get)
+            nombres = {'D': 'Dominancia', 'I': 'Influencia', 'S': 'Estabilidad', 'C': 'Cumplimiento'}
+            detalle = ', '.join([f"{nombres[k]}: {v}" for k, v in scores.items()])
+            prompt = f"Eres un psicologo organizacional experto en evaluaciones de personal para empresas mexicanas. Genera un perfil narrativo profesional para Recursos Humanos sobre el candidato {candidato} que aplica al puesto de {puesto}. Resultados DISC: {detalle}. Dimension dominante: {nombres[dominante]}. Escribe 3 parrafos: 1) Perfil general, 2) Fortalezas laborales, 3) Areas de desarrollo y recomendacion. Tono profesional, objetivo, tercera persona. Sin numeros ni porcentajes."
+        elif tipo == 'moss':
+            total = scores.get('total', 0)
+            pct = round((total / 90) * 100)
+            prompt = f"Eres un psicologo organizacional experto en evaluaciones de personal para empresas mexicanas. Genera un perfil narrativo profesional para Recursos Humanos sobre el candidato {candidato} que aplica al puesto de {puesto}. Test Moss: {pct}% de habilidades de supervision. Escribe 2 parrafos: 1) Nivel de liderazgo y supervision, 2) Recomendacion para puestos de gestion. Tono profesional, objetivo, tercera persona."
+        elif tipo == 'raven':
+            pct = scores.get('porcentaje', 0)
+            prompt = f"Eres un psicologo organizacional experto en evaluaciones de personal para empresas mexicanas. Genera un perfil narrativo profesional para Recursos Humanos sobre el candidato {candidato} que aplica al puesto de {puesto}. Test Raven: percentil {pct}%. Escribe 2 parrafos: 1) Aptitud intelectual y aprendizaje, 2) Recomendacion segun el puesto. Tono profesional, objetivo, tercera persona."
+        elif tipo == 'zavic':
+            escalas = {'M': 'Moral', 'L': 'Legal', 'I': 'Indiferente', 'C': 'Corrupcion'}
+            detalle = ', '.join([f"{escalas[k]}: {v}" for k, v in scores.items()])
+            alerta = scores.get('C', 0) > scores.get('M', 0)
+            alerta_txt = 'IMPORTANTE: El indice de Corrupcion supera al de Moral.' if alerta else ''
+            prompt = f"Eres un psicologo organizacional experto en evaluaciones de personal para empresas mexicanas. Genera un perfil narrativo profesional para Recursos Humanos sobre el candidato {candidato} que aplica al puesto de {puesto}. Test Zavic: {detalle}. {alerta_txt} Escribe 2 parrafos: 1) Perfil de valores e integridad, 2) Compatibilidad con la cultura organizacional. Tono profesional, objetivo, tercera persona."
+        else:
+            return JsonResponse({'error': 'Instrumento no soportado'}, status=400)
+        api_key = os.environ.get('ANTHROPIC_API_KEY', '')
+        payload = json.dumps({
+            'model': 'claude-haiku-4-5-20251001',
+            'max_tokens': 600,
+            'messages': [{'role': 'user', 'content': prompt}]
+        }).encode('utf-8')
+        req = urllib.request.Request(
+            'https://api.anthropic.com/v1/messages',
+            data=payload,
+            headers={
+                'Content-Type': 'application/json',
+                'x-api-key': api_key,
+                'anthropic-version': '2023-06-01',
+            },
+            method='POST'
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=30) as resp:
+                data = json.loads(resp.read().decode('utf-8'))
+                texto = data['content'][0]['text']
+                return JsonResponse({'perfil': texto})
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)

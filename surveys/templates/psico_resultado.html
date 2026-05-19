@@ -205,6 +205,63 @@
             </div>
             {% endif %}
 
+           <div class="row mt-3">
+    <div class="col-12">
+        <div class="result-card" id="perfil-narrativo-card">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <h6 style="font-weight:700;margin:0;"><i class="feather icon-cpu" style="color:#7367f0;"></i> Perfil Narrativo con IA</h6>
+                <button id="btn-generar-perfil" class="btn btn-primary btn-sm" onclick="generarPerfil()">
+                    <i class="feather icon-zap"></i> Generar perfil
+                </button>
+            </div>
+            <div id="perfil-resultado" style="display:none;">
+                <div id="perfil-texto" style="font-size:14px;color:#6e6b7b;line-height:1.8;white-space:pre-wrap;"></div>
+                <button class="btn btn-outline-secondary btn-sm mt-3" onclick="copiarPerfil()">
+                    <i class="feather icon-copy"></i> Copiar texto
+                </button>
+            </div>
+            <div id="perfil-loading" style="display:none;text-align:center;padding:20px;">
+                <div class="spinner-border text-primary" role="status"></div>
+                <p style="margin-top:10px;color:#b9b9c3;font-size:13px;">Generando perfil narrativo...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function generarPerfil() {
+    document.getElementById('btn-generar-perfil').disabled = true;
+    document.getElementById('perfil-loading').style.display = 'block';
+    document.getElementById('perfil-resultado').style.display = 'none';
+    fetch('{% url "perfil_narrativo" session.id %}', {
+        method: 'POST',
+        headers: {'X-CSRFToken': '{{ csrf_token }}'},
+    })
+    .then(r => r.json())
+    .then(data => {
+        document.getElementById('perfil-loading').style.display = 'none';
+        if (data.perfil) {
+            document.getElementById('perfil-texto').textContent = data.perfil;
+            document.getElementById('perfil-resultado').style.display = 'block';
+        } else {
+            document.getElementById('perfil-texto').textContent = 'Error: ' + (data.error || 'desconocido');
+            document.getElementById('perfil-resultado').style.display = 'block';
+        }
+        document.getElementById('btn-generar-perfil').disabled = false;
+    })
+    .catch(() => {
+        document.getElementById('perfil-loading').style.display = 'none';
+        document.getElementById('btn-generar-perfil').disabled = false;
+        alert('Error de conexion');
+    });
+}
+function copiarPerfil() {
+    navigator.clipboard.writeText(document.getElementById('perfil-texto').textContent)
+        .then(() => alert('Texto copiado'));
+}
+</script> 
+
+
         </div>
     </div>
 </div>

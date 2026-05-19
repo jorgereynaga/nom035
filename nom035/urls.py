@@ -28,6 +28,11 @@ from surveys.psico_views import (
     CandidateListView, CandidateCreateView, CandidateDetailView,
     AssignTestView, TestSessionView, TestCompleteView,
 )
+from surveys.psico_views import (
+    CandidateListView, CandidateCreateView, CandidateDetailView,
+    AssignTestView, TestSessionView, TestCompleteView, TestResultView,
+    GenerarPerfilNarrativoView,
+)
 from django.conf import settings
 from django.conf.urls.static import static
 from rest_framework.authtoken import views
@@ -105,6 +110,7 @@ urlpatterns = [
     path('psico/test/<str:token>/', TestSessionView.as_view(), name='test_session'),
     path('psico/test/<str:token>/completar/', TestCompleteView.as_view(), name='test_completar'),
     path('psico/resultado/<int:session_id>/', TestResultView.as_view(), name='test_resultado'),
+    path('psico/perfil-narrativo/<int:session_id>/', GenerarPerfilNarrativoView.as_view(), name='perfil_narrativo'),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
