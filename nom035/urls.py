@@ -20,19 +20,14 @@ from surveys.stripe_views import (
     StripePlansView, StripeCheckoutView, StripePortalView,
     StripeWebhookView, PaymentSuccessView, PaymentCancelView
 )
+
 from surveys.psico_views import (
     CandidateListView, CandidateCreateView, CandidateDetailView,
     AssignTestView, TestSessionView, TestCompleteView, TestResultView,
+    GenerarPerfilNarrativoView, ReporteUnificadoView,
 )
-from surveys.psico_views import (
-    CandidateListView, CandidateCreateView, CandidateDetailView,
-    AssignTestView, TestSessionView, TestCompleteView,
-)
-from surveys.psico_views import (
-    CandidateListView, CandidateCreateView, CandidateDetailView,
-    AssignTestView, TestSessionView, TestCompleteView, TestResultView,
-    GenerarPerfilNarrativoView,
-)
+
+
 from django.conf import settings
 from django.conf.urls.static import static
 from rest_framework.authtoken import views
@@ -92,8 +87,10 @@ urlpatterns = [
     path('files/tmp/<int:user_id>/<str:file_name>', download_file),
     path('files/charts/<int:workplace_id>/<str:evaluation>/<str:file_name>', download_file2),
     #re_path(r'^(?:663egpo6oxo1uuwg7y2hcttf3hqcga.html)?$', serve, kwargs={'path': '/663egpo6oxo1uuwg7y2hcttf3hqcga.html'}),
+
     # Urls Web Page
     path('', WebIndex.as_view(), name="webindex"),
+    path('psico/reporte/<int:candidate_id>/', ReporteUnificadoView.as_view(), name='reporte_candidato'),
 
     # Stripe
     path('stripe/planes/', StripePlansView.as_view(), name='stripe_planes'),

@@ -1,0 +1,139 @@
+{% load static %}
+{% load psico_filters %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reporte — {{ candidate.nombre }}</title>
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:300,400,500,600,700" rel="stylesheet">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:'Montserrat',sans-serif; background:#f8f8f8; color:#333; }
+        .reporte-wrapper { max-width:900px; margin:0 auto; padding:30px 20px; }
+        .header { background:#fff; border-radius:12px; padding:24px 30px; margin-bottom:20px; display:flex; align-items:center; justify-content:space-between; border:1px solid #e4e4e4; }
+        .header-logo { font-size:22px; font-weight:700; color:#7367f0; }
+        .header-logo span { color:#333; }
+        .header-info h2 { font-size:18px; font-weight:700; color:#333; margin-bottom:4px; }
+        .header-info p { font-size:12px; color:#b9b9c3; }
+        .header-actions { text-align:right; }
+        .btn-print { background:#7367f0; color:#fff; border:none; padding:10px 20px; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer; font-family:'Montserrat',sans-serif; }
+        .btn-print:hover { background:#6254d4; }
+        .seccion { background:#fff; border-radius:12px; border:1px solid #e4e4e4; padding:24px; margin-bottom:20px; }
+        .seccion-titulo { font-size:14px; font-weight:700; color:#5e5873; margin-bottom:16px; padding-bottom:10px; border-bottom:2px solid #f0f0f0; display:flex; align-items:center; gap:8px; }
+        .badge { display:inline-block; padding:4px 12px; border-radius:20px; color:#fff; font-size:12px; font-weight:700; }
+        .bar-container { background:#f0f0f0; border-radius:6px; height:10px; flex:1; }
+        .bar-fill { height:10px; border-radius:6px; }
+        .dim-row { display:flex; align-items:center; gap:12px; margin-bottom:10px; }
+        .dim-label { font-size:12px; font-weight:600; color:#5e5873; width:110px; flex-shrink:0; }
+        .dim-pct { font-size:12px; color:#b9b9c3; width:35px; text-align:right; flex-shrink:0; }
+        .narrativo { font-size:13px; color:#6e6b7b; line-height:1.8; white-space:pre-wrap; background:#f8f7ff; border-left:3px solid #7367f0; padding:16px; border-radius:0 8px 8px 0; margin-top:12px; }
+        .alerta { background:#fff3cd; border:1px solid #ffc107; border-radius:8px; padding:10px 14px; font-size:12px; color:#856404; margin-top:8px; }
+        .ok-box { background:#d4edda; border:1px solid #28c76f; border-radius:8px; padding:10px 14px; font-size:12px; color:#155724; margin-top:8px; }
+        .info-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-bottom:0; }
+        .info-item { font-size:12px; }
+        .info-item span { color:#b9b9c3; display:block; margin-bottom:2px; }
+        .info-item strong { color:#333; }
+        .nivel-grande { font-size:48px; font-weight:700; text-align:center; margin:8px 0; }
+        .nivel-desc { font-size:13px; color:#6e6b7b; text-align:center; margin-bottom:12px; }
+        .footer { text-align:center; font-size:11px; color:#b9b9c3; margin-top:30px; padding-top:20px; border-top:1px solid #e4e4e4; }
+        @media print {
+            body { background:#fff; }
+            .btn-print { display:none; }
+            .reporte-wrapper { padding:0; max-width:100%; }
+            .seccion { break-inside:avoid; }
+        }
+    </style>
+</head>
+<body>
+<div class="reporte-wrapper">
+
+    <!-- HEADER -->
+    <div class="header">
+        <div>
+            <div class="header-logo">IHES <span>NOM-035</span></div>
+            <div style="font-size:11px;color:#b9b9c3;margin-top:4px;">Plataforma de Evaluación Psicométrica</div>
+        </div>
+        <div style="text-align:center;">
+            <div style="font-size:18px;font-weight:700;color:#333;">{{ candidate.nombre }}</div>
+            <div style="font-size:12px;color:#b9b9c3;">{{ candidate.puesto|default:"Puesto no especificado" }}</div>
+        </div>
+        <div class="header-actions">
+            <div style="font-size:11px;color:#b9b9c3;margin-bottom:8px;">{{ fecha }}</div>
+            <button class="btn-print" onclick="window.print()">⬇ Imprimir / PDF</button>
+        </div>
+    </div>
+
+    <!-- DATOS DEL CANDIDATO -->
+    <div class="seccion">
+        <div class="seccion-titulo">👤 Datos del candidato</div>
+        <div class="info-grid">
+            <div class="info-item"><span>Nombre completo</span><strong>{{ candidate.nombre }}</strong></div>
+            <div class="info-item"><span>Puesto aplicado</span><strong>{{ candidate.puesto|default:"No especificado" }}</strong></div>
+            <div class="info-item"><span>Fecha del reporte</span><strong>{{ fecha }}</strong></div>
+            {% if candidate.email %}<div class="info-item"><span>Email</span><strong>{{ candidate.email }}</strong></div>{% endif %}
+            {% if candidate.telefono %}<div class="info-item"><span>Teléfono</span><strong>{{ candidate.telefono }}</strong></div>{% endif %}
+        </div>
+    </div>
+
+    <!-- RESULTADOS POR INSTRUMENTO -->
+    {% for r in resultados %}
+    <div class="seccion">
+        <div class="seccion-titulo">
+            📋 {{ r.instrumento.nombre }}
+            <span style="font-size:11px;color:#b9b9c3;font-weight:400;">Completado el {{ r.session.fecha_completado|date:"d/m/Y" }}</span>
+        </div>
+
+        {% if r.tipo == 'disc' %}
+        <div style="margin-bottom:12px;">
+            <span class="badge" style="background:{{ r.perfiles|get_item:r.dominante|get_item:'color' }};">{{ r.perfil_nombre }}</span>
+        </div>
+        {% for k, v in r.scores.items %}
+        <div class="dim-row">
+            <div class="dim-label">{% if k == 'D' %}Dominancia{% elif k == 'I' %}Influencia{% elif k == 'S' %}Estabilidad{% else %}Cumplimiento{% endif %}</div>
+            <div class="bar-container"><div class="bar-fill" style="width:{{ r.pct|get_item:k }}%;background:{{ r.perfiles|get_item:k|get_item:'color' }};"></div></div>
+            <div class="dim-pct">{{ r.pct|get_item:k }}%</div>
+        </div>
+        {% endfor %}
+
+        {% elif r.tipo == 'moss' %}
+        <div class="nivel-grande" style="color:{{ r.color }};">{{ r.pct }}%</div>
+        <div class="nivel-desc"><span class="badge" style="background:{{ r.color }};">{{ r.nivel }}</span></div>
+        <div class="bar-container" style="margin:8px 0;"><div class="bar-fill" style="width:{{ r.pct }}%;background:{{ r.color }};"></div></div>
+        <div style="font-size:11px;color:#b9b9c3;text-align:center;">Puntuación: {{ r.total }} / 90</div>
+
+        {% elif r.tipo == 'raven' %}
+        <div class="nivel-grande" style="color:{{ r.color }};">{{ r.pct }}%</div>
+        <div class="nivel-desc"><span class="badge" style="background:{{ r.color }};">{{ r.nivel }}</span></div>
+        <div class="bar-container" style="margin:8px 0;"><div class="bar-fill" style="width:{{ r.pct }}%;background:{{ r.color }};"></div></div>
+
+        {% elif r.tipo == 'zavic' %}
+        {% for k, v in r.scores.items %}
+        <div class="dim-row">
+            <div class="dim-label">{{ r.escalas|get_item:k|get_item:'nombre' }}</div>
+            <div class="bar-container"><div class="bar-fill" style="width:{{ r.pct|get_item:k }}%;background:{{ r.escalas|get_item:k|get_item:'color' }};"></div></div>
+            <div class="dim-pct">{{ r.pct|get_item:k }}%</div>
+        </div>
+        {% endfor %}
+        {% if r.alerta_corrupcion %}
+        <div class="alerta">⚠️ El índice de Corrupción supera al de Moral. Se recomienda evaluación adicional.</div>
+        {% else %}
+        <div class="ok-box">✓ Perfil de valores compatible con la organización.</div>
+        {% endif %}
+        {% endif %}
+
+        {% if r.perfil_narrativo %}
+        <div style="margin-top:16px;">
+            <div style="font-size:12px;font-weight:600;color:#7367f0;margin-bottom:6px;">🤖 Perfil Narrativo (IA)</div>
+            <div class="narrativo">{{ r.perfil_narrativo }}</div>
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+
+    <div class="footer">
+        Reporte generado por IHES NOM-035 · {{ fecha }} · Confidencial
+    </div>
+</div>
+</body>
+</html>

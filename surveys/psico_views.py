@@ -374,7 +374,95 @@ class GenerarPerfilNarrativoView(LoginRequiredMixin, View):
         try:
             with urllib.request.urlopen(req, timeout=30) as resp:
                 data = json.loads(resp.read().decode('utf-8'))
-                texto = data['content'][0]['text']
+                texto = data["content"][0]["text"]
+                result.perfil_narrativo = texto
+                result.save()
                 return JsonResponse({'perfil': texto})
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=500)
+
+
+class ReporteUnificadoView(LoginRequiredMixin, View):
+    login_url = reverse_lazy('login')
+
+    def get(self, request, candidate_id):
+        candidate = get_object_or_404(Candidate, id=candidate_id, user=request.user)
+        sesiones = TestSession.objects.filter(
+            candidate=candidate,
+            status='completada'
+        ).select_related('instrumento', 'result').order_by('fecha_completado')
+
+        resultados = []
+        for s in sesiones:
+            try:
+                result = s.result
+                scores = result.scores
+                tipo = s.instrumento.tipo
+                perfil_narrativo = result.perfil_narrativo or ''
+                data = {'session': s, 'instrumento': s.instrumento, 'scores': scores, 'tipo': tipo, 'perfil_narrativo': perfil_narrativo}
+                if tipo == 'disc':
+                    pct = {k: max(0, round((v / 28) * 100)) for k, v in scores.items()}
+                    dominante = max(scores, key=scores.get)
+                    segundo = sorted(scores, key=scores.get, reverse=True)[1]
+                    perfiles = {
+                        'D': {'nombre': 'Dominante', 'color': '#ea5455'},
+                        'I': {'nombre': 'Influyente', 'color': '#ff9f43'},
+                        'S': {'nombre': 'Estable', 'color': '#28c76f'},
+                        'C': {'nombre': 'Cumplidor', 'color': '#7367f0'},
+                    }
+                    data['pct'] = pct
+                    data['dominante'] = dominante
+                    data['segundo'] = segundo
+                    data['perfiles'] = perfiles
+                    data['perfil_nombre'] = f"Perfil {dominante}-{segundo}: {perfiles[dominante]['nombre']} con tendencia {perfiles[segundo]['nombre']}"
+                elif tipo == 'moss':
+                    total = scores.get('total', 0)
+                    pct = round((total / 90) * 100)
+                    if pct >= 80:
+                        nivel, color = 'Muy alto', '#28c76f'
+                    elif pct >= 60:
+                        nivel, color = 'Alto', '#7367f0'
+                    elif pct >= 40:
+                        nivel, color = 'Medio', '#ff9f43'
+                    else:
+                        nivel, color = 'Bajo', '#ea5455'
+                    data['total'] = total
+                    data['pct'] = pct
+                    data['nivel'] = nivel
+                    data['color'] = color
+                elif tipo == 'raven':
+                    pct = scores.get('porcentaje', 0)
+                    if pct >= 85:
+                        nivel, color = 'Muy Superior', '#28c76f'
+                    elif pct >= 70:
+                        nivel, color = 'Superior', '#7367f0'
+                    elif pct >= 50:
+                        nivel, color = 'Normal', '#ff9f43'
+                    else:
+                        nivel, color = 'Inferior', '#ea5455'
+                    data['pct'] = pct
+                    data['nivel'] = nivel
+                    data['color'] = color
+                elif tipo == 'zavic':
+                    total_pts = sum(scores.values()) or 1
+                    pct = {k: round((v / total_pts) * 100) for k, v in scores.items()}
+                    escalas = {
+                        'M': {'nombre': 'Moral', 'color': '#28c76f'},
+                        'L': {'nombre': 'Legal', 'color': '#7367f0'},
+                        'I': {'nombre': 'Indiferente', 'color': '#ff9f43'},
+                        'C': {'nombre': 'Corrupcion', 'color': '#ea5455'},
+                    }
+                    data['pct'] = pct
+                    data['escalas'] = escalas
+                    data['alerta_corrupcion'] = scores.get('C', 0) > scores.get('M', 0)
+                resultados.append(data)
+            except Exception:
+                pass
+
+        ctx = {
+            'candidate': candidate,
+            'resultados': resultados,
+            'name': request.user.userapp.name,
+            'fecha': __import__('datetime').date.today(),
+        }
+        return render(request, 'psico_reporte.html', ctx)
