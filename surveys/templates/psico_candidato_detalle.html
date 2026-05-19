@@ -86,12 +86,12 @@
         <div class="content-header row">
             <div class="content-header-left col-12 mb-2 d-flex align-items-center justify-content-between">
                 <div>
-                    <a href="{% url 'candidatos' %}" class="text-muted" style="font-size:13px;"><i class="feather icon-arrow-left"></i> Candidatos</a>
+                   <a href="{% url 'candidatos' %}" class="text-muted" style="font-size:13px;"><i class="feather icon-arrow-left"></i> Candidatos</a>
                     <h3 class="content-header-title mb-0 mt-1">{{ candidate.nombre }}</h3>
-                    <a href="{% url 'reporte_candidato' candidate.id %}" style="display:inline-flex;align-items:center;gap:6px;background:#7367f0;color:#fff;padding:7px 16px;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;margin-top:8px;">
-                    <i class="feather icon-file-text"></i> Ver reporte unificado
-                    </a>
                     <p class="text-muted mb-0">{{ candidate.puesto|default:"Sin puesto asignado" }}</p>
+                    <a href="{% url 'reporte_candidato' candidate.id %}" style="display:inline-flex;align-items:center;gap:6px;background:#7367f0;color:#fff;padding:7px 16px;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;margin-top:10px;">
+    <i class="feather icon-file-text"></i> Ver reporte unificado
+</a>
                 </div>
                 <button class="btn btn-primary" onclick="document.getElementById('modalAsignar').classList.add('activo')">
                     <i class="feather icon-plus"></i> Asignar prueba
