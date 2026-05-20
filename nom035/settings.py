@@ -21,11 +21,14 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get('SECRET_KEY', '$g6e6mar#04g1dt(!sme&gknk7s$+e66g855=ul@08x)2l=&aun_mas-seguro!')
+SECRET_KEY = os.environ.get('SECRET_KEY')
+
+if not SECRET_KEY:
+    raise Exception("SECRET_KEY no configurada")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # DEBUG =False
-DEBUG = os.environ.get('DEBUG', 'True') == 'True'
+DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
 APPEND_SLASH = True
 # SECURE_SSL_REDIRECT=True
@@ -33,7 +36,12 @@ SESSION_COOKIE_AGE=(60*120)
 SESSION_SAVE_EVERY_REQUEST=True
 CELERY_BROKER_URL = 'amqp://localhost'
 CELERY_RESULT_BACKEND = 'amqp'
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '*').split(',')
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',')
+
+if not ALLOWED_HOSTS or ALLOWED_HOSTS == ['']:
+    raise Exception("ALLOWED_HOSTS no configurado")
+
+
 
 
 # Application definition
@@ -55,10 +63,10 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'corsheaders.middleware.CorsMiddleware',  
+    'django.contrib.sessions.middleware.SessionMiddleware',  
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -67,8 +75,18 @@ MIDDLEWARE = [
     'nom035.middleware.ExceptionLoggingMiddleware',
 ]
 
-CORS_ORIGIN_ALLOW_ALL = True
+CORS_ORIGIN_ALLOW_ALL = False
 CORS_ALLOW_CREDENTIALS = False
+CORS_ALLOWED_ORIGINS = [
+    "https://035.ihes.mx",
+    "https://nom035-production.up.railway.app",
+    "https://tu-frontend.com",
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://035.ihes.mx",
+    "https://nom035-production.up.railway.app",
+]
 # CORS_ALLOWED_ORIGINS  = [
 #     # 'https://connect.facebook.net',
 #     'https://035.ihes.mx',
@@ -106,16 +124,27 @@ WSGI_APPLICATION = 'nom035.wsgi.application'
 #     }
 # }
 
-import dj_database_url
 import os
 import dj_database_url
 
+DATABASE_URL = os.environ.get('DATABASE_URL')
+
+if not DATABASE_URL:
+    raise Exception("DATABASE_URL no configurada")
+
 DATABASES = {
-    'default': dj_database_url.config(
-        default=os.environ.get('DATABASE_URL'),
+    'default': dj_database_url.parse(
+        DATABASE_URL,
         conn_max_age=600
     )
 }
+
+CSRF_COOKIE_SECURE = not DEBUG
+SESSION_COOKIE_SECURE = not DEBUG
+
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+
 # Password validation
 # https://docs.djangoproject.com/en/3.0/ref/settings/#auth-password-validators
 
