@@ -2411,3 +2411,51 @@ def post_facebook_message_quick(TK,user,button_text,buttons):
 			"message":{"text": button_text,"quick_replies":buttons}})
 	status = requests.post(post_message_url, headers={"Content-Type": "application/json"},data=response_msg)
 	print (status.json())
+	import stripe
+import json
+from django.http import HttpResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.models import User
+
+from .models import CreditWallet
+from .services.credits import assign_nom035_credits  # ajusta si cambia ruta
+
+stripe.api_key = "TU_SECRET_KEY"
+
+@csrf_exempt
+def stripe_webhook(request):
+    payload = request.body
+    sig_header = request.META.get('HTTP_STRIPE_SIGNATURE')
+    endpoint_secret = settings.STRIPE_WEBHOOK_SECRET
+
+    try:
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, endpoint_secret
+        )
+    except ValueError:
+        return HttpResponse(status=400)
+    except stripe.error.SignatureVerificationError:
+        return HttpResponse(status=400)
+
+    # Evento correcto
+    if event['type'] == 'checkout.session.completed':
+        session = event['data']['object']
+
+        customer_email = session.get('customer_email')
+
+        if not customer_email:
+            return HttpResponse(status=200)
+
+        try:
+            user = User.objects.get(email=customer_email)
+            workplace = user.userapp.workplace
+        except:
+            return HttpResponse(status=200)
+
+        # 🔥 METADATA
+        product_name = session.get('metadata', {}).get('product_type')
+
+        if product_name:
+            assign_nom035_credits(workplace, product_name)
+
+    return HttpResponse(status=200)

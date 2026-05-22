@@ -111,3 +111,9 @@ urlpatterns = [
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+from .views import stripe_webhook
+
+urlpatterns += [
+    path('stripe/webhook/', stripe_webhook),
+]

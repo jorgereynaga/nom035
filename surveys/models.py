@@ -917,3 +917,16 @@ class TestResult(models.Model):
 # 		verbose_name=u'Agenda de conferencias'
 # 		verbose_name_plural=u'Agenda de conferencias'
 # 		ordering = ['-pk']
+class CreditWallet(models.Model):
+    workplace = models.OneToOneField(Workplace, on_delete=models.CASCADE)
+
+    nom035_total = models.IntegerField(default=0)
+    nom035_used = models.IntegerField(default=0)
+
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def nom035_available(self):
+        return self.nom035_total - self.nom035_used
+
+    def __str__(self):
+        return f"{self.workplace.name} - NOM035: {self.nom035_available()}"
