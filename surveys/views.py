@@ -2418,7 +2418,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.models import User
 
 from .models import CreditWallet
-from .services.credits import assign_nom035_credits  # ajusta si cambia ruta
+# from .services.credits import assign_nom035_credits  # ajusta si cambia ruta
 
 stripe.api_key = "TU_SECRET_KEY"
 
