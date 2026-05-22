@@ -117,3 +117,6 @@ from .views import stripe_webhook
 urlpatterns += [
     path('stripe/webhook/', stripe_webhook),
 ]
+checkout.session.completed
+assign_nom035_credits(...)
+session.get('metadata', {}).get('product_type')
