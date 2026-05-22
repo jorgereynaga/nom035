@@ -33,6 +33,7 @@ from django.conf.urls.static import static
 from rest_framework.authtoken import views
 #from django.contrib.staticfiles.views import serve
 urlpatterns = [
+    path('stripe/webhook/', stripe_webhook, name='stripe-webhook'),
     path('api-auth/', include('rest_framework.urls')),
     path('api-token-auth/', views.obtain_auth_token),
     path('api-token-create/', TokenCreation.as_view()),
@@ -112,7 +113,7 @@ urlpatterns = [
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
-from .views import stripe_webhook
+from surveys.views import stripe_webhook
 
 urlpatterns += [
     path('stripe/webhook/', stripe_webhook),
@@ -120,3 +121,4 @@ urlpatterns += [
 checkout.session.completed
 assign_nom035_credits(...)
 session.get('metadata', {}).get('product_type')
+
