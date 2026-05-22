@@ -119,6 +119,3 @@ urlpatterns += [
     path('stripe/webhook/', stripe_webhook),
 ]
 
-assign_nom035_credits(...)
-session.get('metadata', {}).get('product_type')
-
