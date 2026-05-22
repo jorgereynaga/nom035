@@ -40,6 +40,8 @@ conekta.api_key="key_qfCtN8NqwJRTTJR23wdcqA"
 conekta.api_version = "2.0.0"
 conekta.locale="es"
 
+import stripe
+
 p_= logging.getLogger(__name__)
 #conekta api key produccion key_qfCtN8NqwJRTTJR23wdcqA
 #conekta api key produccion pulica key_V9bKr8wrjH5CxLrcbKo2PzA
@@ -2420,7 +2422,6 @@ from django.contrib.auth.models import User
 from .models import CreditWallet
 # from .services.credits import assign_nom035_credits  # ajusta si cambia ruta
 
-stripe.api_key = "TU_SECRET_KEY"
 
 @csrf_exempt
 def stripe_webhook(request):
