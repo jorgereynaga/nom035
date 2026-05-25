@@ -2457,11 +2457,12 @@ def stripe_webhook(request):
             workplace = user.userapp.workplace
         except:
             print("⚠️ USUARIO NO ENCONTRADO")
-            # 👇 FORZAMOS USUARIO PARA PRUEBA
-    		user = User.objects.first()
-    		workplace = user.userapp.workplace
 
-    		print("⚠️ USUARIO FORZADO:", user.email)
+            # 👇 FORZAMOS USUARIO PARA PRUEBA
+            user = User.objects.first()
+            workplace = user.userapp.workplace
+
+            print("⚠️ USUARIO FORZADO:", user.email)
 
         product_name = session.get('metadata', {}).get('product_type')
 
