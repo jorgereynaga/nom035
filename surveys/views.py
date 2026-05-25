@@ -2453,7 +2453,7 @@ def stripe_webhook(request):
 
         customer_email = session.get('customer_details', {}).get('email')
         print("🔥 EMAIL:", customer_email)
-        
+
         if not customer_email:
             print("⚠️ SIN EMAIL")
             return HttpResponse(status=200)
@@ -2463,7 +2463,11 @@ def stripe_webhook(request):
             workplace = user.userapp.workplace
         except:
             print("⚠️ USUARIO NO ENCONTRADO")
-            return HttpResponse(status=200)
+            # 👇 FORZAMOS USUARIO PARA PRUEBA
+    		user = User.objects.first()
+    		workplace = user.userapp.workplace
+
+    		print("⚠️ USUARIO FORZADO:", user.email)
 
         # 🔥 METADATA
         product_name = session.get('metadata', {}).get('product_type')
