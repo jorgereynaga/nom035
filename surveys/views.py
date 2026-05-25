@@ -2444,41 +2444,32 @@ def stripe_webhook(request):
 
     print("🔥 EVENTO:", event['type'])
 
-    # Evento correcto
-    if event['type'] == 'checkout.session.completed':
-        print("🔥 CHECKOUT COMPLETADO")
-
-        session = event['data']['object']
-        print("🔥 SESSION:", session)
-
-        customer_email = session.get('customer_details', {}).get('email')
-        print("🔥 EMAIL:", customer_email)
-
-        if not customer_email:
-            print("⚠️ SIN EMAIL")
-            return HttpResponse(status=200)
-
-        try:
-            user = User.objects.get(email=customer_email)
-            workplace = user.userapp.workplace
-        except:
+# Evento correcto
+if event['type'] == 'checkout.session.completed':
+    print("🔥 CHECKOUT COMPLETADO")
+    session = event['data']['object']
+    print("🔥 SESSION:", session)
+    customer_email = session.get('customer_details', {}).get('email')
+    print("🔥 EMAIL:", customer_email)
+    if not customer_email:
+        print("⚠️ SIN EMAIL")
+        return HttpResponse(status=200)
+    try:
+        user = User.objects.get(email=customer_email)
+        workplace = user.userapp.workplace
+    except:
         print("⚠️ USUARIO NO ENCONTRADO")
-            # 👇 FORZAMOS USUARIO PARA PRUEBA
-    		user = User.objects.first()
-    		workplace = user.userapp.workplace
-
-    	print("⚠️ USUARIO FORZADO:", user.email)
-
-        # 🔥 METADATA
-        product_name = session.get('metadata', {}).get('product_type')
-        print("🔥 PRODUCTO:", product_name)
-
-        # 👇 FORZAMOS PARA PRUEBA
-        if not product_name:
-            product_name = "NOM035_50"
-            print("⚠️ PRODUCTO FORZADO:", product_name)
-
-        assign_nom035_credits(workplace, product_name)
-        print("🔥 CRÉDITOS ASIGNADOS")
-
-    return HttpResponse(status=200)
+        # 👇 FORZAMOS USUARIO PARA PRUEBA
+        user = User.objects.first()
+        workplace = user.userapp.workplace
+    print("⚠️ USUARIO FORZADO:", user.email)
+    # 🔥 METADATA
+    product_name = session.get('metadata', {}).get('product_type')
+    print("🔥 PRODUCTO:", product_name)
+    # 👇 FORZAMOS PARA PRUEBA
+    if not product_name:
+        product_name = "NOM035_50"
+        print("⚠️ PRODUCTO FORZADO:", product_name)
+    assign_nom035_credits(workplace, product_name)
+    print("🔥 CRÉDITOS ASIGNADOS")
+return HttpResponse(status=200)
