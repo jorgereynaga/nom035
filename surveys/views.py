@@ -2451,9 +2451,9 @@ def stripe_webhook(request):
         session = event['data']['object']
         print("🔥 SESSION:", session)
 
-        customer_email = session.get('customer_email')
+        customer_email = session.get('customer_details', {}).get('email')
         print("🔥 EMAIL:", customer_email)
-
+        
         if not customer_email:
             print("⚠️ SIN EMAIL")
             return HttpResponse(status=200)
