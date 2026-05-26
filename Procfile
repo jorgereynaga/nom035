@@ -1,1 +1,1 @@
-web: python manage.py migrate --noinput && gunicorn nom035.wsgi:application --bind 0.0.0.0:$PORT --timeout 120 --workers 2 --threads 2
+web: python manage.py migrate --noinput && python manage.py collectstatic --noinput && python manage.py cargar_disc && python manage.py cargar_moss && python manage.py cargar_raven && python manage.py cargar_zavic && gunicorn nom035.wsgi --log-file - --timeout 120 --workers 1 --threads 2 --preload
