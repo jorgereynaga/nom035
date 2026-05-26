@@ -2413,15 +2413,16 @@ def post_facebook_message_quick(TK,user,button_text,buttons):
 			"message":{"text": button_text,"quick_replies":buttons}})
 	status = requests.post(post_message_url, headers={"Content-Type": "application/json"},data=response_msg)
 	print (status.json())
-	import stripe
-import json
-from django.http import HttpResponse
+
+
+
+
+	
 from django.views.decorators.csrf import csrf_exempt
+from django.http import HttpResponse
 from django.contrib.auth.models import User
-
-from .models import CreditWallet
-# from .services.credits import assign_nom035_credits  # ajusta si cambia ruta
-
+import stripe
+from django.conf import settings
 
 @csrf_exempt
 def stripe_webhook(request):
@@ -2449,20 +2450,55 @@ def stripe_webhook(request):
 
         session = event['data']['object']
 
-        customer_email = session.get('customer_details', {}).get('email')
+        # 🔥 EMAIL CORRECTO (fallback)
+        customer_email = (
+            session.get('customer_email') or
+            session.get('customer_details', {}).get('email')
+        )
+
         print("🔥 EMAIL:", customer_email)
 
+        if not customer_email:
+            print("⚠️ SIN EMAIL")
+            return HttpResponse(status=200)
+
+        # 🔥 USUARIO
         try:
             user = User.objects.get(email=customer_email)
             workplace = user.userapp.workplace
-        except:
-            print("⚠️ USUARIO NO ENCONTRADO")
+        except User.DoesNotExist:
+            print("⚠️ USUARIO NO ENCONTRADO:", customer_email)
+            return HttpResponse(status=200)
 
-            # 👇 FORZAMOS USUARIO PARA PRUEBA
+        # 🔥 METADATA (producto comprado)
+        product_name = session.get('metadata', {}).get('product_type')
+        print("🔥 PRODUCTO:", product_name)
+
+        # 👇 temporal para pruebas
+        if not product_name:
+            product_name = "NOM035_50"
+            print("⚠️ PRODUCTO FORZADO:", product_name)
+
+        # 🔥 ASIGNAR CRÉDITOS
+        assign_nom035_credits(workplace, product_name)
+        print("🔥 CRÉDITOS ASIGNADOS")
+
+    return HttpResponse(status=200)
+
+
+
+    except:
+        print("⚠️ USUARIO NO ENCONTRADO")
+
+        # 👇 FORZAMOS USUARIO PARA PRUEBA
             user = User.objects.first()
             workplace = user.userapp.workplace
 
             print("⚠️ USUARIO FORZADO:", user.email)
+            print("🔥 SESSION COMPLETA:", session)
+            print("🔥 customer_email:", session.get('customer_email'))
+            print("🔥 customer_details:", session.get('customer_details'))
+
 
         product_name = session.get('metadata', {}).get('product_type')
 
