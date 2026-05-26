@@ -2484,28 +2484,3 @@ def stripe_webhook(request):
         print("🔥 CRÉDITOS ASIGNADOS")
 
     return HttpResponse(status=200)
-
-
-
-        except:
-        print("⚠️ USUARIO NO ENCONTRADO")
-
-        # 👇 FORZAMOS USUARIO PARA PRUEBA
-            user = User.objects.first()
-            workplace = user.userapp.workplace
-
-            print("⚠️ USUARIO FORZADO:", user.email)
-            print("🔥 SESSION COMPLETA:", session)
-            print("🔥 customer_email:", session.get('customer_email'))
-            print("🔥 customer_details:", session.get('customer_details'))
-
-
-        product_name = session.get('metadata', {}).get('product_type')
-
-        if not product_name:
-            product_name = "NOM035_50"
-
-        assign_nom035_credits(workplace, product_name)
-        print("🔥 CRÉDITOS ASIGNADOS")
-
-    return HttpResponse(status=200)
