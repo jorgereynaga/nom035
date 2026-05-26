@@ -1,3 +1,4 @@
+from surveys.services.credits import assign_nom035_credits
 from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 from django.db.models import Q
