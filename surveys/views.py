@@ -2417,7 +2417,7 @@ def post_facebook_message_quick(TK,user,button_text,buttons):
 
 
 
-	
+
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
 from django.contrib.auth.models import User
@@ -2487,7 +2487,7 @@ def stripe_webhook(request):
 
 
 
-    except:
+        except:
         print("⚠️ USUARIO NO ENCONTRADO")
 
         # 👇 FORZAMOS USUARIO PARA PRUEBA
