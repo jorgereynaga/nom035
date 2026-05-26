@@ -2450,7 +2450,6 @@ def stripe_webhook(request):
 
         session = event['data']['object']
 
-        # 🔥 EMAIL CORRECTO (fallback)
         customer_email = (
             session.get('customer_email') or
             session.get('customer_details', {}).get('email')
@@ -2462,7 +2461,6 @@ def stripe_webhook(request):
             print("⚠️ SIN EMAIL")
             return HttpResponse(status=200)
 
-        # 🔥 USUARIO
         try:
             user = User.objects.get(email=customer_email)
             workplace = user.userapp.workplace
@@ -2470,16 +2468,12 @@ def stripe_webhook(request):
             print("⚠️ USUARIO NO ENCONTRADO:", customer_email)
             return HttpResponse(status=200)
 
-        # 🔥 METADATA (producto comprado)
         product_name = session.get('metadata', {}).get('product_type')
-        print("🔥 PRODUCTO:", product_name)
 
-        # 👇 temporal para pruebas
         if not product_name:
             product_name = "NOM035_50"
             print("⚠️ PRODUCTO FORZADO:", product_name)
 
-        # 🔥 ASIGNAR CRÉDITOS
         assign_nom035_credits(workplace, product_name)
         print("🔥 CRÉDITOS ASIGNADOS")
 
