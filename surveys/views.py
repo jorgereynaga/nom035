@@ -2447,21 +2447,23 @@ def stripe_webhook(request):
             session.get('customer_email') or
             session.get('customer_details', {}).get('email')
         )
-        print("🔥 EMAIL:", customer_email)
-        if not customer_email:
-            print("⚠️ SIN EMAIL")
-            return HttpResponse(status=200)
+        # Intentar por user_id en metadata primero
+        user_id = session.get('metadata', {}).get('user_id')
+        plan_key = session.get('metadata', {}).get('plan_key')
+        print("🔥 USER_ID:", user_id, "PLAN_KEY:", plan_key)
         try:
-            user = User.objects.get(email=customer_email)
+            if user_id:
+                user = User.objects.get(id=user_id)
+            else:
+                user = User.objects.get(email=customer_email)
             workplace = user.userapp.workplace
-        except User.DoesNotExist:
-            print("⚠️ USUARIO NO ENCONTRADO:", customer_email)
+        except (User.DoesNotExist, Exception) as e:
+            print("⚠️ ERROR USUARIO:", str(e))
             user = User.objects.first()
             workplace = user.userapp.workplace
             print("⚠️ USUARIO FORZADO:", user.email)
-        product_name = session.get('metadata', {}).get('product_type')
-        if not product_name:
-            product_name = "NOM035_50"
+        product_name = plan_key or session.get('metadata', {}).get('product_type') or "NOM035_50"
+        if not plan_key:
             print("⚠️ PRODUCTO FORZADO:", product_name)
         assign_nom035_credits(workplace, product_name)
         print("🔥 CRÉDITOS ASIGNADOS")
