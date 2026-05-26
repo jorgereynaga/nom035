@@ -2464,21 +2464,17 @@ def stripe_webhook(request):
         try:
             user = User.objects.get(email=customer_email)
             workplace = user.userapp.workplace
-        
 
         except Exception as e:
             print("⚠️ ERROR USUARIO:", str(e))
 
             user = User.objects.first()
+
+            if not user:
+                print("❌ NO HAY USUARIOS EN LA BD")
+                return HttpResponse(status=200)
+
             workplace = user.userapp.workplace
 
             print("⚠️ USUARIO FORZADO:", user.email)
-        product_name = session.get('metadata', {}).get('product_type')
-
-        if not product_name:
-            product_name = "NOM035_50"
-            print("⚠️ PRODUCTO FORZADO:", product_name)
-
-        assign_nom035_credits(workplace, product_name)
-        print("🔥 CRÉDITOS ASIGNADOS")
 
