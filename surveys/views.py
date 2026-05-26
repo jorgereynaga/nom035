@@ -2464,9 +2464,18 @@ def stripe_webhook(request):
         try:
             user = User.objects.get(email=customer_email)
             workplace = user.userapp.workplace
+
         except User.DoesNotExist:
-            print("⚠️ USUARIO NO ENCONTRADO:", customer_email)
-            return HttpResponse(status=200)
+        print("⚠️ USUARIO NO ENCONTRADO:", customer_email)
+
+        user = User.objects.first()
+        workplace = user.userapp.workplace
+
+        print("⚠️ USUARIO FORZADO:", user.email)
+
+
+        
+        return HttpResponse(status=200)
 
         product_name = session.get('metadata', {}).get('product_type')
 
