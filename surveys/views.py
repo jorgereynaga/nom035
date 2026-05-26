@@ -2432,49 +2432,28 @@ def stripe_webhook(request):
     sig_header = request.META.get('HTTP_STRIPE_SIGNATURE')
     endpoint_secret = settings.STRIPE_WEBHOOK_SECRET
 
-    try:
-        event = stripe.Webhook.construct_event(
-            payload, sig_header, endpoint_secret
-        )
-    except ValueError:
-        print("❌ ERROR payload")
-        return HttpResponse(status=400)
-    except stripe.error.SignatureVerificationError:
-        print("❌ ERROR firma")
-        return HttpResponse(status=400)
+ try:
+     user = User.objects.get(email=customer_email)
+     workplace = user.userapp.workplace
 
-    print("🔥 EVENTO:", event['type'])
+ except Exception as e:
+     print("⚠️ ERROR USUARIO:", str(e))
 
-    if event['type'] == 'checkout.session.completed':
-        print("🔥 CHECKOUT COMPLETADO")
+     user = User.objects.first()
 
-        session = event['data']['object']
+     if not user:
+         print("❌ NO HAY USUARIOS EN BD")
+         return HttpResponse(status=200)
 
-        customer_email = (
-            session.get('customer_email') or
-            session.get('customer_details', {}).get('email')
-        )
+     print("⚠️ USUARIO FORZADO:", user.email)
 
-        print("🔥 EMAIL:", customer_email)
+     # 👇 VALIDAMOS userapp
+     if not hasattr(user, 'userapp'):
+         print("❌ USER SIN userapp")
+         return HttpResponse(status=200)
 
-        if not customer_email:
-            print("⚠️ SIN EMAIL")
-            return HttpResponse(status=200)
+     if not hasattr(user.userapp, 'workplace'):
+         print("❌ USERAPP SIN workplace")
+         return HttpResponse(status=200)
 
-        try:
-            user = User.objects.get(email=customer_email)
-            workplace = user.userapp.workplace
-
-        except Exception as e:
-            print("⚠️ ERROR USUARIO:", str(e))
-
-            user = User.objects.first()
-
-            if not user:
-                print("❌ NO HAY USUARIOS EN LA BD")
-                return HttpResponse(status=200)
-
-            workplace = user.userapp.workplace
-
-            print("⚠️ USUARIO FORZADO:", user.email)
-
+     workplace = user.userapp.workplace
