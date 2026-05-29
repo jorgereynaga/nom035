@@ -1,5 +1,6 @@
 from surveys.stripe_plans import PLANS as STRIPE_PLANS
 from surveys.models import CreditWallet
+from django.contrib.auth.models import User
 
 
 def assign_nom035_credits(workplace, plan_key):
@@ -14,8 +15,6 @@ def assign_nom035_credits(workplace, plan_key):
     evaluaciones_total = plan.get('evaluaciones_total') or 0
     periodo = plan.get('periodo', 'mensual')
 
-    wallet, created = CreditWallet.objects.get_or_create(workplace=workplace)
-
     if modulo == 'nom035':
         if periodo == 'mensual':
             creditos = empleados_max
@@ -25,6 +24,7 @@ def assign_nom035_credits(workplace, plan_key):
             creditos = empleados_max * 12
         else:
             creditos = empleados_max
+        wallet, created = CreditWallet.objects.get_or_create(workplace=workplace)
         wallet.nom035_total += creditos
         wallet.save()
         print(f"✅ {creditos} créditos NOM-035 asignados a {workplace.name}")
@@ -43,9 +43,14 @@ def assign_nom035_credits(workplace, plan_key):
                 creditos = evaluaciones_mes
         else:
             creditos = 0
-        wallet.psico_total += creditos
-        wallet.save()
-        print(f"✅ {creditos} créditos psicometría asignados a {workplace.name}")
+        # Guardar en Userapp del dueño del workplace
+        try:
+            userapp = workplace.user.userapp
+            userapp.psico_evaluaciones_disponibles += creditos
+            userapp.save()
+            print(f"✅ {creditos} créditos psicometría asignados a {userapp.name}")
+        except Exception as e:
+            print(f"⚠️ Error asignando psico: {e}")
 
     else:
         print(f"⚠️ Módulo no manejado: {modulo}")
