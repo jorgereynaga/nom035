@@ -9,13 +9,14 @@ def assign_nom035_credits(workplace, plan_key):
         return
 
     modulo = plan.get('modulo')
-    empleados_max = plan.get('empleados_max', 0)
+    empleados_max = plan.get('empleados_max') or 0
+    evaluaciones_mes = plan.get('evaluaciones_mes') or 0
+    evaluaciones_total = plan.get('evaluaciones_total') or 0
     periodo = plan.get('periodo', 'mensual')
 
     wallet, created = CreditWallet.objects.get_or_create(workplace=workplace)
 
     if modulo == 'nom035':
-        # Créditos según periodo
         if periodo == 'mensual':
             creditos = empleados_max
         elif periodo == 'semestral':
@@ -24,10 +25,27 @@ def assign_nom035_credits(workplace, plan_key):
             creditos = empleados_max * 12
         else:
             creditos = empleados_max
-
         wallet.nom035_total += creditos
         wallet.save()
         print(f"✅ {creditos} créditos NOM-035 asignados a {workplace.name}")
 
+    elif modulo == 'psicometria':
+        if evaluaciones_total:
+            creditos = evaluaciones_total
+        elif evaluaciones_mes:
+            if periodo == 'mensual':
+                creditos = evaluaciones_mes
+            elif periodo == 'semestral':
+                creditos = evaluaciones_mes * 6
+            elif periodo == 'anual':
+                creditos = evaluaciones_mes * 12
+            else:
+                creditos = evaluaciones_mes
+        else:
+            creditos = 0
+        wallet.psico_total += creditos
+        wallet.save()
+        print(f"✅ {creditos} créditos psicometría asignados a {workplace.name}")
+
     else:
-        print(f"⚠️ Módulo no manejado aún: {modulo}")
+        print(f"⚠️ Módulo no manejado: {modulo}")
