@@ -1,4 +1,4 @@
-from surveys.stripe_plans import STRIPE_PLANS
+from surveys.stripe_plans import PLANS as STRIPE_PLANS
 from surveys.models import CreditWallet
 
 
