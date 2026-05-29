@@ -2462,9 +2462,11 @@ def stripe_webhook(request):
             user = User.objects.first()
             workplace = user.userapp.workplace
             print("⚠️ USUARIO FORZADO:", user.email)
-        product_name = plan_key or session.get('metadata', {}).get('product_type') or "NOM035_50"
-        if not plan_key:
-            print("⚠️ PRODUCTO FORZADO:", product_name)
+        product_name = plan_key or session.get('metadata', {}).get('product_type')
+        if not product_name:
+            print("⚠️ Sin product_name, ignorando evento")
+            return HttpResponse(status=200)
+        
         assign_nom035_credits(workplace, product_name)
         print("🔥 CRÉDITOS ASIGNADOS")
     return HttpResponse(status=200)
