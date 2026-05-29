@@ -1,8 +1,0 @@
-[build]
-builder = "nixpacks"
-
-[build.nixpacksPlan.variables]
-NIXPACKS_PYTHON_VERSION = "3.11"
-
-[deploy]
-startCommand = "python manage.py migrate --noinput && python manage.py collectstatic --noinput && python manage.py cargar_disc && python manage.py cargar_moss && python manage.py cargar_raven && python manage.py cargar_zavic && gunicorn nom035.wsgi --log-file - --timeout 120 --workers 1 --threads 2 --preload"
