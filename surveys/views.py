@@ -2464,7 +2464,7 @@ def stripe_webhook(request):
         if not product_name:
             print("⚠️ Sin product_name, ignorando evento")
             return HttpResponse(status=200)
-        workplace = user.workplaces.first()
+        
         assign_nom035_credits(workplace, product_name)
         print("🔥 CRÉDITOS ASIGNADOS")
     return HttpResponse(status=200)
