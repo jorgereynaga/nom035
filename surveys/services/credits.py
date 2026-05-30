@@ -16,6 +16,7 @@ def assign_nom035_credits(user, plan_key):
 
     if modulo == 'nom035':
         workplace = user.workplaces.first()
+        print(f"🔍 workplace encontrado: {workplace}")
         if not workplace:
             print(f"⚠️ Usuario sin workplace: {user.email}")
             return
