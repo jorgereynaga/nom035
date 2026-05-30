@@ -2465,6 +2465,6 @@ def stripe_webhook(request):
             print("⚠️ Sin product_name, ignorando evento")
             return HttpResponse(status=200)
         
-        assign_nom035_credits(workplace, product_name)
+        assign_nom035_credits(user, product_name)
         print("🔥 CRÉDITOS ASIGNADOS")
     return HttpResponse(status=200)
