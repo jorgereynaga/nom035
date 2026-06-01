@@ -2467,4 +2467,15 @@ def stripe_webhook(request):
         
         assign_nom035_credits(user, product_name)
         print("🔥 CRÉDITOS ASIGNADOS")
+
+        assign_nom035_credits(user, product_name)
+        # Guardar plan activo en userapp
+        try:
+            userapp = user.userapp
+            userapp.stripe_plan_key = plan_key
+            userapp.save()
+            print(f"✅ Plan guardado: {plan_key}")
+        except Exception as e:
+            print(f"⚠️ Error guardando plan: {e}")
+        print("🔥 CRÉDITOS ASIGNADOS")
     return HttpResponse(status=200)
