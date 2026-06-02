@@ -190,20 +190,20 @@ class Index(LoginRequiredMixin,View):
 		except Exception:
 			ctx['plan_activo']=None
 		psico_key=getattr(userapp,'psico_plan_key','')
-        if psico_key:
-                       try:
-                               psico_plan=PLANS.get(psico_key,{})
-                               ctx['psico_plan_activo']=psico_plan.get('name','')
-                               ctx['psico_plan_precio']='{:,}'.format(psico_plan.get('precio',0))
-                               ctx['psico_plan_periodo']=psico_plan.get('periodo','')
-                               ctx['psico_plan_evaluaciones']=psico_plan.get('evaluaciones_mes') or psico_plan.get('evaluaciones_total')
-                       except Exception:
-                               ctx['psico_plan_activo']=None
-                else:
-                        ctx['psico_plan_activo']=None
+		if psico_key:
+			try:
+				from surveys.stripe_plans import PLANS
+				psico_plan=PLANS.get(psico_key,{})
+				ctx['psico_plan_activo']=psico_plan.get('name','')
+				ctx['psico_plan_precio']='{:,}'.format(psico_plan.get('precio',0))
+				ctx['psico_plan_periodo']=psico_plan.get('periodo','')
+				ctx['psico_plan_evaluaciones']=psico_plan.get('evaluaciones_mes') or psico_plan.get('evaluaciones_total')
+			except Exception:
+				ctx['psico_plan_activo']=None
 		else:
-			ctx['plan_activo']=None
+			ctx['psico_plan_activo']=None
 		return render(request, 'index.html',ctx)
+		
 class PaymentView(LoginRequiredMixin,View):
 	login_url = reverse_lazy('login')
 	redirect_field_name = 'redirect_to'
