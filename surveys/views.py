@@ -187,8 +187,20 @@ class Index(LoginRequiredMixin,View):
 				ctx['plan_periodo']=plan.get('periodo','')
 				ctx['plan_empleados_max']=plan.get('empleados_max')
 				ctx['plan_evaluaciones']=plan.get('evaluaciones_mes')
-			except Exception:
-				ctx['plan_activo']=None
+		except Exception:
+			ctx['plan_activo']=None
+			psico_key=getattr(userapp,'psico_plan_key','')
+               if psico_key:
+                       try:
+                               psico_plan=PLANS.get(psico_key,{})
+                               ctx['psico_plan_activo']=psico_plan.get('name','')
+                               ctx['psico_plan_precio']='{:,}'.format(psico_plan.get('precio',0))
+                               ctx['psico_plan_periodo']=psico_plan.get('periodo','')
+                               ctx['psico_plan_evaluaciones']=psico_plan.get('evaluaciones_mes') or psico_plan.get('evaluaciones_total')
+                       except Exception:
+                               ctx['psico_plan_activo']=None
+                else:
+                        ctx['psico_plan_activo']=None
 		else:
 			ctx['plan_activo']=None
 		return render(request, 'index.html',ctx)

@@ -158,6 +158,14 @@
                                     <span style="font-size:12px;"><i class="feather icon-users mr-25"></i>Psicometría: <strong>{{psico_disponibles}}</strong></span>
                                 </div>
                             </div>
+                            {% if psico_plan_activo %}
+                            <div class="mt-50 pt-50" style="border-top:1px solid #eee;">
+                                <p class="text-muted mb-0" style="font-size:11px;">PSICOMETRÍA</p>
+                                <p class="mb-0" style="font-size:13px;font-weight:600;">{{psico_plan_activo}}</p>
+                                {% if psico_plan_evaluaciones %}<p class="mb-0 text-muted" style="font-size:12px;">{{psico_plan_evaluaciones}} evaluaciones</p>{% endif %}
+                            </div>
+                            {% endif %}
+                            <a href="{% url 'stripe_portal' %}" class="btn btn-outline-primary btn-sm btn-block">Gestionar plan</a>
                             <a href="{% url 'stripe_portal' %}" class="btn btn-outline-primary btn-sm btn-block">Gestionar plan</a>
                             {% else %}
                             <p class="text-muted mb-1" style="font-size:13px;">No tienes un plan activo. Contrata uno para acceder a todas las funciones.</p>
