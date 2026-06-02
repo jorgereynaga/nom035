@@ -167,6 +167,16 @@ class Index(LoginRequiredMixin,View):
 		ctx['total_surveys']=sum(item['survey_completed'] for item in wk)
 		userapp=request.user.userapp
 		ctx['psico_disponibles']=getattr(userapp,'psico_evaluaciones_disponibles',0)
+		try:
+			from surveys.models import CreditWallet
+			workplace=request.user.workplaces.first()
+			if workplace:
+				wallet=CreditWallet.objects.filter(workplace=workplace).first()
+				ctx['nom035_disponibles']=wallet.nom035_available() if wallet else 0
+			else:
+				ctx['nom035_disponibles']=0
+		except Exception:
+			ctx['nom035_disponibles']=0
 		plan_key=getattr(userapp,'stripe_plan_key','')
 		if plan_key:
 			try:

@@ -151,6 +151,13 @@
                                 {% if plan_empleados_max %}<li style="font-size:12px;"><i class="feather icon-check text-success mr-50"></i>NOM-035 hasta {{plan_empleados_max}} empleados</li>{% endif %}
                                 {% if plan_evaluaciones %}<li style="font-size:12px;"><i class="feather icon-check text-success mr-50"></i>{% if plan_evaluaciones == -1 %}Evaluaciones ilimitadas{% else %}{{plan_evaluaciones}} evaluaciones/mes{% endif %}</li>{% endif %}
                             </ul>
+                            <div class="mt-1">
+                                <small class="text-muted">Créditos disponibles:</small>
+                                <div class="d-flex justify-content-between mt-25">
+                                    <span style="font-size:12px;"><i class="feather icon-file-text mr-25"></i>NOM-035: <strong>{{nom035_disponibles}}</strong></span>
+                                    <span style="font-size:12px;"><i class="feather icon-users mr-25"></i>Psicometría: <strong>{{psico_disponibles}}</strong></span>
+                                </div>
+                            </div>
                             <a href="{% url 'stripe_portal' %}" class="btn btn-outline-primary btn-sm btn-block">Gestionar plan</a>
                             {% else %}
                             <p class="text-muted mb-1" style="font-size:13px;">No tienes un plan activo. Contrata uno para acceder a todas las funciones.</p>
