@@ -189,8 +189,8 @@ class Index(LoginRequiredMixin,View):
 				ctx['plan_evaluaciones']=plan.get('evaluaciones_mes')
 		except Exception:
 			ctx['plan_activo']=None
-			psico_key=getattr(userapp,'psico_plan_key','')
-               if psico_key:
+		psico_key=getattr(userapp,'psico_plan_key','')
+        if psico_key:
                        try:
                                psico_plan=PLANS.get(psico_key,{})
                                ctx['psico_plan_activo']=psico_plan.get('name','')
