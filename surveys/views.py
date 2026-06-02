@@ -187,7 +187,9 @@ class Index(LoginRequiredMixin,View):
 				ctx['plan_periodo']=plan.get('periodo','')
 				ctx['plan_empleados_max']=plan.get('empleados_max')
 				ctx['plan_evaluaciones']=plan.get('evaluaciones_mes')
-		except Exception:
+			except Exception:
+				ctx['plan_activo']=None
+		else:
 			ctx['plan_activo']=None
 		psico_key=getattr(userapp,'psico_plan_key','')
 		if psico_key:
