@@ -2479,7 +2479,13 @@ def stripe_webhook(request):
          # Guardar plan activo en userapp
         try:
             userapp = user.userapp
-            userapp.stripe_plan_key = plan_key
+            from surveys.stripe_plans import PLANS as STRIPE_PLANS
+            _plan = STRIPE_PLANS.get(plan_key, {})
+            if _plan.get('modulo') == 'psicometria':
+                userapp.psico_plan_key = plan_key
+            else:
+                userapp.stripe_plan_key = plan_key
+            userapp.save()
             userapp.save()
             print(f"✅ Plan guardado: {plan_key}")
         except Exception as e:

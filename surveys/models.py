@@ -32,6 +32,7 @@ class Userapp(models.Model):
 	stripe_customer_id = models.CharField(u'Stripe Customer ID', max_length=100, blank=True, null=True)
 	stripe_subscription_id = models.CharField(u'Stripe Subscription ID', max_length=100, blank=True, null=True)
 	stripe_plan_key = models.CharField(u'Plan activo', max_length=100, blank=True, default='')
+	psico_plan_key = models.CharField(u'Plan psicometría activo', max_length=100, blank=True, default='')
 	psico_evaluaciones_disponibles = models.IntegerField(u'Evaluaciones psicométricas disponibles', default=0)
 	#cus_2fkJPFjQKABcmiZWz
 	#email
