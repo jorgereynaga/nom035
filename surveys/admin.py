@@ -10,7 +10,7 @@ class UserInline(admin.StackedInline):
         'name', 'phone', 'client_id', 'validated_email',
         'workplaces_available', 'workplaces_availableB', 'workplaces_availableC',
         'stripe_customer_id', 'stripe_subscription_id',
-        'stripe_plan_key', 'psico_evaluaciones_disponibles',
+        'stripe_plan_key', 'psico_plan_key', 'psico_evaluaciones_disponibles',
         'image',
     )
 
