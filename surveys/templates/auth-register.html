@@ -311,9 +311,9 @@
                     }),
               dataType: 'json',
               success: function(data){
-                toastr.success('Correcto','Has sido registrado. Revisa tu correo y activa tu cuenta en el enlace que recibirás. Redirigiendo...',{positionClass:'toast-bottom-right',containerId:'toast-bottom-right'});
-                function Timer2() {location.replace("/login")}
-                var timer = setInterval(Timer2, 5000);
+                toastr.success('Correcto','¡Registro exitoso! Redirigiendo a los planes...',{positionClass:'toast-bottom-right',containerId:'toast-bottom-right'});
+                function Timer2() {location.replace("/stripe/planes/")}
+                var timer = setInterval(Timer2, 3000);
                 
               },
               error:function (xhr, ajaxOptions, thrownError){

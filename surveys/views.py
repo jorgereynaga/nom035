@@ -1624,6 +1624,8 @@ class UserappList(generics.ListCreateAPIView):
 			print("serializer.errors1")
 			try:
 				new_user=serializer.save()
+				new_user.validated_email=True
+				new_user.save()
 			except Exception as e:
 				print(e)
 				if user is not None:
