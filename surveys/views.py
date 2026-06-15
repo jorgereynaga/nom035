@@ -283,11 +283,20 @@ class SaveAnswers(generics.GenericAPIView):
 			return Response('invalid form', status=status.HTTP_400_BAD_REQUEST)
 		if serializer.is_valid():
 			data=serializer.save()
-			if form=="employee":
-				code=data.get_code()
-			else:
-				code=data.employee.get_code()
-			return Response({'status':"ok","employee_url":code,"next_form":next_form}, status=status.HTTP_201_CREATED)
+            if form=="employee":
+                    code=data.get_code()
+            else:
+                    code=data.employee.get_code()
+            if form in ('risksurveya','risksurveyb','traumasurvey'):
+                    try:
+                            from surveys.models import CreditWallet
+                            wallet=CreditWallet.objects.filter(workplace=workplace).first()
+                            if wallet and wallet.nom035_available()>0:
+                                    wallet.nom035_used+=1
+                                    wallet.save()
+                    except Exception as e:
+                            print(f'Error descontando credito NOM-035: {e}')
+            return Response({'status':"ok","employee_url":code,"next_form":next_form}, status=status.HTTP_201_CREATED)
 		print(serializer.errors)
 		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
