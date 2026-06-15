@@ -91,7 +91,7 @@ urlpatterns = [
     #re_path(r'^(?:663egpo6oxo1uuwg7y2hcttf3hqcga.html)?$', serve, kwargs={'path': '/663egpo6oxo1uuwg7y2hcttf3hqcga.html'}),
 
     # Urls Web Page
-    path('', WebIndex.as_view(), name="webindex"),
+    # path('', WebIndex.as_view(), name="webindex"),
     path('psico/reporte/<int:candidate_id>/', ReporteUnificadoView.as_view(), name='reporte_candidato'),
 
     # Stripe
