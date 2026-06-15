@@ -84,6 +84,11 @@ class AssignTestView(LoginRequiredMixin, View):
 
         instrumento = get_object_or_404(PsychoInstrument, id=instrumento_id, activo=True)
 
+        userapp = request.user.userapp
+        disponibles = getattr(userapp, 'psico_evaluaciones_disponibles', 0)
+        if disponibles <= 0:
+            return JsonResponse({'error': 'Sin creditos psicometricos disponibles. Contrata un plan.'}, status=403)
+
         token = uuid.uuid4().hex
         expira_en = timezone.now() + timedelta(days=7)
 
@@ -93,6 +98,8 @@ class AssignTestView(LoginRequiredMixin, View):
             token=token,
             expira_en=expira_en,
         )
+        userapp.psico_evaluaciones_disponibles = disponibles - 1
+        userapp.save()
 
         test_url = request.build_absolute_uri(f'/psico/test/{token}/')
 
