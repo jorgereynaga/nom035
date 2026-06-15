@@ -2509,7 +2509,6 @@ def stripe_webhook(request):
             else:
                 userapp.stripe_plan_key = plan_key
             userapp.save()
-            userapp.save()
             print(f"✅ Plan guardado: {plan_key}")
         except Exception as e:
             print(f"⚠️ Error guardando plan: {e}")
