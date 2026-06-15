@@ -33,6 +33,7 @@ from django.conf.urls.static import static
 from rest_framework.authtoken import views
 #from django.contrib.staticfiles.views import serve
 urlpatterns = [
+    path('', LandingView.as_view(), name='landing'),
     path('stripe/webhook/', stripe_webhook, name='stripe-webhook'),
     path('api-auth/', include('rest_framework.urls')),
     path('api-token-auth/', views.obtain_auth_token),
@@ -114,6 +115,7 @@ urlpatterns = [
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 from surveys.views import stripe_webhook
+from surveys.views import LandingView
 
 urlpatterns += [
     path('stripe/webhook/', stripe_webhook),

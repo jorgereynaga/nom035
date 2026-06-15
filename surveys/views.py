@@ -462,6 +462,11 @@ class LoginView(View):
 		ctx['form'] = form
 		ctx['msg'] = msg
 		return render(request, 'auth-login.html', ctx)
+class LandingView(View):
+    def get(self, request):
+        if request.user.is_authenticated:
+            return redirect('index')
+        return render(request, 'landing.html')		
 class NewUserView(View):
 	def get(self, request, *args, **kwargs):
 		return render(request, 'auth-register.html')
