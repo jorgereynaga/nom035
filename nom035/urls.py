@@ -39,6 +39,7 @@ urlpatterns = [
     path('api-token-auth/', views.obtain_auth_token),
     path('api-token-create/', TokenCreation.as_view()),
     path('api/users/', UserappList.as_view()),
+    path('api/login/', ApiLoginView.as_view()),
     path('api/workplace/', WorkplaceList.as_view()),
     path('api/result_files/', ResultFilesList.as_view()),
     path('api/employee/', EmployeeList.as_view()),

@@ -311,10 +311,16 @@
                     }),
               dataType: 'json',
               success: function(data){
-                toastr.success('Correcto','¡Registro exitoso! Redirigiendo a los planes...',{positionClass:'toast-bottom-right',containerId:'toast-bottom-right'});
-                function Timer2() {location.replace("/stripe/planes/")}
-                var timer = setInterval(Timer2, 3000);
-                
+                toastr.success('Correcto','¡Registro exitoso! Iniciando sesión...',{positionClass:'toast-bottom-right',containerId:'toast-bottom-right'});
+                $.ajax({
+                  url: '/api/login/',
+                  method: 'POST',
+                  contentType: 'application/json',
+                  data: JSON.stringify({username: $('#inputEmail').val(), password: $('#inputPassword').val()}),
+                  dataType: 'json',
+                  success: function(loginData){ location.replace('/stripe/planes/'); },
+                  error: function(){ location.replace('/login'); }
+                });
               },
               error:function (xhr, ajaxOptions, thrownError){
                 console.log(xhr.status)

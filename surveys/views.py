@@ -462,6 +462,21 @@ class LoginView(View):
 		ctx['form'] = form
 		ctx['msg'] = msg
 		return render(request, 'auth-login.html', ctx)
+class ApiLoginView(View):
+    def post(self, request):
+        import json
+        try:
+            data = json.loads(request.body)
+            username = data.get('username')
+            password = data.get('password')
+            user = authenticate(username=username, password=password)
+            if user is not None and user.is_active and user.userapp.validated_email:
+                login(request, user)
+                return JsonResponse({'status': 'ok'})
+            return JsonResponse({'error': 'Credenciales invalidas'}, status=401)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=400)
+
 class LandingView(View):
     def get(self, request):
         if request.user.is_authenticated:
