@@ -55,7 +55,7 @@ def download_file(request, user_id,file_name):
 		userapp = getattr(request.user, "userapp", None)
 		if userapp and not getattr(userapp, "stripe_plan_key", ""):
 			from django.http import HttpResponse
-			return HttpResponse("<h2 style="font-family:sans-serif;text-align:center;margin-top:80px">&#128274; Descarga no disponible en modo demo.<br><a href="/stripe/planes/" style="color:#2563eb">Adquiere un plan para descargar tus resultados</a></h2>", status=403)
+			return HttpResponse('<h2 style="font-family:sans-serif;text-align:center;margin-top:80px">&#128274; Descarga no disponible en modo demo.<br><a href="/stripe/planes/" style="color:#2563eb">Adquiere un plan para descargar tus resultados</a></h2>', status=403)
 	token=None
 	if "_-_Token " in file_name:
 		token=file_name.split("_-_Token ")[1]
@@ -85,7 +85,7 @@ def download_file2(request, workplace_id,evaluation,file_name):
 		userapp = getattr(request.user, "userapp", None)
 		if userapp and not getattr(userapp, "stripe_plan_key", ""):
 			from django.http import HttpResponse
-			return HttpResponse("<h2 style="font-family:sans-serif;text-align:center;margin-top:80px">&#128274; Descarga no disponible en modo demo.<br><a href="/stripe/planes/" style="color:#2563eb">Adquiere un plan para descargar tus resultados</a></h2>", status=403)
+			return HttpResponse('<h2 style="font-family:sans-serif;text-align:center;margin-top:80px">&#128274; Descarga no disponible en modo demo.<br><a href="/stripe/planes/" style="color:#2563eb">Adquiere un plan para descargar tus resultados</a></h2>', status=403)
 	token=None
 	if "_-_Token " in file_name:
 		token=file_name.split("_-_Token ")[1]
