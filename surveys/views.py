@@ -51,6 +51,11 @@ p_= logging.getLogger(__name__)
 #https://n035.page.link/?link=https://035.ihes.mx/app/access?workplace_id=280053610240503210429881290965155008225-[1580245165.810466&apn=ihes.com.mx.n035
 
 def download_file(request, user_id,file_name):
+	if request.user.is_authenticated:
+		userapp = getattr(request.user, "userapp", None)
+		if userapp and not getattr(userapp, "stripe_plan_key", ""):
+			from django.http import HttpResponse
+			return HttpResponse("<h2 style="font-family:sans-serif;text-align:center;margin-top:80px">&#128274; Descarga no disponible en modo demo.<br><a href="/stripe/planes/" style="color:#2563eb">Adquiere un plan para descargar tus resultados</a></h2>", status=403)
 	token=None
 	if "_-_Token " in file_name:
 		token=file_name.split("_-_Token ")[1]
@@ -76,6 +81,11 @@ def download_file(request, user_id,file_name):
 	print("path not found")
 	raise Http404
 def download_file2(request, workplace_id,evaluation,file_name):
+	if request.user.is_authenticated:
+		userapp = getattr(request.user, "userapp", None)
+		if userapp and not getattr(userapp, "stripe_plan_key", ""):
+			from django.http import HttpResponse
+			return HttpResponse("<h2 style="font-family:sans-serif;text-align:center;margin-top:80px">&#128274; Descarga no disponible en modo demo.<br><a href="/stripe/planes/" style="color:#2563eb">Adquiere un plan para descargar tus resultados</a></h2>", status=403)
 	token=None
 	if "_-_Token " in file_name:
 		token=file_name.split("_-_Token ")[1]
@@ -167,6 +177,8 @@ class Index(LoginRequiredMixin,View):
 		ctx['total_surveys']=sum(item['survey_completed'] for item in wk)
 		userapp=request.user.userapp
 		ctx['psico_disponibles']=getattr(userapp,'psico_evaluaciones_disponibles',0)
+		ctx['nom035_demo']=getattr(userapp,'nom035_demo',0)
+		ctx['psico_demo']=getattr(userapp,'psico_demo',0)
 		try:
 			from surveys.models import CreditWallet
 			workplace=request.user.workplaces.first()
@@ -294,6 +306,13 @@ class SaveAnswers(generics.GenericAPIView):
 					if wallet and wallet.nom035_available()>0:
 						wallet.nom035_used+=1
 						wallet.save()
+					else:
+						userapp=workplace.user.userapp
+						if userapp.nom035_demo>0:
+							userapp.nom035_demo-=1
+							userapp.save()
+						else:
+							return Response('Sin creditos disponibles. Adquiere un plan.', status=status.HTTP_403_FORBIDDEN)
 				except Exception as e:
 					print(f'Error descontando credito NOM-035: {e}')
 			return Response({'status':"ok","employee_url":code,"next_form":next_form}, status=status.HTTP_201_CREATED)

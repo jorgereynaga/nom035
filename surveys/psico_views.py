@@ -60,6 +60,10 @@ class CandidateDetailView(LoginRequiredMixin, View):
     login_url = reverse_lazy('login')
 
     def get(self, request, candidate_id):
+        userapp = getattr(request.user, "userapp", None)
+        if userapp and not getattr(userapp, "psico_plan_key", ""):
+            from django.http import HttpResponse
+            return HttpResponse("<h2 style="font-family:sans-serif;text-align:center;margin-top:80px">&#128274; Reporte no disponible en modo demo.<br><a href="/stripe/planes/" style="color:#2563eb">Adquiere un plan para ver tus reportes</a></h2>", status=403)
         candidate = get_object_or_404(Candidate, id=candidate_id, user=request.user)
         sessions = candidate.sessions.select_related('instrumento').order_by('-record_create')
         instrumentos = PsychoInstrument.objects.filter(activo=True)
@@ -86,8 +90,10 @@ class AssignTestView(LoginRequiredMixin, View):
 
         userapp = request.user.userapp
         disponibles = getattr(userapp, 'psico_evaluaciones_disponibles', 0)
-        if disponibles <= 0:
+        demo = getattr(userapp, 'psico_demo', 0)
+        if disponibles <= 0 and demo <= 0:
             return JsonResponse({'error': 'Sin creditos psicometricos disponibles. Contrata un plan.'}, status=403)
+        usar_demo = disponibles <= 0 and demo > 0
 
         token = uuid.uuid4().hex
         expira_en = timezone.now() + timedelta(days=7)
@@ -98,7 +104,10 @@ class AssignTestView(LoginRequiredMixin, View):
             token=token,
             expira_en=expira_en,
         )
-        userapp.psico_evaluaciones_disponibles = disponibles - 1
+        if usar_demo:
+            userapp.psico_demo = demo - 1
+        else:
+            userapp.psico_evaluaciones_disponibles = disponibles - 1
         userapp.save()
 
         test_url = request.build_absolute_uri(f'/psico/test/{token}/')
