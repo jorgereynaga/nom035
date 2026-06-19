@@ -1,239 +1,947 @@
 {% load static %}
 <!DOCTYPE html>
-<html class="loading" lang="es" data-textdirection="ltr">
+<html lang="es">
 <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimal-ui">
-    <title>Dashboard — IHES NOM-035</title>
-    <link rel="shortcut icon" type="image/x-icon" href="{% static 'app-assets/images/ico/favicon.ico' %}">
-    <link href="https://fonts.googleapis.com/css?family=Montserrat:300,400,500,600" rel="stylesheet">
-    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/vendors/css/vendors.min.css' %}">
-    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/bootstrap.css' %}">
-    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/bootstrap-extended.css' %}">
-    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/colors.css' %}">
-    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/components.css' %}">
-    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/core/menu/menu-types/vertical-menu.css' %}">
-    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/vendors/css/extensions/toastr.css' %}">
-    <link rel="stylesheet" type="text/css" href="{% static 'assets/css/style.css' %}">
-    <style>
-        .stat-card{background:#f8f8f8;border-radius:8px;padding:1rem;}
-        .stat-card .stat-label{font-size:12px;color:#6e6b7b;margin:0 0 4px;}
-        .stat-card .stat-value{font-size:24px;font-weight:600;margin:0;color:#5e5873;}
-        .workplace-row{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-radius:6px;margin-bottom:8px;}
-        .badge-status{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:500;}
-        .badge-completado{background:#d4edda;color:#155724;}
-        .badge-proceso{background:#fff3cd;color:#856404;}
-        .badge-pendiente{background:#f8f9fa;color:#6c757d;border:1px solid #dee2e6;}
-        .plan-badge{display:inline-flex;align-items:center;gap:6px;background:#d4edda;color:#155724;border:1px solid #c3e6cb;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:500;}
-        .plan-badge.sin-plan{background:#fff3cd;color:#856404;border-color:#ffc107;}
-    </style>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
+  <title>Dashboard — NormaIA</title>
+  <link rel="shortcut icon" type="image/x-icon" href="{% static 'app-assets/images/ico/favicon.ico' %}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+  <style>
+    /* ─── Reset & tokens ──────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary:        #2563eb;
+      --primary-light:  #eff6ff;
+      --primary-dark:   #1d4ed8;
+      --bg-base:        #ffffff;
+      --bg-surface:     #f8f9fc;
+      --bg-sidebar:     #0f172a;
+      --sidebar-w:      240px;
+      --topbar-h:       60px;
+      --border:         #e2e8f0;
+      --text-primary:   #0f172a;
+      --text-secondary: #64748b;
+      --text-muted:     #94a3b8;
+      --success:        #16a34a;
+      --success-bg:     #f0fdf4;
+      --warning:        #d97706;
+      --warning-bg:     #fffbeb;
+      --danger:         #dc2626;
+      --danger-bg:      #fef2f2;
+      --radius-sm:      6px;
+      --radius-md:      10px;
+      --radius-lg:      14px;
+      --shadow-sm:      0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+      --shadow-md:      0 4px 12px rgba(0,0,0,.06), 0 1px 3px rgba(0,0,0,.04);
+    }
+
+    html, body {
+      height: 100%;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      color: var(--text-primary);
+      background: var(--bg-surface);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { text-decoration: none; color: inherit; }
+
+    /* ─── Layout shell ───────────────────────────────────────── */
+    .layout { display: flex; min-height: 100vh; }
+
+    /* ─── Sidebar ────────────────────────────────────────────── */
+    .sidebar {
+      width: var(--sidebar-w);
+      background: var(--bg-sidebar);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      z-index: 200;
+      overflow-y: auto;
+      overflow-x: hidden;
+      transition: transform .25s ease;
+    }
+
+    .sidebar-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 20px;
+      height: var(--topbar-h);
+      border-bottom: 1px solid rgba(255,255,255,.06);
+      flex-shrink: 0;
+    }
+    .sidebar-brand-icon {
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      background: rgba(37,99,235,.2);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .sidebar-brand-name {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 1rem; font-weight: 700;
+      color: #fff;
+      letter-spacing: -.01em;
+    }
+    .sidebar-brand-name span { color: #60a5fa; }
+
+    .sidebar-nav { flex: 1; padding: 12px 0; }
+
+    .nav-section-label {
+      padding: 16px 20px 6px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,.3);
+    }
+
+    .nav-item-link {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 20px;
+      font-size: 13px;
+      font-weight: 500;
+      color: rgba(255,255,255,.6);
+      border-left: 3px solid transparent;
+      transition: background .15s, color .15s, border-color .15s;
+    }
+    .nav-item-link:hover {
+      background: rgba(255,255,255,.05);
+      color: rgba(255,255,255,.9);
+    }
+    .nav-item-link.active {
+      background: rgba(37,99,235,.15);
+      color: #fff;
+      border-left-color: var(--primary);
+    }
+    .nav-item-link svg {
+      width: 16px; height: 16px;
+      flex-shrink: 0;
+      opacity: .7;
+    }
+    .nav-item-link.active svg, .nav-item-link:hover svg { opacity: 1; }
+
+    /* ─── Topbar ─────────────────────────────────────────────── */
+    .topbar {
+      position: fixed;
+      top: 0;
+      left: var(--sidebar-w);
+      right: 0;
+      height: var(--topbar-h);
+      background: var(--bg-base);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 28px;
+      z-index: 100;
+    }
+
+    .topbar-left { display: flex; align-items: center; gap: 14px; }
+    .topbar-title {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .topbar-right { display: flex; align-items: center; gap: 8px; }
+
+    .topbar-avatar-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 10px;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      position: relative;
+      transition: background .15s;
+    }
+    .topbar-avatar-wrap:hover { background: var(--bg-surface); }
+    .topbar-avatar {
+      width: 34px; height: 34px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid var(--border);
+    }
+    .topbar-user-info { display: flex; flex-direction: column; line-height: 1.3; }
+    .topbar-user-name { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+    .topbar-user-role { font-size: 11px; color: var(--text-muted); }
+
+    /* Dropdown */
+    .dropdown { position: relative; }
+    .dropdown-menu {
+      display: none;
+      position: absolute;
+      top: calc(100% + 6px);
+      right: 0;
+      background: var(--bg-base);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      min-width: 180px;
+      padding: 6px;
+      z-index: 300;
+    }
+    .dropdown:hover .dropdown-menu,
+    .dropdown-menu:hover { display: block; }
+    .dropdown-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      font-size: 13px;
+      color: var(--text-primary);
+      border-radius: var(--radius-sm);
+      transition: background .15s;
+    }
+    .dropdown-item:hover { background: var(--bg-surface); }
+    .dropdown-item svg { width: 14px; height: 14px; color: var(--text-muted); }
+    .dropdown-divider { border: none; border-top: 1px solid var(--border); margin: 4px 0; }
+
+    /* Topbar icon button */
+    .topbar-icon-btn {
+      width: 36px; height: 36px;
+      border-radius: var(--radius-md);
+      display: flex; align-items: center; justify-content: center;
+      background: transparent;
+      border: none; cursor: pointer;
+      color: var(--text-secondary);
+      transition: background .15s, color .15s;
+    }
+    .topbar-icon-btn:hover { background: var(--bg-surface); color: var(--text-primary); }
+    .topbar-icon-btn svg { width: 18px; height: 18px; }
+
+    /* Hamburger (mobile) */
+    .sidebar-toggle { display: none; }
+
+    /* ─── Main content ───────────────────────────────────────── */
+    .main {
+      margin-left: var(--sidebar-w);
+      margin-top: var(--topbar-h);
+      flex: 1;
+      padding: 28px;
+      min-height: calc(100vh - var(--topbar-h));
+    }
+
+    /* ─── Page header ────────────────────────────────────────── */
+    .page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .page-header-text h1 {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--text-primary);
+      margin-bottom: 2px;
+    }
+    .page-header-text p {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    /* ─── Plan badge ─────────────────────────────────────────── */
+    .plan-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--success-bg);
+      color: var(--success);
+      border: 1px solid #bbf7d0;
+      border-radius: 20px;
+      padding: 5px 14px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .plan-badge.sin-plan {
+      background: var(--warning-bg);
+      color: var(--warning);
+      border-color: #fde68a;
+    }
+    .plan-badge svg { width: 13px; height: 13px; }
+
+    /* ─── Alert ──────────────────────────────────────────────── */
+    .alert {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 12px 16px;
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+    .alert-warning {
+      background: var(--warning-bg);
+      border: 1px solid #fde68a;
+      color: #92400e;
+    }
+    .alert svg { width: 16px; height: 16px; flex-shrink: 0; margin-top: 1px; }
+    .alert a { color: var(--primary); font-weight: 600; }
+
+    /* ─── Stats grid ─────────────────────────────────────────── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+    .stat-card {
+      background: var(--bg-base);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px 20px 18px;
+      box-shadow: var(--shadow-sm);
+    }
+    .stat-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+    .stat-value {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 1.75rem;
+      font-weight: 800;
+      color: var(--text-primary);
+      line-height: 1;
+    }
+
+    /* ─── Cards ──────────────────────────────────────────────── */
+    .card {
+      background: var(--bg-base);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+    }
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 20px 0;
+    }
+    .card-title {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-primary);
+      letter-spacing: -.01em;
+    }
+    .card-body { padding: 16px 20px 20px; }
+
+    /* Two-column row */
+    .row-cols-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 20px; }
+    .col-7-5 { grid-column: span 1; }
+
+    .two-col { display: grid; grid-template-columns: 1.4fr 1fr; gap: 14px; margin-bottom: 20px; }
+    .full-col { margin-bottom: 20px; }
+
+    /* ─── Workplace rows ─────────────────────────────────────── */
+    .workplace-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      border-radius: var(--radius-sm);
+      margin-bottom: 6px;
+      transition: background .15s;
+    }
+    .workplace-row:hover { background: var(--bg-surface); }
+    .workplace-row:last-child { margin-bottom: 0; }
+    .workplace-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 2px;
+    }
+    .workplace-meta { font-size: 11px; color: var(--text-muted); }
+
+    /* ─── Status badges ──────────────────────────────────────── */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .badge-success { background: var(--success-bg); color: var(--success); border: 1px solid #bbf7d0; }
+    .badge-warning { background: var(--warning-bg); color: var(--warning); border: 1px solid #fde68a; }
+    .badge-neutral { background: var(--bg-surface); color: var(--text-secondary); border: 1px solid var(--border); }
+
+    /* ─── Plan card internals ────────────────────────────────── */
+    .plan-name { font-size: 12px; color: var(--text-muted); margin-bottom: 4px; }
+    .plan-price {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: var(--text-primary);
+      line-height: 1;
+      margin-bottom: 12px;
+    }
+    .plan-price small {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+    .plan-features { list-style: none; margin-bottom: 12px; }
+    .plan-features li {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-bottom: 5px;
+    }
+    .plan-features svg { width: 13px; height: 13px; color: var(--success); flex-shrink: 0; }
+    .credits-row {
+      display: flex;
+      gap: 10px;
+      border-top: 1px solid var(--border);
+      padding-top: 12px;
+      margin-top: 4px;
+    }
+    .credit-chip {
+      flex: 1;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 8px 10px;
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+    .credit-chip strong {
+      display: block;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-top: 2px;
+    }
+    .psico-sub-tag {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 3px;
+    }
+
+    /* ─── Info cards (NOM-035 etapas) ────────────────────────── */
+    .info-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; margin-bottom: 20px; }
+    .info-card {
+      background: var(--bg-base);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      box-shadow: var(--shadow-sm);
+      text-align: center;
+    }
+    .info-card.accent {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+    }
+    .info-card.accent-danger {
+      background: #7f1d1d;
+      border-color: #7f1d1d;
+      color: #fff;
+    }
+    .info-card .info-card-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .07em;
+      text-transform: uppercase;
+      opacity: .75;
+      margin-bottom: 8px;
+    }
+    .info-card h5 {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .info-card p { font-size: 12px; line-height: 1.6; opacity: .8; }
+    .info-card.neutral { background: var(--bg-base); }
+    .info-card.neutral h5 { color: var(--text-primary); }
+    .info-card.neutral p { color: var(--text-secondary); opacity: 1; }
+
+    /* ─── Psico card empty state ─────────────────────────────── */
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 32px 20px;
+      text-align: center;
+    }
+    .empty-state-icon {
+      width: 44px; height: 44px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 12px;
+      color: var(--text-muted);
+    }
+    .empty-state-icon svg { width: 20px; height: 20px; }
+    .empty-state p { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+    .empty-state a { color: var(--primary); font-weight: 600; }
+
+    /* ─── Buttons ────────────────────────────────────────────── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      font-family: 'Inter', sans-serif;
+      border-radius: var(--radius-md);
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: background .15s, border-color .15s, color .15s;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .btn svg { width: 14px; height: 14px; }
+    .btn-primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .btn-primary:hover { background: var(--primary-dark); border-color: var(--primary-dark); }
+    .btn-outline { background: transparent; color: var(--text-primary); border-color: var(--border); }
+    .btn-outline:hover { background: var(--bg-surface); }
+    .btn-sm { padding: 6px 12px; font-size: 12px; }
+    .btn-block { width: 100%; justify-content: center; }
+
+    /* ─── Footer ─────────────────────────────────────────────── */
+    .footer {
+      margin-left: var(--sidebar-w);
+      padding: 16px 28px;
+      border-top: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--bg-base);
+    }
+    .footer a { color: var(--text-secondary); font-weight: 600; }
+
+    /* ─── Scroll-top btn ─────────────────────────────────────── */
+    .scroll-top-btn {
+      width: 34px; height: 34px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      color: var(--text-secondary);
+      transition: background .15s;
+    }
+    .scroll-top-btn:hover { background: var(--border); }
+    .scroll-top-btn svg { width: 14px; height: 14px; }
+
+    /* ─── Block / Scripts placeholders ──────────────────────── */
+    /* Additional styles injected by child templates */
+
+    /* ─── Responsive ─────────────────────────────────────────── */
+    @media (max-width: 1024px) {
+      .stats-grid { grid-template-columns: repeat(2,1fr); }
+      .two-col { grid-template-columns: 1fr; }
+      .info-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 768px) {
+      .sidebar { transform: translateX(-100%); }
+      .sidebar.open { transform: translateX(0); }
+      .topbar { left: 0; }
+      .main, .footer { margin-left: 0; }
+      .sidebar-toggle { display: flex; }
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+      .topbar-user-info { display: none; }
+    }
+    @media (max-width: 480px) {
+      .stats-grid { grid-template-columns: 1fr; }
+      .main { padding: 20px 16px; }
+    }
+
+    /* ─── Overlay (mobile sidebar) ───────────────────────────── */
+    .sidebar-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.4);
+      z-index: 150;
+    }
+    .sidebar-overlay.visible { display: block; }
+
+    {% block style %}{% endblock %}
+  </style>
 </head>
-<body class="vertical-layout vertical-menu-modern 2-columns navbar-floating footer-static" data-open="click" data-menu="vertical-menu-modern" data-col="2-columns">
+<body>
 
-<nav class="header-navbar navbar-expand-lg navbar navbar-with-menu floating-nav navbar-light navbar-shadow">
-    <div class="navbar-wrapper">
-        <div class="navbar-container content">
-            <div class="navbar-collapse" id="navbar-mobile">
-                <div class="mr-auto float-left bookmark-wrapper d-flex align-items-center">
-                    <ul class="nav navbar-nav">
-                        <li class="nav-item nav-toggle"><a class="nav-link modern-nav-toggle pr-0" data-toggle="collapse"><i class="feather icon-menu d-block d-xl-none font-medium-4 primary toggle-icon"></i><i class="toggle-icon feather icon-menu font-medium-4 d-none d-xl-block collapse-toggle-icon primary" data-ticon="icon-menu"></i></a></li>
-                    </ul>
-                </div>
-                <ul class="nav navbar-nav float-right">
-                    <li class="dropdown dropdown-user nav-item">
-                        <a class="dropdown-toggle nav-link dropdown-user-link" href="#" data-toggle="dropdown">
-                            <div class="user-nav d-sm-flex d-none"><span class="user-name text-bold-600">{{request.user.username}}</span><span class="user-status">Empresa</span></div>
-                            <span><img class="round" src="{% if request.user.userapp.image %}/media/{{request.user.userapp.image}}{%else%}{% static 'app-assets/images/portrait/small/avatar-s-1.png' %}{%endif%}" alt="avatar" height="40" width="40"></span>
-                        </a>
-                        <div class="dropdown-menu dropdown-menu-right">
-                            <a class="dropdown-item" href="{% url 'edit_profile'%}"><i class="feather icon-user"></i> Editar mis datos</a>
-                            <a class="dropdown-item" href="{% url 'stripe_portal' %}"><i class="feather icon-credit-card"></i> Gestionar plan</a>
-                            <div class="dropdown-divider"></div>
-                            <a class="dropdown-item" href="{% url 'logout' %}"><i class="feather icon-power"></i> Cerrar sesión</a>
-                        </div>
-                    </li>
-                </ul>
-            </div>
+<div class="layout">
+
+  <!-- ── Sidebar ─────────────────────────────────────────────── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="sidebar-brand-icon">
+        <svg width="18" height="18" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M10 22V10L22 22V10" stroke="#60a5fa" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="22" cy="10" r="2.5" fill="#60a5fa"/>
+        </svg>
+      </div>
+      <span class="sidebar-brand-name">Norma<span>IA</span></span>
+    </div>
+
+    <nav class="sidebar-nav">
+
+      <!-- Principal -->
+      <div class="nav-section-label">Principal</div>
+      <a class="nav-item-link" href="{% url 'index' %}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Dashboard
+      </a>
+      <a class="nav-item-link" href="{% url 'workplaces' %}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
+        Centros de Trabajo
+      </a>
+      <a class="nav-item-link" href="{% url 'workplaceform' %}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+        Añadir un Centro
+      </a>
+
+      <!-- NOM-035 -->
+      <div class="nav-section-label">NOM-035</div>
+      {% for item in workplaces %}
+      <a class="nav-item-link" href="{% url 'single_workplace' item.id %}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+        {{item.name}}
+      </a>
+      {% endfor %}
+      <a class="nav-item-link" href="{% url 'evidence' %}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        Portafolio de evidencias
+      </a>
+
+      <!-- Psicometría -->
+      <div class="nav-section-label">Psicometría</div>
+      <a class="nav-item-link" href="{% url 'candidatos' %}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+        Evaluaciones
+      </a>
+      <a class="nav-item-link" href="{% url 'candidatos' %}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        Candidatos
+      </a>
+
+      <!-- Cuenta -->
+      <div class="nav-section-label">Cuenta</div>
+      <a class="nav-item-link" href="{% url 'stripe_planes' %}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+        Mi plan
+      </a>
+      <a class="nav-item-link" href="{% url 'edit_profile' %}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a4 4 0 014-4h4a4 4 0 014 4v2"/></svg>
+        Configuración
+      </a>
+
+    </nav>
+  </aside>
+
+  <!-- ── Sidebar overlay (mobile) ─────────────────────────────── -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- ── Topbar ────────────────────────────────────────────────── -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <button class="topbar-icon-btn sidebar-toggle" id="sidebarToggle" aria-label="Menú">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <span class="topbar-title">NormaIA</span>
+    </div>
+    <div class="topbar-right">
+      <div class="dropdown">
+        <div class="topbar-avatar-wrap">
+          <img class="topbar-avatar"
+            src="{% if request.user.userapp.image %}/media/{{request.user.userapp.image}}{% else %}{% static 'app-assets/images/portrait/small/avatar-s-1.png' %}{% endif %}"
+            alt="avatar">
+          <div class="topbar-user-info">
+            <span class="topbar-user-name">{{request.user.username}}</span>
+            <span class="topbar-user-role">Empresa</span>
+          </div>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-muted)"><polyline points="6 9 12 15 18 9"/></svg>
         </div>
+        <div class="dropdown-menu">
+          <a class="dropdown-item" href="{% url 'edit_profile' %}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a4 4 0 014-4h4a4 4 0 014 4v2"/></svg>
+            Editar mis datos
+          </a>
+          <a class="dropdown-item" href="{% url 'stripe_portal' %}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+            Gestionar plan
+          </a>
+          <div class="dropdown-divider"></div>
+          <a class="dropdown-item" href="{% url 'logout' %}" style="color:var(--danger)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            Cerrar sesión
+          </a>
+        </div>
+      </div>
     </div>
-</nav>
+  </header>
 
-<div class="main-menu menu-fixed menu-light menu-accordion menu-shadow" data-scroll-to-active="true">
-    <div class="navbar-header">
-        <ul class="nav navbar-nav flex-row">
-            <li class="nav-item mr-auto"><a class="navbar-brand" href="{% url 'index' %}"><img src="{% static '/app-assets/images/logo/logo.png'%}" style="height:auto;width:50px;"><h2 class="brand-text mb-0">NOM - 035</h2></a></li>
-        </ul>
+  <!-- ── Main content ──────────────────────────────────────────── -->
+  <main class="main">
+
+    {% block dashboard %}
+
+    <!-- Page header -->
+    <div class="page-header">
+      <div class="page-header-text">
+        <h1>Dashboard</h1>
+        <p>Bienvenido, {{name}}</p>
+      </div>
+      {% if plan_activo %}
+      <span class="plan-badge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        {{plan_activo}} &middot; activo
+      </span>
+      {% else %}
+      <a href="{% url 'stripe_planes' %}" class="plan-badge sin-plan">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        Sin plan activo — contratar
+      </a>
+      {% endif %}
     </div>
-    <div class="shadow-bottom"></div>
-    <div class="main-menu-content">
-        <ul class="navigation navigation-main" id="main-menu-navigation" data-menu="menu-navigation">
-            <li class="nav-item"><a href="{% url 'index'%}"><i class="feather icon-home"></i><span class="menu-title">Dashboard</span></a></li>
-            <li class="nav-item"><a href="{% url 'workplaces'%}"><i class="feather icon-briefcase"></i><span class="menu-title">Centros de Trabajo</span></a></li>
-            <li class="nav-item"><a href="{% url 'workplaceform'%}"><i class="feather icon-plus-square"></i><span class="menu-title">Añadir un Centro</span></a></li>
-            <li class="navigation-header"><span>NOM-035</span></li>
+
+    <!-- Alert -->
+    {% if not has_workplaces %}
+    <div class="alert alert-warning">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      No tienes centros de trabajo registrados. <a href="/workplaceform/">Registra el primero aquí</a>.
+    </div>
+    {% endif %}
+
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <p class="stat-label">Centros de trabajo</p>
+        <p class="stat-value">{{len_workplaces}}</p>
+      </div>
+      <div class="stat-card">
+        <p class="stat-label">Total empleados</p>
+        <p class="stat-value">{{total_employees}}</p>
+      </div>
+      <div class="stat-card">
+        <p class="stat-label">Evaluaciones psico. disp.</p>
+        <p class="stat-value">{% if psico_disponibles == 99999 %}&infin;{% else %}{{psico_disponibles}}{% endif %}</p>
+      </div>
+      <div class="stat-card">
+        <p class="stat-label">Cuestionarios aplicados</p>
+        <p class="stat-value">{{total_surveys}}</p>
+      </div>
+    </div>
+
+    <!-- NOM-035 + Plan row -->
+    <div class="two-col">
+      <!-- Centros de trabajo card -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Estado NOM-035 por centro de trabajo</span>
+        </div>
+        <div class="card-body">
+          {% if workplaces %}
             {% for item in workplaces %}
-            <li class="nav-item"><a href="{% url 'single_workplace' item.id %}"><i class="feather icon-users"></i><span class="menu-title">{{item.name}}</span></a></li>
-            {% endfor %}
-            <li class="nav-item"><a href="{% url 'evidence'%}"><i class="feather icon-file-text"></i><span class="menu-title">Portafolio de evidencias</span></a></li>
-            <li class="navigation-header"><span>Psicometría</span></li>
-            <li class="nav-item"><a href="{% url 'candidatos' %}"><i class="feather icon-target"></i><span class="menu-title">Evaluaciones</span></a></li>
-            <li class="nav-item"><a href="{% url 'candidatos' %}"><i class="feather icon-user-check"></i><span class="menu-title">Candidatos</span></a></li>
-            <li class="navigation-header"><span>Cuenta</span></li>
-            <li class="nav-item"><a href="{% url 'stripe_planes' %}"><i class="feather icon-credit-card"></i><span class="menu-title">Mi plan</span></a></li>
-            <li class="nav-item"><a href="{% url 'edit_profile'%}"><i class="feather icon-settings"></i><span class="menu-title">Configuración</span></a></li>
-        </ul>
-    </div>
-</div>
-
-<div class="app-content content">
-    <div class="content-overlay"></div>
-    <div class="header-navbar-shadow"></div>
-    <div class="content-wrapper">
-        <div class="content-body">
-
-            <div class="d-flex justify-content-between align-items-center mb-2 mt-1">
-                <div>
-                    <h4 class="mb-0">Dashboard</h4>
-                    <p class="text-muted mb-0">Bienvenido, {{name}}</p>
-                </div>
-                {% if plan_activo %}
-                <div class="plan-badge"><i class="feather icon-check-circle"></i> {{plan_activo}} &middot; activo</div>
-                {% else %}
-                <a href="{% url 'stripe_planes' %}" class="plan-badge sin-plan"><i class="feather icon-alert-circle"></i> Sin plan activo &mdash; contratar</a>
-                {% endif %}
+            <div class="workplace-row">
+              <div>
+                <p class="workplace-name">{{item.name}}</p>
+                <p class="workplace-meta">{{item.employee_total}} / {{item.employee_count}} empleados &middot; {{item.survey_completion}}% cuestionarios</p>
+              </div>
+              {% if item.survey_completion >= 100 %}
+                <span class="badge badge-success">Completado</span>
+              {% elif item.survey_completion > 0 %}
+                <span class="badge badge-warning">En proceso</span>
+              {% else %}
+                <span class="badge badge-neutral">Pendiente</span>
+              {% endif %}
             </div>
+            {% endfor %}
+          {% else %}
+            <div class="empty-state">
+              <div class="empty-state-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
+              </div>
+              <p>No hay centros de trabajo registrados</p>
+            </div>
+          {% endif %}
+        </div>
+      </div>
 
-            {% if not has_workplaces %}
-            <div class="alert alert-warning mb-2">
-                <i class="feather icon-info mr-1"></i> No tienes centros de trabajo registrados. <a href="/workplaceform/">Registra el primero aquí</a>.
+      <!-- Plan card -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Mi plan</span>
+        </div>
+        <div class="card-body">
+          {% if plan_activo %}
+            <p class="plan-name">{{plan_activo}}</p>
+            <p class="plan-price">${{plan_precio}} <small>/{{plan_periodo}}</small></p>
+            <ul class="plan-features">
+              {% if plan_empleados_max %}<li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>NOM-035 hasta {{plan_empleados_max}} empleados</li>{% endif %}
+              {% if plan_evaluaciones %}<li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>{% if plan_evaluaciones == -1 %}Evaluaciones ilimitadas{% else %}{{plan_evaluaciones}} evaluaciones/mes{% endif %}</li>{% endif %}
+            </ul>
+            <div class="credits-row">
+              <div class="credit-chip">
+                <span>NOM-035</span>
+                <strong>{{nom035_disponibles}}</strong>
+              </div>
+              <div class="credit-chip">
+                <span>Psicometría</span>
+                <strong>{{psico_disponibles}}</strong>
+              </div>
+            </div>
+            {% if psico_plan_activo %}
+            <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border);">
+              <p class="psico-sub-tag">Psicometría</p>
+              <p style="font-size:13px;font-weight:600;color:var(--text-primary);margin-bottom:2px;">{{psico_plan_activo}}</p>
+              {% if psico_plan_evaluaciones %}<p style="font-size:12px;color:var(--text-muted);">{{psico_plan_evaluaciones}} evaluaciones</p>{% endif %}
             </div>
             {% endif %}
-
-            <div class="row mb-2">
-                <div class="col-6 col-md-3 mb-1"><div class="stat-card"><p class="stat-label">Centros de trabajo</p><p class="stat-value">{{len_workplaces}}</p></div></div>
-                <div class="col-6 col-md-3 mb-1"><div class="stat-card"><p class="stat-label">Total empleados</p><p class="stat-value">{{total_employees}}</p></div></div>
-                <div class="col-6 col-md-3 mb-1"><div class="stat-card"><p class="stat-label">Evaluaciones psico. disp.</p><p class="stat-value">{% if psico_disponibles == 99999 %}&infin;{% else %}{{psico_disponibles}}{% endif %}</p></div></div>
-                <div class="col-6 col-md-3 mb-1"><div class="stat-card"><p class="stat-label">Cuestionarios aplicados</p><p class="stat-value">{{total_surveys}}</p></div></div>
+            <a href="{% url 'stripe_portal' %}" class="btn btn-outline btn-sm btn-block" style="margin-top:14px;">Gestionar plan</a>
+          {% else %}
+            <div class="empty-state">
+              <div class="empty-state-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+              </div>
+              <p style="margin-bottom:14px;">No tienes un plan activo. Contrata uno para acceder a todas las funciones.</p>
             </div>
-
-            <div class="row mb-2">
-                <div class="col-md-7 mb-1">
-                    <div class="card h-100 mb-0">
-                        <div class="card-header pb-0"><h6 class="card-title mb-0">Estado NOM-035 por centro de trabajo</h6></div>
-                        <div class="card-body pt-1">
-                            {% if workplaces %}
-                            {% for item in workplaces %}
-                            <div class="workplace-row {% if item.survey_completion >= 100 %}bg-light-success{% elif item.survey_completion > 0 %}bg-light-warning{% else %}bg-light-secondary{% endif %}">
-                                <div>
-                                    <p class="mb-0 font-weight-bold" style="font-size:13px;">{{item.name}}</p>
-                                    <p class="mb-0 text-muted" style="font-size:12px;">{{item.employee_total}} / {{item.employee_count}} empleados &middot; {{item.survey_completion}}% cuestionarios</p>
-                                </div>
-                                {% if item.survey_completion >= 100 %}<span class="badge-status badge-completado">Completado</span>
-                                {% elif item.survey_completion > 0 %}<span class="badge-status badge-proceso">En proceso</span>
-                                {% else %}<span class="badge-status badge-pendiente">Pendiente</span>{% endif %}
-                            </div>
-                            {% endfor %}
-                            {% else %}
-                            <p class="text-muted text-center py-2">No hay centros de trabajo registrados</p>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-5 mb-1">
-                    <div class="card h-100 mb-0">
-                        <div class="card-header pb-0"><h6 class="card-title mb-0">Mi plan</h6></div>
-                        <div class="card-body pt-1">
-                            {% if plan_activo %}
-                            <p class="text-muted mb-0" style="font-size:13px;">{{plan_activo}}</p>
-                            <h3 class="mt-25 mb-1">${{plan_precio}} <small class="text-muted" style="font-size:13px;">/{{plan_periodo}}</small></h3>
-                            <ul class="list-unstyled mb-1">
-                                {% if plan_empleados_max %}<li style="font-size:12px;"><i class="feather icon-check text-success mr-50"></i>NOM-035 hasta {{plan_empleados_max}} empleados</li>{% endif %}
-                                {% if plan_evaluaciones %}<li style="font-size:12px;"><i class="feather icon-check text-success mr-50"></i>{% if plan_evaluaciones == -1 %}Evaluaciones ilimitadas{% else %}{{plan_evaluaciones}} evaluaciones/mes{% endif %}</li>{% endif %}
-                            </ul>
-                            <div class="mt-1">
-                                <small class="text-muted">Créditos disponibles:</small>
-                                <div class="d-flex justify-content-between mt-25">
-                                    <span style="font-size:12px;"><i class="feather icon-file-text mr-25"></i>NOM-035: <strong>{{nom035_disponibles}}</strong></span>
-                                    <span style="font-size:12px;"><i class="feather icon-users mr-25"></i>Psicometría: <strong>{{psico_disponibles}}</strong></span>
-                                </div>
-                            </div>
-                            {% if psico_plan_activo %}
-                            <div class="mt-50 pt-50" style="border-top:1px solid #eee;">
-                                <p class="text-muted mb-0" style="font-size:11px;">PSICOMETRÍA</p>
-                                <p class="mb-0" style="font-size:13px;font-weight:600;">{{psico_plan_activo}}</p>
-                                {% if psico_plan_evaluaciones %}<p class="mb-0 text-muted" style="font-size:12px;">{{psico_plan_evaluaciones}} evaluaciones</p>{% endif %}
-                            </div>
-                            {% endif %}
-                            <a href="{% url 'stripe_portal' %}" class="btn btn-outline-primary btn-sm btn-block">Gestionar plan</a>
-                            {% else %}
-                            <p class="text-muted mb-1" style="font-size:13px;">No tienes un plan activo. Contrata uno para acceder a todas las funciones.</p>
-                            <a href="{% url 'stripe_planes' %}" class="btn btn-primary btn-sm btn-block">Ver planes y precios</a>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="row mb-2">
-                <div class="col-12">
-                    <div class="card mb-0">
-                        <div class="card-header pb-0 d-flex justify-content-between align-items-center">
-                            <h6 class="card-title mb-0">Evaluaciones psicométricas</h6>
-                            <a href="#" class="btn btn-primary btn-sm"><i class="feather icon-plus mr-50"></i>Nueva evaluación</a>
-                        </div>
-                        <div class="card-body pt-1">
-                            <p class="text-muted text-center py-2" style="font-size:13px;">
-                                {% if psico_disponibles == 0 and not plan_activo %}
-                                Contrata un plan de psicometría para empezar a evaluar candidatos y empleados. <a href="{% url 'stripe_planes' %}">Ver planes</a>
-                                {% else %}
-                                Aún no hay evaluaciones registradas. Haz clic en "Nueva evaluación" para empezar.
-                                {% endif %}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="col-lg-4 col-md-6 col-sm-12">
-                    <div class="card text-white bg-gradient-primary text-center">
-                        <div class="card-body"><h5 class="card-title text-white mt-1">NOM-035-STPS-2018</h5><p class="card-text" style="font-size:13px;">Norma Oficial Mexicana sobre factores de riesgo psicosocial en el trabajo. Obligatoria para todas las empresas en México.</p></div>
-                    </div>
-                </div>
-                <div class="col-lg-4 col-md-6 col-sm-12">
-                    <div class="card border-info text-center bg-transparent">
-                        <div class="card-body"><h5 class="card-title mt-1">1ª Etapa — oct 2019</h5><p class="card-text" style="font-size:13px;">Política de prevención, identificación de trabajadores expuestos a eventos traumáticos y difusión de información.</p></div>
-                    </div>
-                </div>
-                <div class="col-lg-4 col-md-6 col-sm-12">
-                    <div class="card text-white bg-gradient-danger text-center">
-                        <div class="card-body"><h5 class="card-title text-white mt-1">2ª Etapa — oct 2020</h5><p class="card-text" style="font-size:13px;">Identificación y análisis de factores de riesgo, evaluación del entorno organizacional y medidas de control.</p></div>
-                    </div>
-                </div>
-            </div>
-
+            <a href="{% url 'stripe_planes' %}" class="btn btn-primary btn-sm btn-block">Ver planes y precios</a>
+          {% endif %}
         </div>
+      </div>
     </div>
+
+    <!-- Psicometría card -->
+    <div class="full-col">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Evaluaciones psicométricas</span>
+          <a href="#" class="btn btn-primary btn-sm">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+            Nueva evaluación
+          </a>
+        </div>
+        <div class="card-body">
+          <div class="empty-state">
+            <div class="empty-state-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+            </div>
+            <p>
+              {% if psico_disponibles == 0 and not plan_activo %}
+              Contrata un plan de psicometría para empezar a evaluar candidatos y empleados. <a href="{% url 'stripe_planes' %}">Ver planes</a>
+              {% else %}
+              Aún no hay evaluaciones registradas. Haz clic en "Nueva evaluación" para empezar.
+              {% endif %}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- NOM-035 info -->
+    <div class="info-grid">
+      <div class="info-card accent">
+        <p class="info-card-label">Norma</p>
+        <h5>NOM-035-STPS-2018</h5>
+        <p>Norma Oficial Mexicana sobre factores de riesgo psicosocial en el trabajo. Obligatoria para todas las empresas en México.</p>
+      </div>
+      <div class="info-card neutral">
+        <p class="info-card-label" style="color:var(--text-muted);">Etapa</p>
+        <h5>1ª Etapa — oct 2019</h5>
+        <p>Política de prevención, identificación de trabajadores expuestos a eventos traumáticos y difusión de información.</p>
+      </div>
+      <div class="info-card accent-danger">
+        <p class="info-card-label">Etapa</p>
+        <h5>2ª Etapa — oct 2020</h5>
+        <p>Identificación y análisis de factores de riesgo, evaluación del entorno organizacional y medidas de control.</p>
+      </div>
+    </div>
+
+    {% endblock %}
+
+  </main>
+
 </div>
 
-<div class="sidenav-overlay"></div>
-<div class="drag-target"></div>
-
-<footer class="footer footer-static footer-light">
-    <p class="clearfix blue-grey lighten-2 mb-0">
-        <span class="float-md-left d-block d-md-inline-block mt-25">COPYRIGHT &copy; 2025 <a class="text-bold-800 grey darken-2" href="#">IHES S.C.</a> Todos los derechos reservados</span>
-        <button class="btn btn-primary btn-icon scroll-top" type="button"><i class="feather icon-arrow-up"></i></button>
-    </p>
+<!-- ── Footer ─────────────────────────────────────────────────── -->
+<footer class="footer">
+  <span>COPYRIGHT &copy; 2025 <a href="#">IHES S.C.</a> Todos los derechos reservados</span>
+  <button class="scroll-top-btn" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Ir arriba">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+  </button>
 </footer>
 
-<script src="{% static 'app-assets/vendors/js/vendors.min.js' %}"></script>
-<script src="{% static 'app-assets/js/core/app-menu.js' %}"></script>
-<script src="{% static 'app-assets/js/core/app.js' %}"></script>
-<script src="{% static 'app-assets/js/scripts/components.js' %}"></script>
-<script src="{% static 'app-assets/vendors/js/extensions/toastr.min.js' %}"></script>
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<!-- Toastr -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
 <script>
-$.ajaxSetup({beforeSend:function(xhr,settings){function getCookie(name){var cookieValue=null;if(document.cookie&&document.cookie!=''){var cookies=document.cookie.split(';');for(var i=0;i<cookies.length;i++){var cookie=jQuery.trim(cookies[i]);if(cookie.substring(0,name.length+1)==(name+'=')){cookieValue=decodeURIComponent(cookie.substring(name.length+1));break;}}}return cookieValue;}if(!(/^http:.*/.test(settings.url)||/^https:.*/.test(settings.url))){xhr.setRequestHeader("X-CSRFToken",getCookie('csrftoken'));}}});
+  // ── CSRF for all AJAX ─────────────────────────────────────────
+  $.ajaxSetup({
+    beforeSend: function(xhr, settings) {
+      function getCookie(name) {
+        var cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+          var cookies = document.cookie.split(';');
+          for (var i = 0; i < cookies.length; i++) {
+            var cookie = jQuery.trim(cookies[i]);
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+              cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+              break;
+            }
+          }
+        }
+        return cookieValue;
+      }
+      if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
+        xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+      }
+    }
+  });
+
+  // ── Mobile sidebar toggle ─────────────────────────────────────
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebarOverlay');
+  const toggle  = document.getElementById('sidebarToggle');
+
+  function openSidebar()  { sidebar.classList.add('open'); overlay.classList.add('visible'); }
+  function closeSidebar() { sidebar.classList.remove('open'); overlay.classList.remove('visible'); }
+
+  if (toggle)  toggle.addEventListener('click', openSidebar);
+  if (overlay) overlay.addEventListener('click', closeSidebar);
+
+  // ── Active nav item ───────────────────────────────────────────
+  document.querySelectorAll('.nav-item-link').forEach(function(link) {
+    if (link.href === window.location.href) link.classList.add('active');
+  });
 </script>
+
+{% block scripts %}{% endblock %}
+
 </body>
 </html>
