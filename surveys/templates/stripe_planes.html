@@ -4,9 +4,9 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimal-ui">
-    <title>Planes y Precios — IHES NOM-035</title>
+    <title>Planes y Precios — NormaIA</title>
     <link rel="shortcut icon" type="image/x-icon" href="{% static 'app-assets/images/ico/favicon.ico' %}">
-    <link href="https://fonts.googleapis.com/css?family=Montserrat:300,400,500,600" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="{% static 'app-assets/vendors/css/vendors.min.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/bootstrap.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/bootstrap-extended.css' %}">
@@ -16,23 +16,225 @@
     <link rel="stylesheet" type="text/css" href="{% static 'app-assets/vendors/css/extensions/toastr.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'assets/css/style.css' %}">
     <style>
-        .plan-card { border-radius: 12px; border: 1px solid #e4e4e4; padding: 28px 24px; background: #fff; transition: box-shadow .2s, transform .2s; height: 100%; display: flex; flex-direction: column; }
-        .plan-card:hover { box-shadow: 0 8px 32px rgba(115,103,240,.15); transform: translateY(-4px); }
-        .plan-card.destacado { border: 2px solid #7367f0; box-shadow: 0 4px 24px rgba(115,103,240,.2); }
-        .plan-tag { font-size: 11px; font-weight: 600; background: #7367f0; color: #fff; border-radius: 20px; padding: 2px 12px; display: inline-block; margin-bottom: 8px; }
-        .plan-precio { font-size: 36px; font-weight: 700; color: #5e5873; }
-        .plan-precio span { font-size: 14px; font-weight: 400; color: #b9b9c3; }
-        .plan-nombre { font-size: 16px; font-weight: 600; color: #5e5873; margin-bottom: 4px; }
-        .plan-desc { font-size: 13px; color: #b9b9c3; margin-bottom: 20px; }
-        .plan-feature { font-size: 13px; color: #6e6b7b; padding: 5px 0; border-bottom: 1px solid #f5f5f5; }
-        .plan-feature i { color: #7367f0; margin-right: 6px; }
-        .btn-contratar { margin-top: auto; padding-top: 20px; }
-        .tab-modulo { background: #f0effe; border-radius: 8px; padding: 4px; display: inline-flex; }
-        .tab-modulo .nav-link { border-radius: 6px; padding: 8px 24px; font-weight: 600; color: #7367f0; font-size: 14px; }
-        .tab-modulo .nav-link.active { background: #7367f0; color: #fff; box-shadow: 0 2px 8px rgba(115,103,240,.4); }
+        /* ── Design tokens ───────────────────────────────────────── */
+        :root {
+            --primary:        #4f46e5;
+            --primary-light:  #eef2ff;
+            --primary-hover:  #4338ca;
+            --success:        #16a34a;
+            --success-light:  #f0fdf4;
+            --text-heading:   #0f172a;
+            --text-body:      #475569;
+            --text-muted:     #94a3b8;
+            --border:         #e2e8f0;
+            --surface:        #f8fafc;
+            --white:          #ffffff;
+            --radius:         12px;
+            --radius-sm:      8px;
+            --shadow-card:    0 1px 3px rgba(15,23,42,.06), 0 4px 16px rgba(15,23,42,.06);
+            --shadow-hover:   0 8px 32px rgba(79,70,229,.14);
+        }
+
+        /* ── Base ────────────────────────────────────────────────── */
+        body, .app-content { font-family: 'Inter', sans-serif; }
+
+        /* ── Page header ─────────────────────────────────────────── */
+        .planes-header { margin-bottom: 32px; }
+        .planes-header h3 {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-heading);
+            margin-bottom: 4px;
+        }
+        .planes-header p {
+            font-size: 14px;
+            color: var(--text-body);
+            margin-bottom: 0;
+        }
+
+        /* ── Active plan badge ───────────────────────────────────── */
+        .badge-plan-activo {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--success-light);
+            color: var(--success);
+            border: 1px solid #bbf7d0;
+            border-radius: 20px;
+            padding: 4px 14px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+        .badge-plan-activo i { font-size: 13px; }
+
+        .btn-gestionar {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            margin-left: 10px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--primary);
+            border: 1px solid var(--primary);
+            border-radius: 8px;
+            padding: 4px 14px;
+            background: transparent;
+            text-decoration: none;
+            transition: background .15s, color .15s;
+        }
+        .btn-gestionar:hover { background: var(--primary-light); color: var(--primary-hover); text-decoration: none; }
+
+        /* ── Module tabs ─────────────────────────────────────────── */
+        .tab-modulo-wrap {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 28px;
+        }
+        .tab-modulo {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 4px;
+            display: inline-flex;
+            gap: 2px;
+            list-style: none;
+            margin: 0;
+        }
+        .tab-modulo .nav-link {
+            border-radius: 6px;
+            padding: 8px 22px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--text-body);
+            text-decoration: none;
+            transition: background .15s, color .15s;
+            white-space: nowrap;
+        }
+        .tab-modulo .nav-link:hover { color: var(--primary); background: var(--primary-light); }
+        .tab-modulo .nav-link.active {
+            background: var(--primary);
+            color: var(--white);
+            box-shadow: 0 2px 8px rgba(79,70,229,.25);
+        }
+
+        /* ── Plan sections ───────────────────────────────────────── */
         .seccion-planes { display: none; }
-        .seccion-planes.activo { display: flex; }
-        .plan-actual-badge { background: #d4edda; color: #155724; border-radius: 20px; padding: 3px 12px; font-size: 12px; font-weight: 500; }
+        .seccion-planes.activo { display: flex; flex-wrap: wrap; }
+
+        /* ── Plan card ───────────────────────────────────────────── */
+        .plan-card {
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 28px 24px;
+            background: var(--white);
+            box-shadow: var(--shadow-card);
+            transition: box-shadow .2s, transform .2s, border-color .2s;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        .plan-card:hover {
+            box-shadow: var(--shadow-hover);
+            transform: translateY(-3px);
+            border-color: #c7d2fe;
+        }
+        .plan-card.destacado {
+            border: 2px solid var(--primary);
+            box-shadow: 0 4px 24px rgba(79,70,229,.18);
+        }
+        .plan-card.destacado:hover { box-shadow: var(--shadow-hover); }
+
+        /* ── Card elements ───────────────────────────────────────── */
+        .plan-tag {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: .4px;
+            text-transform: uppercase;
+            background: var(--primary);
+            color: var(--white);
+            border-radius: 20px;
+            padding: 3px 12px;
+            margin-bottom: 12px;
+        }
+
+        .plan-nombre {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-heading);
+            margin-bottom: 4px;
+        }
+        .plan-desc {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+        .plan-precio {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 34px;
+            font-weight: 800;
+            color: var(--text-heading);
+            line-height: 1.1;
+            margin-bottom: 4px;
+        }
+        .plan-precio span {
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            font-weight: 400;
+            color: var(--text-muted);
+        }
+
+        .plan-divider {
+            border: none;
+            border-top: 1px solid var(--border);
+            margin: 18px 0;
+        }
+
+        .plan-feature {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: var(--text-body);
+            padding: 5px 0;
+        }
+        .plan-feature i {
+            color: var(--primary);
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        /* ── CTA button ──────────────────────────────────────────── */
+        .btn-contratar {
+            margin-top: auto;
+            padding-top: 22px;
+        }
+        .btn-contratar-plan {
+            width: 100%;
+            padding: 11px 20px;
+            background: var(--primary);
+            color: var(--white);
+            border: none;
+            border-radius: var(--radius-sm);
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background .15s, transform .1s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .btn-contratar-plan:hover { background: var(--primary-hover); transform: translateY(-1px); }
+        .btn-contratar-plan:active { transform: translateY(0); }
+        .btn-contratar-plan:disabled { opacity: .65; cursor: not-allowed; transform: none; }
     </style>
 </head>
 <body class="vertical-layout vertical-menu-modern 2-columns navbar-floating footer-static" data-open="click" data-menu="vertical-menu-modern" data-col="2-columns">
@@ -92,22 +294,29 @@
 <div class="app-content content">
     <div class="content-overlay"></div>
     <div class="content-wrapper">
+
         <div class="content-header row">
-            <div class="content-header-left col-12 mb-2">
-                <h3 class="content-header-title mb-0">Planes y Precios</h3>
-                <p class="text-muted mb-0">Elige el plan que mejor se adapte a tu empresa</p>
+            <div class="content-header-left col-12 mb-2 planes-header">
+                <h3>Planes y Precios</h3>
+                <p>Elige el plan que mejor se adapte a tu empresa</p>
                 {% if plan_activo %}
-                <div class="mt-1">
-                    <span class="plan-actual-badge"><i class="feather icon-check-circle"></i> Plan activo: <strong>{{ plan_activo }}</strong></span>
-                    &nbsp;<a href="{% url 'stripe_portal' %}" class="btn btn-sm btn-outline-primary ml-1">Gestionar suscripción</a>
+                <div class="d-flex align-items-center flex-wrap" style="gap:8px; margin-top:10px;">
+                    <span class="badge-plan-activo">
+                        <i class="feather icon-check-circle"></i>
+                        Plan activo: <strong>{{ plan_activo }}</strong>
+                    </span>
+                    <a href="{% url 'stripe_portal' %}" class="btn-gestionar">
+                        <i class="feather icon-external-link"></i> Gestionar suscripción
+                    </a>
                 </div>
                 {% endif %}
             </div>
         </div>
 
         <div class="content-body">
+
             <!-- Tabs de módulos -->
-            <div class="d-flex justify-content-center mb-3">
+            <div class="tab-modulo-wrap">
                 <ul class="nav tab-modulo" id="tabModulo">
                     <li class="nav-item"><a class="nav-link active" href="#" data-modulo="nom035">NOM-035</a></li>
                     <li class="nav-item"><a class="nav-link" href="#" data-modulo="psicometria">Psicometría</a></li>
@@ -125,14 +334,13 @@
                         <div class="plan-nombre">{{ plan.name }}</div>
                         <div class="plan-desc">{{ plan.descripcion }}</div>
                         <div class="plan-precio">${{ plan.precio|intcomma }}<span> MXN / {{ plan.periodo }}</span></div>
-                        <div class="mt-3 mb-2">
-                            <div class="plan-feature"><i class="feather icon-users"></i>Hasta {{ plan.empleados_max }} empleados</div>
-                            <div class="plan-feature"><i class="feather icon-check"></i>Cuestionarios NOM-035 ilimitados</div>
-                            <div class="plan-feature"><i class="feather icon-file-text"></i>Reportes y portafolio de evidencias</div>
-                            <div class="plan-feature"><i class="feather icon-shield"></i>Cumplimiento STPS</div>
-                        </div>
+                        <hr class="plan-divider">
+                        <div class="plan-feature"><i class="feather icon-users"></i>Hasta {{ plan.empleados_max }} empleados</div>
+                        <div class="plan-feature"><i class="feather icon-check"></i>Cuestionarios NOM-035 ilimitados</div>
+                        <div class="plan-feature"><i class="feather icon-file-text"></i>Reportes y portafolio de evidencias</div>
+                        <div class="plan-feature"><i class="feather icon-shield"></i>Cumplimiento STPS</div>
                         <div class="btn-contratar">
-                            <button class="btn btn-primary btn-block btn-contratar-plan" data-plan="{{ key }}">
+                            <button class="btn-contratar-plan" data-plan="{{ key }}">
                                 Contratar — ${{ plan.precio|intcomma }} MXN
                             </button>
                         </div>
@@ -152,16 +360,15 @@
                         <div class="plan-nombre">{{ plan.name }}</div>
                         <div class="plan-desc">{{ plan.descripcion }}</div>
                         <div class="plan-precio">${{ plan.precio|intcomma }}<span> MXN / {{ plan.periodo }}</span></div>
-                        <div class="mt-3 mb-2">
-                            <div class="plan-feature"><i class="feather icon-target"></i>
-                                {% if plan.evaluaciones_mes == -1 %}Evaluaciones ilimitadas{% else %}{{ plan.evaluaciones_mes }} evaluaciones{% endif %}
-                            </div>
-                            <div class="plan-feature"><i class="feather icon-check"></i>Pruebas DISC, Raven, Zavic, Moss</div>
-                            <div class="plan-feature"><i class="feather icon-file-text"></i>Reporte PDF por candidato</div>
-                            <div class="plan-feature"><i class="feather icon-users"></i>Panel RH para comparar candidatos</div>
+                        <hr class="plan-divider">
+                        <div class="plan-feature"><i class="feather icon-target"></i>
+                            {% if plan.evaluaciones_mes == -1 %}Evaluaciones ilimitadas{% else %}{{ plan.evaluaciones_mes }} evaluaciones{% endif %}
                         </div>
+                        <div class="plan-feature"><i class="feather icon-check"></i>Pruebas DISC, Raven, Zavic, Moss</div>
+                        <div class="plan-feature"><i class="feather icon-file-text"></i>Reporte PDF por candidato</div>
+                        <div class="plan-feature"><i class="feather icon-users"></i>Panel RH para comparar candidatos</div>
                         <div class="btn-contratar">
-                            <button class="btn btn-primary btn-block btn-contratar-plan" data-plan="{{ key }}">
+                            <button class="btn-contratar-plan" data-plan="{{ key }}">
                                 Contratar — ${{ plan.precio|intcomma }} MXN
                             </button>
                         </div>
@@ -171,7 +378,7 @@
                 {% endfor %}
             </div>
 
-            <!-- Suite -->
+            <!-- Suite Empresarial -->
             <div class="row seccion-planes" id="planes-suite">
                 {% for key, plan in planes.items %}
                 {% if plan.modulo == 'suite' %}
@@ -181,16 +388,15 @@
                         <div class="plan-nombre">{{ plan.name }}</div>
                         <div class="plan-desc">{{ plan.descripcion }}</div>
                         <div class="plan-precio">${{ plan.precio|intcomma }}<span> MXN / {{ plan.periodo }}</span></div>
-                        <div class="mt-3 mb-2">
-                            <div class="plan-feature"><i class="feather icon-users"></i>NOM-035 hasta {{ plan.empleados_max }} empleados</div>
-                            <div class="plan-feature"><i class="feather icon-target"></i>
-                                {% if plan.evaluaciones_mes == -1 %}Psicometría ilimitada{% else %}{{ plan.evaluaciones_mes }} evaluaciones/mes{% endif %}
-                            </div>
-                            <div class="plan-feature"><i class="feather icon-file-text"></i>Reportes PDF completos</div>
-                            <div class="plan-feature"><i class="feather icon-shield"></i>Cumplimiento STPS + Panel RH</div>
+                        <hr class="plan-divider">
+                        <div class="plan-feature"><i class="feather icon-users"></i>NOM-035 hasta {{ plan.empleados_max }} empleados</div>
+                        <div class="plan-feature"><i class="feather icon-target"></i>
+                            {% if plan.evaluaciones_mes == -1 %}Psicometría ilimitada{% else %}{{ plan.evaluaciones_mes }} evaluaciones/mes{% endif %}
                         </div>
+                        <div class="plan-feature"><i class="feather icon-file-text"></i>Reportes PDF completos</div>
+                        <div class="plan-feature"><i class="feather icon-shield"></i>Cumplimiento STPS + Panel RH</div>
                         <div class="btn-contratar">
-                            <button class="btn btn-primary btn-block btn-contratar-plan" data-plan="{{ key }}">
+                            <button class="btn-contratar-plan" data-plan="{{ key }}">
                                 Contratar — ${{ plan.precio|intcomma }} MXN
                             </button>
                         </div>
