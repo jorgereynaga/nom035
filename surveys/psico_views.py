@@ -30,6 +30,9 @@ class CandidateCreateView(LoginRequiredMixin, View):
     login_url = reverse_lazy('login')
 
     def post(self, request):
+        from surveys.models import Workplace
+        if not Workplace.objects.filter(user=request.user).exists():
+            return JsonResponse({'error': 'Debes registrar un centro de trabajo antes de agregar candidatos.'}, status=400)
         nombre = request.POST.get('nombre', '').strip()
         email = request.POST.get('email', '').strip()
         puesto = request.POST.get('puesto', '').strip()
