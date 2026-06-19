@@ -1,172 +1,467 @@
-{% extends 'index.html'%}
+{% extends 'index.html' %}
 {% load static %}
+
+{% block style %}
+/* ── Modal ──────────────────────────────────────────────── */
+.modal-backdrop {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(15,23,42,.45);
+  z-index: 500;
+  align-items: center;
+  justify-content: center;
+}
+.modal-backdrop.active { display: flex; }
+
+.modal-box {
+  background: var(--bg-base);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 20px 60px rgba(0,0,0,.15);
+  width: 100%;
+  max-width: 440px;
+  padding: 0;
+  overflow: hidden;
+}
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.modal-title {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 15px; font-weight: 700;
+  color: var(--text-primary);
+}
+.modal-close {
+  width: 30px; height: 30px;
+  border-radius: var(--radius-sm);
+  border: none; background: transparent;
+  cursor: pointer; color: var(--text-muted);
+  display: flex; align-items: center; justify-content: center;
+  transition: background .15s, color .15s;
+}
+.modal-close:hover { background: var(--bg-surface); color: var(--text-primary); }
+.modal-close svg { width: 16px; height: 16px; }
+
+.modal-body {
+  padding: 20px 24px;
+}
+.modal-body h5 {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 14px; font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+.modal-body p { font-size: 13px; color: var(--text-secondary); line-height: 1.6; }
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 14px 24px;
+  border-top: 1px solid var(--border);
+}
+.btn-danger { background: var(--danger); color: #fff; border-color: var(--danger); }
+.btn-danger:hover { background: #b91c1c; border-color: #b91c1c; }
+
+/* ── Alert ──────────────────────────────────────────────── */
+.alert-danger {
+  background: var(--danger-bg);
+  border: 1px solid #fecaca;
+  color: #991b1b;
+  margin-bottom: 20px;
+}
+.alert-danger a { color: var(--danger); font-weight: 600; text-decoration: underline; }
+
+/* ── Detail header card ─────────────────────────────────── */
+.detail-header-card {
+  background: var(--bg-base);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: 24px;
+  margin-bottom: 20px;
+}
+.detail-header-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.detail-title-group {}
+.detail-title {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 1.15rem; font-weight: 800;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+  display: flex; align-items: center; gap: 10px;
+  flex-wrap: wrap;
+}
+.detail-address {
+  font-size: 13px; color: var(--text-muted);
+}
+
+.wa-btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: #25d366; color: #fff;
+  border: none; border-radius: var(--radius-md);
+  padding: 8px 14px;
+  font-size: 12px; font-weight: 600;
+  cursor: pointer; text-decoration: none;
+  transition: background .15s;
+  flex-shrink: 0;
+}
+.wa-btn:hover { background: #1ebe5d; }
+.wa-btn svg { width: 16px; height: 16px; }
+
+.detail-meta-row {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.detail-meta-item { display: flex; flex-direction: column; gap: 2px; }
+.detail-meta-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--text-muted); }
+.detail-meta-value { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+
+/* Evaluation nav */
+.eval-nav {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 16px;
+}
+.eval-label {
+  font-size: 13px; font-weight: 600; color: var(--text-secondary);
+}
+.eval-arrow {
+  width: 28px; height: 28px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--bg-base);
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: background .15s, border-color .15s;
+}
+.eval-arrow:hover { background: var(--bg-surface); border-color: var(--primary); color: var(--primary); }
+.eval-arrow svg { width: 13px; height: 13px; }
+
+/* Action buttons row */
+.action-row {
+  display: flex; gap: 8px; flex-wrap: wrap;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+.btn[disabled] {
+  opacity: .45; cursor: not-allowed; pointer-events: none;
+}
+
+/* ── DataTable card ─────────────────────────────────────── */
+.dt-card {
+  background: var(--bg-base);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+.dt-card-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.dt-card-title {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 13px; font-weight: 700; color: var(--text-primary);
+}
+.dt-card-body { padding: 0; overflow-x: auto; }
+
+/* DataTables overrides */
+table.dataTable { width: 100% !important; border-collapse: collapse !important; }
+table.dataTable thead th {
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border) !important;
+  border-top: none !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: .06em !important;
+  color: var(--text-muted) !important;
+  padding: 10px 16px !important;
+}
+table.dataTable tbody td {
+  font-size: 13px !important;
+  color: var(--text-primary) !important;
+  padding: 11px 16px !important;
+  border-bottom: 1px solid #f1f5f9 !important;
+  vertical-align: middle !important;
+}
+table.dataTable tbody tr:hover td { background: var(--bg-surface) !important; }
+table.dataTable tbody tr:last-child td { border-bottom: none !important; }
+
+.dataTables_wrapper {
+  font-family: 'Inter', sans-serif !important;
+  font-size: 13px !important;
+  color: var(--text-secondary) !important;
+  padding: 16px 20px !important;
+}
+.dataTables_wrapper .dataTables_filter input {
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius-md) !important;
+  padding: 7px 12px !important;
+  font-size: 13px !important;
+  font-family: 'Inter', sans-serif !important;
+  color: var(--text-primary) !important;
+  outline: none !important;
+  background: var(--bg-base) !important;
+  margin-left: 6px !important;
+}
+.dataTables_wrapper .dataTables_filter input:focus {
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 3px rgba(37,99,235,.1) !important;
+}
+.dataTables_wrapper .dataTables_length select {
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius-sm) !important;
+  padding: 5px 8px !important;
+  font-size: 13px !important;
+  font-family: 'Inter', sans-serif !important;
+  color: var(--text-primary) !important;
+  background: var(--bg-base) !important;
+  margin: 0 6px !important;
+}
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius-sm) !important;
+  padding: 4px 10px !important;
+  font-size: 12px !important;
+  background: var(--bg-base) !important;
+  color: var(--text-secondary) !important;
+  margin: 0 2px !important;
+  cursor: pointer !important;
+}
+.dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+  background: var(--bg-surface) !important;
+  border-color: var(--primary) !important;
+  color: var(--primary) !important;
+}
+.dataTables_wrapper .dataTables_paginate .paginate_button.current {
+  background: var(--primary) !important;
+  border-color: var(--primary) !important;
+  color: #fff !important;
+}
+.dataTables_wrapper .dataTables_info { font-size: 12px !important; }
+{% endblock %}
+
 {% block dashboard %}
-<div class="modal fade text-left" id="confirm_survey_end" tabindex="-1" role="dialog">
-    <div class="modal-dialog modal-dialog-scrollable" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h4 class="modal-title" id="confirm_survey_end">Finalizar encuestas</h4>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
-            </div>
-            <div class="modal-body">
-                <h5>Está seguro de finalizar la aplicación de encuestas?</h5>
-                <p>Esta acción suspenderá la aplicación de encuestas, por lo cuál, no se podrán registrar nuevos empleados en este centro de trabajo y ningún empleado podrá responder encuestas adicionales ni responder las que hayan sido pausadas.</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-danger waves-effect waves-light" data-dismiss="modal">Cancelar</button>
-                <button type="button" class="end-evaluation btn btn-primary waves-effect waves-light" data-dismiss="modal">Aceptar</button>
-            </div>
-        </div>
-    </div>
-</div>
-<div class="content-overlay"></div>
-<div class="header-navbar-shadow"></div>
-<div class="content-wrapper">
-    <div class="content-header row">
-    </div>
-    <div class="content-body">
-        <!-- Dashboard Analytics Start -->
-        <section id="dashboard-analytics">
 
-            {% if not employees_available %}
-            <div class="row">
-                <div class="col-12">
-                <div class="alert alert-danger" role="alert">
-                    <h4 class="alert-heading">Alerta</h4>
-                    <p class="mb-0">
-                        No cuentas con más empleados por registrar, dirigete a la sección de compras para habilitar un nuevo centro de trabajo o contacta a un asesor<a href="/payments" class="btn btn-danger">Click aquí</a>
-                        <!--<button class="btn btn-danger">Click aquí</button>-->
-                    </p>
-                </div>
-                </div>
-            </div>
-            {% endif %}
-            <div class="row">
-                <div class="col-lg-12 col-md-12 col-12">
-                    <div class="card" data-id='{{workplace_id}}'>
-                        <div class="card-header d-flex flex-column align-items-start pb-0">
-                            <h3>{{name}} - Domicilio: {{address}}
-                                <div class="chip">
-                                    <div class="chip-body">
-                                        <div class="avatar bg-success">
-                                            <span style="font-size:18px;"><i class="fa fa-whatsapp"></i></span>
-                                        </div>
-                                        <span class="chip-text"><a data-toggle='tooltip' data-original-title='Compartir enlace por WhatsApp para responder encuestas para empleados no registrados previamente.' href="https://api.whatsapp.com/send?text=Para *{{name}}* es importante conocer la opinión de todos los colaboradores. Por eso le invitamos a contestar las encuestas para identificar factores de riesgo psicosocial en el trabajo a travéz de este enlace: https://n035.page.link/?link=https://035.ihes.mx/app/access?d={{access_code}}" target="_blank">Enviar link por WhatsApp</a></span>
-                                        {# %26apn=ihes.com.mx.n035 #}
-                                    </div>
-                                </div>
-                            </h3> 
-                            <p>Actividad Principal: {{main_activity}}</p>
-                            <p>Empleados registrados: {{employees}}</p>
-                            <p>Total de empleados: {{employees_total}}</p>
-                            <p><h5>Evaluación #{{evaluation}}</h5><div class="btn-group">
-                                {%if evaluation > 1 %}
-                                <a href='/workplaces/{{workplace_id}}/{{evaluation|add:"-1"}}/' class="btn btn-xs btn-primary"><i class="fa fa-chevron-left"></i></a>
-                                {%endif%}
-                                {%if last_evaluation > evaluation  %}
-                                <a href='/workplaces/{{workplace_id}}/{{evaluation|add:"1"}}/' class="btn btn-xs btn-primary"><i class="fa fa-chevron-right"></i></a>
-                                {%endif%}
-                            </div></p>
-                            <div class="btn-group">
-                                {% if not employees_available %}
-                                <button disabled="" class="btn bg-gradient-primary waves-effect waves-light">Nuevo empleado</button>
-                                {%else%}
-                                <a href="{% url 'employeeform' workplace_id%}" id="new_employee" class="btn bg-gradient-primary waves-effect waves-light">Nuevo empleado</a>
-                                {%endif%}
-                                {% if not paid %}
-                               <button disabled="" class="btn bg-gradient-primary waves-effect waves-light">Ver resultados</button>
-                                <button disabled="" class="btn bg-gradient-primary waves-effect waves-light">Finalizar aplicación de encuestas</button>
-                                {%else%}
-                                <button type="button" id="end_evaluation_confirm" class="btn bg-gradient-primary waves-effect waves-light">Finalizar aplicación de encuestas</button>
-                                <a href="{% url 'workplace_result' workplace_id%}" class="btn bg-gradient-primary waves-effect waves-light">Ver resultados</a>
-                                {%endif%}
-                            </div>
-                        </div>
-                        <div class="card-content">
-                            <div class="card-body card-dashboard">
-                                <div class="table-responsive">
-                                    <table id = "list" class="display table">
-                                        <thead>
-                                            <tr>
-                                                <th>Nombre</th>
-                                                <th>Sexo</th>
-                                                <th>Ocupación, Profesión o Puesto</th>
-                                                <th>Departamento, Sección o Área</th>
-                                                <th>Estado</th>
-                                                <th>Enlace a encuestas</th>
-                                            </tr>
-                                        </thead>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-        <!-- Dashboard Analytics end -->
-
+<!-- ── Modal: confirm survey end ───────────────────────────── -->
+<div class="modal-backdrop" id="confirmModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <span class="modal-title">Finalizar encuestas</span>
+      <button class="modal-close" id="modalCloseBtn" aria-label="Cerrar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
     </div>
+    <div class="modal-body">
+      <h5>¿Está seguro de finalizar la aplicación de encuestas?</h5>
+      <p>Esta acción suspenderá la aplicación de encuestas, por lo cuál no se podrán registrar nuevos empleados en este centro de trabajo y ningún empleado podrá responder encuestas adicionales ni responder las que hayan sido pausadas.</p>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-outline btn-sm" id="modalCancelBtn">Cancelar</button>
+      <button type="button" class="end-evaluation btn btn-danger btn-sm">Aceptar</button>
+    </div>
+  </div>
 </div>
-{% endblock%}
-    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/vendors/css/tables/datatable/datatables.min.css' %}">
+
+<!-- ── Alert: no employees available ──────────────────────── -->
+{% if not employees_available %}
+<div class="alert alert-danger">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+  No cuentas con más empleados por registrar. Dirígete a la sección de compras para habilitar un nuevo centro de trabajo o contacta a un asesor.
+  <a href="/payments">Ver opciones</a>
+</div>
+{% endif %}
+
+<!-- ── Detail header card ──────────────────────────────────── -->
+<div class="detail-header-card" data-id="{{workplace_id}}">
+
+  <div class="detail-header-top">
+    <div class="detail-title-group">
+      <h2 class="detail-title">
+        {{name}}
+      </h2>
+      <p class="detail-address">{{address}}</p>
+    </div>
+    <a
+      href="https://api.whatsapp.com/send?text=Para *{{name}}* es importante conocer la opinión de todos los colaboradores. Por eso le invitamos a contestar las encuestas para identificar factores de riesgo psicosocial en el trabajo a travéz de este enlace: https://n035.page.link"
+      class="wa-btn"
+      data-toggle="tooltip"
+      data-original-title="Compartir enlace por WhatsApp para responder encuestas"
+      target="_blank"
+      rel="noopener">
+      <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+      Compartir encuesta
+    </a>
+  </div>
+
+  <div class="detail-meta-row">
+    <div class="detail-meta-item">
+      <span class="detail-meta-label">Actividad principal</span>
+      <span class="detail-meta-value">{{main_activity}}</span>
+    </div>
+    <div class="detail-meta-item">
+      <span class="detail-meta-label">Empleados registrados</span>
+      <span class="detail-meta-value">{{employees}}</span>
+    </div>
+    <div class="detail-meta-item">
+      <span class="detail-meta-label">Total empleados</span>
+      <span class="detail-meta-value">{{employees_total}}</span>
+    </div>
+  </div>
+
+  <!-- Evaluation navigation -->
+  <div class="eval-nav">
+    {% if evaluation > 1 %}
+    <a href="/workplaces/{{workplace_id}}/{{evaluation|add:"-1"}}/" class="eval-arrow">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+    </a>
+    {% endif %}
+    <span class="eval-label">Evaluación #{{evaluation}}</span>
+    {% if last_evaluation > evaluation %}
+    <a href="/workplaces/{{workplace_id}}/{{evaluation|add:"1"}}/" class="eval-arrow">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+    </a>
+    {% endif %}
+  </div>
+
+  <!-- Action buttons -->
+  <div class="action-row">
+    {% if not employees_available %}
+    <button disabled class="btn btn-primary btn-sm">Nuevo empleado</button>
+    {% else %}
+    <a href="{% url 'employeeform' workplace_id %}" id="new_employee" class="btn btn-primary btn-sm">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+      Nuevo empleado
+    </a>
+    {% endif %}
+
+    {% if not paid %}
+    <button disabled class="btn btn-outline btn-sm">Ver resultados</button>
+    <button disabled class="btn btn-outline btn-sm">Finalizar aplicación</button>
+    {% else %}
+    <button type="button" id="end_evaluation_confirm" class="btn btn-outline btn-sm">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      Finalizar aplicación
+    </button>
+    <a href="{% url 'workplace_result' workplace_id %}" class="btn btn-primary btn-sm">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Ver resultados
+    </a>
+    {% endif %}
+  </div>
+
+</div>
+
+<!-- ── Employees DataTable ─────────────────────────────────── -->
+<div class="dt-card">
+  <div class="dt-card-header">
+    <span class="dt-card-title">Empleados del centro</span>
+  </div>
+  <div class="dt-card-body">
+    <div class="table-responsive">
+      <table id="list" class="display table">
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Sexo</th>
+            <th>Ocupación / Puesto</th>
+            <th>Departamento / Área</th>
+            <th>Estado</th>
+            <th>Enlace a encuestas</th>
+          </tr>
+        </thead>
+      </table>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+<link rel="stylesheet" type="text/css" href="{% static 'app-assets/vendors/css/tables/datatable/datatables.min.css' %}">
+
 {% block scripts %}
-    
-    <script src="{% static 'app-assets/vendors/js/tables/datatable/datatables.min.js' %}"></script>
-    <script src="{% static 'app-assets/vendors/js/tables/datatable/datatables.buttons.min.js' %}"></script>
-    <script src="{% static 'app-assets/vendors/js/tables/datatable/buttons.bootstrap.min.js' %}"></script>
-    <script src="{% static 'app-assets/vendors/js/tables/datatable/datatables.bootstrap4.min.js' %}"></script>
+<script src="{% static 'app-assets/vendors/js/tables/datatable/datatables.min.js' %}"></script>
+<script src="{% static 'app-assets/vendors/js/tables/datatable/datatables.buttons.min.js' %}"></script>
+<script src="{% static 'app-assets/vendors/js/tables/datatable/buttons.bootstrap.min.js' %}"></script>
+<script src="{% static 'app-assets/vendors/js/tables/datatable/datatables.bootstrap4.min.js' %}"></script>
 
-    <script type="text/javascript">
-    $(document).ready(function(){
-        $('[data-toggle="tooltip"]').tooltip()
-        var table=$("#list").DataTable({
-            "lengthMenu": [[5,10,25,50,100], [5,10,25,50,100]],
-            "ajax": '/employees_dt/{{workplace_id}}/0/{{evaluation}}/',
-            "serverSide":true,
-            "columns": [
-                    {"data":"name"},
-                    {"data":"gender"},
-                    {"data":"ocupation"},
-                    {"data":"department"},
-                    {"data":"status"},
-                    {"data":"code"},
-                ],
-            "oLanguage": {
-                "sProcessing": "<i class='fa fa-refresh fa-spin'></i> &nbsp; Espere un momento, cargando datos ...",
-                "sLengthMenu": "Registros por página _MENU_",
-                "sZeroRecords": "No se encontraron registros",
-                "sInfo": "Mostrando la página _PAGE_ de _PAGES_",
-                "sInfoEmpty": "",
-                "sInfoFiltered": "(Filtrando de un total de _MAX_ registros)",
-                "oPaginate": {
-                    "sNext": "Siguiente",
-                    "sPrevious": "Anterior",
-                    "sFirst": "Primero",
-                    "sLast": "Último"
-                },
-                "sSearch": "Búsqueda"
-            }
-          });
-        $('#list').on('draw.dt', function () {$('[data-toggle="tooltip"]').tooltip();});
-        $("#list_filter").addClass('pull-right').css("margin-right:16px;")
-        $("#end_evaluation_confirm").click(function(){
-            $("#confirm_survey_end").modal("show")
-        })
+<script type="text/javascript">
+$(document).ready(function(){
 
+  // DataTable
+  var table = $("#list").DataTable({
+    "lengthMenu": [[5,10,25,50,100],[5,10,25,50,100]],
+    "ajax": '/employees_dt/{{workplace_id}}/0/{{evaluation}}/',
+    "serverSide": true,
+    "columns": [
+      {"data": "name"},
+      {"data": "gender"},
+      {"data": "ocupation"},
+      {"data": "department"},
+      {"data": "status"},
+      {"data": "code"}
+    ],
+    "oLanguage": {
+      "sProcessing": "Cargando datos...",
+      "sLengthMenu": "Registros por página _MENU_",
+      "sZeroRecords": "No se encontraron registros",
+      "sInfo": "Mostrando página _PAGE_ de _PAGES_",
+      "sInfoEmpty": "",
+      "sInfoFiltered": "(Filtrando de un total de _MAX_ registros)",
+      "oPaginate": {
+        "sNext": "Siguiente",
+        "sPrevious": "Anterior",
+        "sFirst": "Primero",
+        "sLast": "Último"
+      },
+      "sSearch": "Buscar"
+    }
+  });
+
+  $('#list').on('draw.dt', function(){ $('[data-toggle="tooltip"]').tooltip(); });
+
+  // Modal: open
+  $("#end_evaluation_confirm").click(function(){
+    $("#confirmModal").addClass("active");
+  });
+
+  // Modal: close
+  $("#modalCloseBtn, #modalCancelBtn").click(function(){
+    $("#confirmModal").removeClass("active");
+  });
+  $("#confirmModal").click(function(e){
+    if ($(e.target).is("#confirmModal")) $(this).removeClass("active");
+  });
+
+});
+
+$(function(){
+  $(".end-evaluation").click(function(){
+    $.ajax({
+      url: "api/end_evaluation/",
+      method: 'GET',
+      data: {'workplace_id': "{{workplaceid}}"},
+      dataType: 'json',
+      success: function(data){
+        toastr.success("Se ha cerrado la evaluación","ok");
+        $("#confirmModal").removeClass("active");
+      }
     });
-    $(function(){
-        $(".end-evaluation").click(function(){
-            $.ajax({
-                url: "api/end_evaluation/",
-                method: 'GET',
-                data:{'workplace_id':"{{workplaceid}}"},
-                dataType: 'json',
-                success: function(data){
-                    toastr.success("Se ha cerrado la evaluación","ok")
-                }
-            });
-        })
-    });
-    </script>
-{% endblock%}
+  });
+});
+</script>
+{% endblock %}

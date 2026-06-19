@@ -1,386 +1,568 @@
-{% extends 'index.html'%}
+{% extends 'index.html' %}
 {% load static %}
+
+{% block style %}
+<style>
+/* ── Settings layout ─────────────────────────────────────── */
+.settings-layout {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+/* ── Side nav ────────────────────────────────────────────── */
+.settings-nav {
+  background: var(--bg-base);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+.settings-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 18px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  border-left: 3px solid transparent;
+  transition: background .15s, color .15s, border-color .15s;
+  user-select: none;
+  border-bottom: 1px solid var(--border);
+}
+.settings-nav-item:last-child { border-bottom: none; }
+.settings-nav-item svg { width: 15px; height: 15px; flex-shrink: 0; }
+.settings-nav-item:hover { background: var(--bg-surface); color: var(--text-primary); }
+.settings-nav-item.active {
+  background: var(--primary-light);
+  color: var(--primary);
+  border-left-color: var(--primary);
+  font-weight: 600;
+}
+
+/* ── Panel card ──────────────────────────────────────────── */
+.settings-panel {
+  background: var(--bg-base);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+.settings-panel-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border);
+}
+.settings-panel-title {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 14px; font-weight: 800;
+  color: var(--text-primary); margin-bottom: 2px;
+}
+.settings-panel-subtitle { font-size: 12px; color: var(--text-muted); }
+.settings-panel-body { padding: 24px; }
+
+/* Tabs (hidden by default, shown with .active) */
+.tab-pane { display: none; }
+.tab-pane.active { display: block; }
+
+/* ── Form elements ───────────────────────────────────────── */
+.form-group { margin-bottom: 16px; }
+.form-label { display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 5px; }
+.form-label small { font-size: 11px; font-weight: 400; color: var(--text-muted); }
+.form-control {
+  width: 100%; padding: 9px 12px;
+  font-size: 13px; font-family: 'Inter', sans-serif;
+  color: var(--text-primary); background: var(--bg-base);
+  border: 1px solid var(--border); border-radius: var(--radius-md);
+  outline: none; transition: border-color .2s, box-shadow .2s;
+}
+.form-control:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
+.form-control::placeholder { color: var(--text-muted); }
+.form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.form-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+
+/* Divider */
+.form-divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+
+/* Buttons */
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 18px; font-size: 13px; font-weight: 600; font-family: 'Inter', sans-serif; border-radius: var(--radius-md); border: 1px solid transparent; cursor: pointer; transition: background .15s, border-color .15s; text-decoration: none; white-space: nowrap; }
+.btn svg { width: 14px; height: 14px; }
+.btn-primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+.btn-primary:hover { background: var(--primary-dark); border-color: var(--primary-dark); }
+.btn-outline { background: transparent; color: var(--text-primary); border-color: var(--border); }
+.btn-outline:hover { background: var(--bg-surface); }
+.btn-danger-ghost { background: transparent; color: var(--danger); border-color: #fecaca; }
+.btn-danger-ghost:hover { background: var(--danger-bg); }
+.btn-sm { padding: 6px 12px; font-size: 12px; }
+.btn-success { background: #16a34a; color: #fff; border-color: #16a34a; }
+.btn-success:hover { background: #15803d; }
+.form-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+
+/* ── Avatar section ──────────────────────────────────────── */
+.avatar-section {
+  display: flex; align-items: center; gap: 20px;
+  padding: 16px 20px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  margin-bottom: 20px;
+}
+.avatar-img {
+  width: 64px; height: 64px;
+  border-radius: 14px;
+  object-fit: cover;
+  border: 2px solid var(--border);
+  flex-shrink: 0;
+}
+.avatar-actions { display: flex; flex-direction: column; gap: 6px; }
+.avatar-actions-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.avatar-hint { font-size: 11px; color: var(--text-muted); }
+.btn-file { position: relative; overflow: hidden; }
+.btn-file input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+
+/* ── Cards list ──────────────────────────────────────────── */
+.cards-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+.payment-card-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 14px;
+  padding: 14px 16px;
+  background: var(--bg-base);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+.payment-card-left { display: flex; align-items: center; gap: 14px; }
+.payment-card-logo { width: 64px; height: 36px; object-fit: contain; }
+.payment-card-info {}
+.payment-card-name { font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 2px; }
+.payment-card-meta { font-size: 12px; color: var(--text-muted); }
+
+/* Add card collapsible */
+.add-card-toggle {
+  display: flex; align-items: center; gap: 8px;
+  padding: 12px 16px;
+  cursor: pointer;
+  background: var(--bg-surface);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-md);
+  font-size: 13px; font-weight: 600; color: var(--primary);
+  transition: background .15s, border-color .15s;
+  user-select: none;
+}
+.add-card-toggle:hover { background: var(--primary-light); border-color: var(--primary); }
+.add-card-toggle svg { width: 15px; height: 15px; }
+.add-card-form {
+  display: none;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  margin-top: 8px;
+  background: var(--bg-surface);
+}
+.add-card-form.open { display: block; }
+.card-errors { font-size: 12px; color: var(--danger); margin-bottom: 10px; display: block; }
+
+/* ── Purchases list ──────────────────────────────────────── */
+.purchases-list { display: flex; flex-direction: column; gap: 10px; }
+.purchase-row {
+  padding: 16px;
+  background: var(--bg-base);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+.purchase-header { display: flex; align-items: center; gap: 14px; margin-bottom: 10px; }
+.purchase-logo { width: 56px; height: 32px; object-fit: contain; }
+.purchase-name { font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 2px; }
+.purchase-card-meta { font-size: 12px; color: var(--text-muted); }
+.purchase-amount { font-size: 14px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px; }
+.purchase-products { list-style: none; display: flex; flex-direction: column; gap: 3px; }
+.purchase-products li { font-size: 12px; color: var(--text-secondary); display: flex; align-items: center; gap: 6px; }
+.purchase-products li::before { content: '·'; color: var(--text-muted); font-size: 16px; }
+
+.empty-note { text-align: center; padding: 32px 20px; font-size: 13px; color: var(--text-muted); }
+
+@media (max-width: 768px) {
+  .settings-layout { grid-template-columns: 1fr; }
+  .form-grid-2 { grid-template-columns: 1fr; }
+  .form-grid-3 { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock %}
+
 {% block dashboard %}
-<div class="content-overlay"></div>
-<div class="header-navbar-shadow"></div>
-<div class="content-wrapper">
-    <div class="content-header row">
-    </div>
-    <div class="content-body">
-        <!-- account setting page start -->
-        <section id="page-account-settings">
-            <div class="row">
-            <!-- left menu section -->
-            <div class="col-md-3 mb-2 mb-md-0">
-                <ul class="nav nav-pills flex-column mt-md-0 mt-1">
-                    <li class="nav-item">
-                        <a class="nav-link d-flex py-75 active" id="account-pill-general" data-toggle="pill" href="#account-vertical-general" aria-expanded="true">
-                            <i class="feather icon-globe mr-50 font-medium-3"></i>
-                            General
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link d-flex py-75" id="account-pill-password" data-toggle="pill" href="#account-vertical-password" aria-expanded="false">
-                            <i class="feather icon-lock mr-50 font-medium-3"></i>
-                            Cambiar contraseña
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link d-flex py-75" id="account-pill-payment" data-toggle="pill" href="#account-vertical-payment" aria-expanded="false">
-                            <i class="feather icon-credit-card mr-50 font-medium-3"></i>
-                            Mis métodos de pago
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link d-flex py-75" id="account-pill-purchases" data-toggle="pill" href="#account-vertical-purchases" aria-expanded="false">
-                            <i class="feather icon-credit-card mr-50 font-medium-3"></i>
-                            Mis pagos
-                        </a>
-                    </li>
-                </ul>
-            </div>
-            <!-- right content section -->
-            <div class="col-md-9">
-                <div class="card">
-                <div class="card-content">
-                <div class="card-body">
-                    <div class="tab-content">
-                        <div role="tabpanel" class="tab-pane active" id="account-vertical-general" aria-labelledby="account-pill-general" aria-expanded="true">
-                            <form id="edit_form" action="." method="post" enctype="multipart/form-data">
-                                {% csrf_token %}
-                                <div class="media">
-                                    <a href="javascript: void(0);">
-                                        <img src="{% if request.user.userapp.image %}/media/{{request.user.userapp.image }}{%else%}{% static 'app-assets/images/portrait/small/avatar-s-1.png' %}{%endif%}" class="rounded mr-75" id="image_preview" alt="profile image" height="64" width="64">
-                                    </a>
-                                    <div class="media-body mt-75">
-                                        <div class="col-12 px-0 d-flex flex-sm-row flex-column justify-content-start">
-                                            <label class="btn btn-sm btn-primary ml-50 mb-50 mb-sm-0 cursor-pointer" for="account-upload">Subir nueva imagen</label>
-                                            <input type="file" id="account-upload" name="file" hidden>
-                                            <button id="clean_preview"class="btn btn-sm btn-outline-warning ml-50">Limpiar</button>
-                                        </div>
-                                        <p class="text-muted ml-75 mt-50"><small>Están permitidos los formatos JPG o PNG de un tamaño máximo de 2.5Mb.</small></p>
-                                    </div>
-                                </div>
-                                <hr>
-                                <div class="row">
-                                    <div class="col-12">
-                                        <div class="form-group">
-                                            <div class="controls">
-                                                <label for="account-e-mail">E-mail <small>(Éste cambio puede tomar un momento en verse reflejado)</small></label>
-                                                <input type="email" class="form-control" id="account-e-mail" placeholder="Email" name="email" value="{{request.user.username}}" required data-validation-required-message="Éste campo es requerido">
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-12">
-                                        <div class="form-group">
-                                            <div class="controls">
-                                                <label for="account-name">Nombre, denominación, razón social de la empresa</label>
-                                                <input type="text" class="form-control" name="name" id="account-name" placeholder="Nombre, denominación, razón social de la empresa" value="{{request.user.userapp.name}}" required data-validation-required-message="Éste campo es requerido">
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-12">
-                                        <div class="form-group">
-                                            <div class="controls">
-                                                <label for="account-phone">Teléfono</label>
-                                                <input type="Text" class="form-control" name="phone" id="account-phone" placeholder="Phone" value="{{request.user.userapp.phone}}" required data-validation-required-message="Éste campo es requerido">
-                                            </div>
-                                        </div>
-                                    </div>
-                                    {% if false%}
-                                    <div class="col-12">
-                                        <div class="alert alert-warning alert-dismissible mb-2" role="alert">
-                                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                                                <span aria-hidden="true">×</span>
-                                            </button>
-                                            <p class="mb-0">Tu dirección de correo no está verificada, revisa tu bandeja de entrada</p>
-                                            <a href="javascript: void(0);">Volver a enviar correo de confirmación</a>
-                                        </div>
-                                    </div>
-                                    {%endif%}
-                                    <div class="col-12 d-flex flex-sm-row flex-column justify-content-end">
-                                        <button type="button" class="save_changes btn btn-primary mr-sm-1 mb-1 mb-sm-0">Guardar cambios</button>
-                                        <button type="reset" class="btn btn-outline-warning">Cancelar</button>
-                                    </div>
-                                </div>
-                            </form>
-                        </div>
-                        <div class="tab-pane fade " id="account-vertical-password" role="tabpanel" aria-labelledby="account-pill-password" aria-expanded="false">
-                            <form id="change_password_form" action="." method="post">
-                                {% csrf_token %}
-                                <div class="row">
-                                    <div class="col-12">
-                                        <div class="form-group">
-                                            <div class="controls">
-                                                <label for="old_password">Contraseña anterior</label>
-                                                <input type="password" class="form-control" id="old_password" name="old_password" required placeholder="Contraseña anterior" data-validation-required-message="Se requiere la contraseña anterior">
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-12">
-                                        <div class="form-group">
-                                            <div class="controls">
-                                                <label for="new_password1">Nueva contraseña</label>
-                                                <input type="password"name="new_password1" id="new_password1" class="form-control" placeholder="Nueva contraseña" required data-validation-required-message="Debes ingresar tu nueva contraseña" minlength="6">
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-12">
-                                        <div class="form-group">
-                                            <div class="controls">
-                                                <label for="new_password2">Confirmación de Contraseña</label>
-                                                <input type="password" class="form-control" required id="new_password2" name="new_password2" data-validation-match-match="password" placeholder="Confirmación de Contraseña" data-validation-required-message="Debes confirmar tu contraseña" minlength="6">
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-12 d-flex flex-sm-row flex-column justify-content-end">
-                                        <button type="button" class="change_password btn btn-primary mr-sm-1 mb-1 mb-sm-0">Guardar cambios</button>
-                                        <button type="reset" class="btn btn-outline-warning">Cancelar</button>
-                                    </div>
-                                </div>
-                            </form>
-                        </div>
-                        <div class="tab-pane fade " id="account-vertical-payment" role="tabpanel" aria-labelledby="account-pill-payment" aria-expanded="false">
-                            <ul class="list-group">
-                            <li class="list-group-item text-center"><b>Tarjetas de crédito o débito</b></li>
-                            {% for item in cards %}
-                            <li class="list-group-item" data-token="{{item.card_token}}">
-                                <div class="media">
-                                    <a class="media-left" href="#" style="width:100px;" >
-                                        <img src="/static/app-assets/images/logo/{{item.brand}}.png" alt="{{item.brand}}" width="100%" style="max-width:100px;" height="50">
-                                    </a>
-                                    <div class="media-body">
-                                        <h4 class="media-heading">{{item.name}}
-                                        <i class="pull-right fa fa-times text-danger delete-card" data-token="{{item.card_token}}" data-toggle="tooltip" title="Eliminar tarjeta"></i>
-                                        </h4>
-                                        <h5>Tarjeta {{item.brand}} que termina en <b>{{item.last4}}</b> <small>Expiración {{item.exp_month}}/{{item.exp_year}}</small></h5>
-                                    </div>
-                                </div>
-                            </li>
-                            {% endfor %}
-                            <li class="list-group-item">
-                                <div class="default-collapse collapse-bordered">
-                                    <div class="card collapse-header">
-                                        <div id="headingCollapse1" class="card-header collapsed" data-toggle="collapse" role="button" data-target="#collapse1"   style="padding: 0rem !important;">
-                                            <span class="lead collapse-title text-primary"><i class="fa fa-plus"></i> Agregar tarjeta de crédito o débito</span>
-                                        </div>
-                                        <div id="collapse1" role="tabpanel" aria-labelledby="headingCollapse1" class="collapse" style="">
-                                        <div class="card-content">
-                                        <div class="card-body">
-                                            <form action="" method="POST" id="card-form">
-                                                <span class="card-errors"></span>
-                                                <div class="row">
-                                                  <div class="col-md-6">
-                                                    <div class="form-group">
-                                                        <div class="controls">
-                                                            <label>Nombre del tarjetahabiente</label>
-                                                            <input type="text" class="form-control" placeholder="Nombre del tarjetahabiente" size="20" data-conekta="card[name]">
-                                                        </div>
-                                                    </div>
-                                                  </div>
-                                                  <div  class="col-md-6">
-                                                    <div class="form-group">
-                                                        <div class="controls">
-                                                            <label>Número de tarjeta de crédito o débito</label>
-                                                            <input type="text" class="form-control" placeholder="Número de tarjeta de crédito o débito" size="20" data-conekta="card[number]">
-                                                        </div>
-                                                    </div>
-                                                  </div>
-                                                </div>
-                                                <div class="row">
-                                                  <div class="col-md-4">
-                                                    <div class="form-group">
-                                                        <div class="controls">
-                                                            <label>CCV</label>
-                                                            <input type="text" class="form-control" placeholder="CCV" size="4" data-conekta="card[cvc]">
-                                                        </div>
-                                                    </div>
-                                                  </div>
-                                                  <div class="col-md-4">
-                                                    <div class="form-group">
-                                                        <div class="controls">
-                                                            <label>Mes de expiración (MM)</label>
-                                                            <input type="text" class="form-control" placeholder="Mes de expiración (MM)" size="2" data-conekta="card[exp_month]">
-                                                        </div>
-                                                    </div>
-                                                  </div>
-                                                  <div class="col-md-4">
-                                                    <div class="form-group">
-                                                        <div class="controls">
-                                                            <label>Año de expiración(AAAA)</label>
-                                                            <input type="text" class="form-control" placeholder="Año de expiración(AAAA)" size="4" data-conekta="card[exp_year]">
-                                                        </div>
-                                                    </div>
-                                                  </div>
-                                                </div>
-                                                <button class="btn btn-success pull-right" id="submit-card" type="button">Añadir tarjeta</button>
-                                            </form>
-                                        </div>
-                                        </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </li>
-                            </ul>
-                        </div>
-                        <div class="tab-pane fade " id="account-vertical-purchases" role="tabpanel" aria-labelledby="account-pill-purchases" aria-expanded="false">
-                            <ul class="list-group">
-                            <li class="list-group-item text-center"><b>Mis compras</b></li>
-                            {% for item in purchases %}
-                            <li class="list-group-item">
-                                <div class="media">
-                                    <a class="media-left" href="#" style="width:100px;" >
-                                        <img src="/static/app-assets/images/logo/{{item.brand}}.png" alt="{{item.brand}}" width="100%" style="max-width:100px;" height="50">
-                                    </a>
-                                    <div class="media-body">
-                                        <h4 class="media-heading">{{item.name}}</h4>
-                                        <h5>Tarjeta {{item.brand}} que termina en <b>{{item.last4}}</b> <small>Expiración {{item.exp_month}}/{{item.exp_year}}</small></h5>
-                                        <h5>Pago por cantidad de ${{item.amount}}.00</h5>
-                                        <ul>{%for prod in item.products%}
-                                            <li><h5>{{prod.name}} <small>{{prod.quantity}} empleados</small></h5></li>
-                                        {%endfor%}</ul>
-                                    </div>
-                                </div>
-                            </li>
-                            {% empty %}
-                                <li class="list-group-item text-center"><b>Aún no has realizado ningún pago</b></li>
-                            {% endfor %}
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-                </div>
-                </div>
-            </div>
-            </div>
-        </section>
-        <!-- account setting page end -->
-    </div>
+
+<div class="page-header" style="margin-bottom:24px;">
+  <div class="page-header-text">
+    <h1>Configuración</h1>
+    <p>Administra tu perfil, contraseña y métodos de pago</p>
+  </div>
 </div>
-{% endblock%}
-    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/vendors/css/tables/datatable/datatables.min.css' %}">
+
+<div class="settings-layout">
+
+  <!-- ── Side navigation ──────────────────────────────────── -->
+  <nav class="settings-nav">
+    <div class="settings-nav-item active" id="account-pill-general" data-tab="account-vertical-general">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a4 4 0 014-4h4a4 4 0 014 4v2"/></svg>
+      General
+    </div>
+    <div class="settings-nav-item" id="account-pill-password" data-tab="account-vertical-password">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+      Cambiar contraseña
+    </div>
+    <div class="settings-nav-item" id="account-pill-payment" data-tab="account-vertical-payment">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+      Métodos de pago
+    </div>
+    <div class="settings-nav-item" id="account-pill-purchases" data-tab="account-vertical-purchases">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+      Mis pagos
+    </div>
+  </nav>
+
+  <!-- ── Content panels ───────────────────────────────────── -->
+  <div class="settings-panel">
+
+    <!-- General -->
+    <div class="tab-pane active" id="account-vertical-general">
+      <div class="settings-panel-header">
+        <p class="settings-panel-title">Información general</p>
+        <p class="settings-panel-subtitle">Actualiza los datos de tu cuenta y empresa</p>
+      </div>
+      <div class="settings-panel-body">
+        <form id="edit_form" action="." method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+
+          <!-- Avatar -->
+          <div class="avatar-section">
+            <img src="{% if request.user.userapp.image %}/media/{{request.user.userapp.image}}{% else %}{% static 'app-assets/images/portrait/small/avatar-s-1.png' %}{% endif %}" class="avatar-img" id="image_preview" alt="Foto de perfil">
+            <div class="avatar-actions">
+              <div class="avatar-actions-row">
+                <label class="btn btn-outline btn-sm btn-file">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                  Subir imagen
+                  <input type="file" id="account-upload" name="file" hidden>
+                </label>
+                <button id="clean_preview" type="button" class="btn btn-outline btn-sm">Limpiar</button>
+              </div>
+              <p class="avatar-hint">JPG o PNG, máximo 2.5 MB</p>
+            </div>
+          </div>
+
+          <hr class="form-divider">
+
+          <div class="form-group">
+            <label class="form-label" for="account-e-mail">
+              Correo electrónico <small>(el cambio puede tomar un momento en reflejarse)</small>
+            </label>
+            <input type="email" class="form-control" id="account-e-mail" name="email"
+              placeholder="correo@empresa.com" value="{{request.user.username}}" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="account-name">Nombre / Denominación / Razón social</label>
+            <input type="text" class="form-control" id="account-name" name="name"
+              placeholder="Nombre o razón social de la empresa" value="{{request.user.userapp.name}}" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="account-phone">Teléfono</label>
+            <input type="text" class="form-control" id="account-phone" name="phone"
+              placeholder="+52 55 0000 0000" value="{{request.user.userapp.phone}}" required>
+          </div>
+
+          <div class="form-actions">
+            <button type="reset" class="btn btn-outline">Cancelar</button>
+            <button type="button" class="save_changes btn btn-primary">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v14a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+              Guardar cambios
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Change password -->
+    <div class="tab-pane" id="account-vertical-password">
+      <div class="settings-panel-header">
+        <p class="settings-panel-title">Cambiar contraseña</p>
+        <p class="settings-panel-subtitle">Elige una contraseña segura de al menos 6 caracteres</p>
+      </div>
+      <div class="settings-panel-body">
+        <form id="change_password_form" action="." method="post">
+          {% csrf_token %}
+
+          <div class="form-group">
+            <label class="form-label" for="old_password">Contraseña anterior</label>
+            <input type="password" class="form-control" id="old_password" name="old_password" placeholder="••••••••" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="new_password1">Nueva contraseña</label>
+            <input type="password" class="form-control" id="new_password1" name="new_password1" placeholder="••••••••" required minlength="6">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="new_password2">Confirmar nueva contraseña</label>
+            <input type="password" class="form-control" id="new_password2" name="new_password2" data-validation-match-match="password" placeholder="••••••••" required minlength="6">
+          </div>
+
+          <div class="form-actions">
+            <button type="reset" class="btn btn-outline">Cancelar</button>
+            <button type="button" class="change_password btn btn-primary">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+              Guardar contraseña
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Payment methods -->
+    <div class="tab-pane" id="account-vertical-payment">
+      <div class="settings-panel-header">
+        <p class="settings-panel-title">Métodos de pago</p>
+        <p class="settings-panel-subtitle">Tus tarjetas de crédito o débito registradas</p>
+      </div>
+      <div class="settings-panel-body">
+
+        <div class="cards-list">
+          {% for item in cards %}
+          <div class="payment-card-row" data-token="{{item.card_token}}">
+            <div class="payment-card-left">
+              <img src="/static/app-assets/images/logo/{{item.brand}}.png" alt="{{item.brand}}" class="payment-card-logo">
+              <div class="payment-card-info">
+                <p class="payment-card-name">{{item.name}}</p>
+                <p class="payment-card-meta">
+                  {{item.brand}} · terminación <strong>{{item.last4}}</strong> · vence {{item.exp_month}}/{{item.exp_year}}
+                </p>
+              </div>
+            </div>
+            <button class="btn btn-danger-ghost btn-sm delete-card" data-token="{{item.card_token}}" title="Eliminar tarjeta">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+              Eliminar
+            </button>
+          </div>
+          {% endfor %}
+        </div>
+
+        <!-- Add card -->
+        <div class="add-card-toggle" id="toggleAddCard">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+          Agregar tarjeta de crédito o débito
+        </div>
+
+        <div class="add-card-form" id="addCardForm">
+          <form action="" method="POST" id="card-form">
+            <span class="card-errors"></span>
+            <div class="form-grid-2" style="margin-bottom:16px;">
+              <div class="form-group">
+                <label class="form-label">Nombre del tarjetahabiente</label>
+                <input type="text" class="form-control" placeholder="Como aparece en la tarjeta" data-conekta="card[name]">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Número de tarjeta</label>
+                <input type="text" class="form-control" placeholder="0000 0000 0000 0000" data-conekta="card[number]">
+              </div>
+            </div>
+            <div class="form-grid-3" style="margin-bottom:16px;">
+              <div class="form-group">
+                <label class="form-label">CCV</label>
+                <input type="text" class="form-control" placeholder="123" data-conekta="card[cvc]">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Mes de expiración (MM)</label>
+                <input type="text" class="form-control" placeholder="MM" data-conekta="card[exp_month]">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Año de expiración (AAAA)</label>
+                <input type="text" class="form-control" placeholder="AAAA" data-conekta="card[exp_year]">
+              </div>
+            </div>
+            <button class="btn btn-success btn-sm" id="submit-card" type="button">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+              Añadir tarjeta
+            </button>
+          </form>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Purchases -->
+    <div class="tab-pane" id="account-vertical-purchases">
+      <div class="settings-panel-header">
+        <p class="settings-panel-title">Mis pagos</p>
+        <p class="settings-panel-subtitle">Historial de transacciones realizadas</p>
+      </div>
+      <div class="settings-panel-body">
+        {% if purchases %}
+        <div class="purchases-list">
+          {% for item in purchases %}
+          <div class="purchase-row">
+            <div class="purchase-header">
+              <img src="/static/app-assets/images/logo/{{item.brand}}.png" alt="{{item.brand}}" class="purchase-logo">
+              <div>
+                <p class="purchase-name">{{item.name}}</p>
+                <p class="purchase-card-meta">{{item.brand}} · terminación <strong>{{item.last4}}</strong> · vence {{item.exp_month}}/{{item.exp_year}}</p>
+              </div>
+            </div>
+            <p class="purchase-amount">${{item.amount}}.00 MXN</p>
+            <ul class="purchase-products">
+              {% for prod in item.products %}
+              <li>{{prod.name}} <span style="color:var(--text-muted)">· {{prod.quantity}} empleados</span></li>
+              {% endfor %}
+            </ul>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-note">Aún no has realizado ningún pago.</div>
+        {% endif %}
+      </div>
+    </div>
+
+  </div><!-- /.settings-panel -->
+</div><!-- /.settings-layout -->
+
+{% endblock %}
+
 {% block scripts %}
-    
-    <script src="{% static 'app-assets/vendors/js/tables/datatable/datatables.min.js' %}"></script>
-    <script src="{% static 'app-assets/vendors/js/tables/datatable/datatables.buttons.min.js' %}"></script>
-    <script src="{% static 'app-assets/vendors/js/tables/datatable/buttons.bootstrap.min.js' %}"></script>
-    <script src="{% static 'app-assets/vendors/js/tables/datatable/datatables.bootstrap4.min.js' %}"></script>
-    <script type="text/javascript" src="https://cdn.conekta.io/js/latest/conekta.js"></script>
+<script type="text/javascript" src="https://cdn.conekta.io/js/latest/conekta.js"></script>
 
-    <script type="text/javascript">
-    $(document).ready(function(){
-        $('[data-toggle="tooltip"]').tooltip()
-        var tab="{{tab}}"
-       	if (tab=="credit-card"){
-       		$("#account-pill-payment").trigger('click')
-       	}
-        var msg="{{msg}}"
-        if (msg!=""){
-            toastr.error(msg,"Error")
-        }
-        var msgok="{{msgok}}"
-        if (msgok!=""){
-            toastr.success(msgok,"Ok")
-        }
+<script type="text/javascript">
+$(document).ready(function(){
+    $('[data-toggle="tooltip"]').tooltip();
+    var tab = "{{tab}}";
+    if (tab == "credit-card"){
+        $("#account-pill-payment").trigger('click');
+    }
+    var msg = "{{msg}}";
+    if (msg != ""){
+        toastr.error(msg, "Error");
+    }
+    var msgok = "{{msgok}}";
+    if (msgok != ""){
+        toastr.success(msgok, "Ok");
+    }
+});
+$(function(){
+    // ── Tab navigation ────────────────────────────────────────
+    $(".settings-nav-item").on("click", function(){
+        $(".settings-nav-item").removeClass("active");
+        $(this).addClass("active");
+        var target = $(this).data("tab");
+        $(".tab-pane").removeClass("active");
+        $("#" + target).addClass("active");
     });
-    $(function(){
-        // Conekta.setPublicKey('key_dnJ39sQFbLVZQR7epkiiCEg');//prod
-        Conekta.setPublicKey('key_AhXYuQnj8pMv4UEmsEz8Hsw');//testing
 
-        var conektaSuccessResponseHandler = function(token){
-            $("#submit-card").prop("disabled", true);
-             $.ajax({
-                url: "/api/addCard/",
-                method: 'POST',
-                contentType :"application/json",
-                data:JSON.stringify({"card_token":token.id}),
-                dataType: 'json',
-                success: function(data){
-                    toastr.success('Tu tarjeta fue registrada con éxito',"ok")
-                    $("#card-form").trigger("reset");
-                  function myTimer() {location.replace("{% url 'edit_profile' %}?d=credit-card")}
-                  var myVar = setInterval(myTimer, 1000);
-                },
-                error:function (xhr, ajaxOptions, thrownError){
-                    console.log(xhr.status)
-                    if (xhr.status!=201) {
-                        toastr.success('Ha ocurrido un error '+xhr.responseText,"Error");
-                    }
+    // ── Add card toggle ───────────────────────────────────────
+    $("#toggleAddCard").click(function(){
+        $("#addCardForm").toggleClass("open");
+    });
+
+    // ── Conekta ───────────────────────────────────────────────
+    // Conekta.setPublicKey('key_dnJ39sQFbLVZQR7epkiiCEg');//prod
+    Conekta.setPublicKey('key_AhXYuQnj8pMv4UEmsEz8Hsw');//testing
+
+    var conektaSuccessResponseHandler = function(token){
+        $("#submit-card").prop("disabled", true);
+        $.ajax({
+            url: "/api/addCard/",
+            method: 'POST',
+            contentType: "application/json",
+            data: JSON.stringify({"card_token": token.id}),
+            dataType: 'json',
+            success: function(data){
+                toastr.success('Tu tarjeta fue registrada con éxito', "ok");
+                $("#card-form").trigger("reset");
+                function myTimer() { location.replace("{% url 'edit_profile' %}?d=credit-card"); }
+                var myVar = setInterval(myTimer, 1000);
+            },
+            error: function(xhr, ajaxOptions, thrownError){
+                console.log(xhr.status);
+                if (xhr.status != 201) {
+                    toastr.success('Ha ocurrido un error ' + xhr.responseText, "Error");
                 }
-              });
-        };
-        var conektaErrorResponseHandler = function(response) {
-            var $form = $("#card-form");
-            $form.find(".card-errors").text(response.message_to_purchaser);
-            $("#submit-card").prop("disabled", false);
-        };
-        $("#submit-card").click(function(){
-          var $form = $("#card-form");
-          // Previene hacer submit más de una vez
-          $("#submit-card").prop("disabled", true);
-          Conekta.Token.create($form, conektaSuccessResponseHandler, conektaErrorResponseHandler);
-
-          return false;
+            }
         });
-        function readURL(input) {
-            if (input.files && input.files[0]) {
-                var reader = new FileReader();
-                reader.onload = function(e) {
-                    $('#image_preview').attr('src', e.target.result);
-                }
-                reader.readAsDataURL(input.files[0]);
-            }
-        }
-        $("#account-upload").change(function(){
-            readURL(this);
-        })
-        $(".delete-card").click(function(){
-        	var token=$(this).attr("data-token")
-        	$.ajax({
-                url: "/api/addCard/",
-                method: 'DELETE',
-                contentType :"application/json",
-                data:JSON.stringify({"card_token":token}),
-                dataType: 'json',
-                success: function(data){
-                    toastr.success('Tu tarjeta fue eliminada',"ok")
-					function myTimer() {location.replace("{% url 'edit_profile' %}?d=credit-card")}
-					var myVar = setInterval(myTimer, 1000);
-                },
-                error:function (xhr, ajaxOptions, thrownError){
-                    console.log(xhr.status)
-                    if (xhr.status!=201) {
-                        toastr.success('Ha ocurrido un error '+xhr.responseText,"Error");
-                    }
-                }
-              });
-        })
-        $("#clean_preview").click(function(){
-            src="{% if request.user.userapp.image %}/media/{{ request.user.userapp.image }}{%else%}{% static 'app-assets/images/portrait/small/avatar-s-1.png' %}{%endif%}"
-            $('#image_preview').attr('src', src);
-            $("#account-upload").val('')
-        })
-        $(".change_password").click(function(){
-            $("#change_password_form").submit()
-        })
-        $(".save_changes").click(function(){
-            var valid=true
-            if ($("#account-e-mail").val()==""){
-                toastr.error("Debes ingresar tu correo electrónico.")
-                valid=false
-            }
-            if ($("#account-name").val()==""){
-                toastr.error("Debes ingresar el nombre de la empresa o razón social.")
-                valid=false
-            }
-            if ($("#account-phone").val()==""){
-                toastr.error("Debes ingresar tu número telefónico.")
-                valid=false
-            }
-            if (valid == true){
-                $("#edit_form").submit()
-            }
-        })
+    };
+    var conektaErrorResponseHandler = function(response) {
+        var $form = $("#card-form");
+        $form.find(".card-errors").text(response.message_to_purchaser);
+        $("#submit-card").prop("disabled", false);
+    };
+    $("#submit-card").click(function(){
+        var $form = $("#card-form");
+        $("#submit-card").prop("disabled", true);
+        Conekta.Token.create($form, conektaSuccessResponseHandler, conektaErrorResponseHandler);
+        return false;
     });
-    </script>
-{% endblock%}
+
+    // ── Avatar preview ────────────────────────────────────────
+    function readURL(input) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                $('#image_preview').attr('src', e.target.result);
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+    $("#account-upload").change(function(){ readURL(this); });
+
+    // ── Delete card ───────────────────────────────────────────
+    $(".delete-card").click(function(){
+        var token = $(this).attr("data-token");
+        $.ajax({
+            url: "/api/addCard/",
+            method: 'DELETE',
+            contentType: "application/json",
+            data: JSON.stringify({"card_token": token}),
+            dataType: 'json',
+            success: function(data){
+                toastr.success('Tu tarjeta fue eliminada', "ok");
+                function myTimer() { location.replace("{% url 'edit_profile' %}?d=credit-card"); }
+                var myVar = setInterval(myTimer, 1000);
+            },
+            error: function(xhr, ajaxOptions, thrownError){
+                console.log(xhr.status);
+                if (xhr.status != 201) {
+                    toastr.success('Ha ocurrido un error ' + xhr.responseText, "Error");
+                }
+            }
+        });
+    });
+
+    // ── Clean avatar ──────────────────────────────────────────
+    $("#clean_preview").click(function(){
+        src = "{% if request.user.userapp.image %}/media/{{ request.user.userapp.image }}{% else %}{% static 'app-assets/images/portrait/small/avatar-s-1.png' %}{% endif %}";
+        $('#image_preview').attr('src', src);
+        $("#account-upload").val('');
+    });
+
+    // ── Password form ─────────────────────────────────────────
+    $(".change_password").click(function(){
+        $("#change_password_form").submit();
+    });
+
+    // ── Profile form ──────────────────────────────────────────
+    $(".save_changes").click(function(){
+        var valid = true;
+        if ($("#account-e-mail").val() == ""){
+            toastr.error("Debes ingresar tu correo electrónico.");
+            valid = false;
+        }
+        if ($("#account-name").val() == ""){
+            toastr.error("Debes ingresar el nombre de la empresa o razón social.");
+            valid = false;
+        }
+        if ($("#account-phone").val() == ""){
+            toastr.error("Debes ingresar tu número telefónico.");
+            valid = false;
+        }
+        if (valid == true){
+            $("#edit_form").submit();
+        }
+    });
+});
+</script>
+{% endblock %}

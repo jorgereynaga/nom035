@@ -1,66 +1,174 @@
-{% extends 'index.html'%}
+{% extends 'index.html' %}
 {% load static %}
+
+{% block style %}
+.wp-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.wp-card {
+  background: var(--bg-base);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  transition: box-shadow .2s, border-color .2s;
+  text-decoration: none;
+  color: inherit;
+}
+.wp-card:hover {
+  box-shadow: var(--shadow-md);
+  border-color: #c7d7f5;
+}
+
+.wp-card-icon {
+  width: 42px; height: 42px;
+  border-radius: 10px;
+  background: var(--primary-light);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--primary);
+}
+.wp-card-icon svg { width: 20px; height: 20px; }
+
+.wp-card-name {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.wp-card-count {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1;
+}
+.wp-card-count-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 3px;
+}
+
+.wp-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+.wp-card-link {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--primary);
+  display: flex; align-items: center; gap: 4px;
+}
+.wp-card-link svg { width: 13px; height: 13px; }
+
+/* New workplace card */
+.wp-card-new {
+  background: var(--bg-surface);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: background .2s, border-color .2s;
+  min-height: 160px;
+  text-align: center;
+}
+.wp-card-new:hover {
+  background: var(--primary-light);
+  border-color: var(--primary);
+}
+.wp-card-new:hover .wp-new-icon { background: var(--primary); color: #fff; }
+
+.wp-new-icon {
+  width: 42px; height: 42px;
+  border-radius: 10px;
+  background: var(--border);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text-secondary);
+  transition: background .2s, color .2s;
+}
+.wp-new-icon svg { width: 20px; height: 20px; }
+
+.wp-new-label {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+.wp-card-new:hover .wp-new-label { color: var(--primary); }
+{% endblock %}
+
 {% block dashboard %}
-<div class="content-overlay"></div>
-<div class="header-navbar-shadow"></div>
-<div class="content-wrapper">
-    <div class="content-header row">
-    </div>
-    <div class="content-body">
-        <!-- Dashboard Analytics Start -->
-        <section id="dashboard-analytics">
-            <div class="row">
-                {%for item in workplaces%}
-                <div class="col-lg-3 col-md-6 col-12">
-                    <div class="card" data-id='{{item.id}}'>
-                        <div class="card-header d-flex flex-column align-items-start pb-0">
-                            <div class="avatar bg-rgba-primary p-50 m-0">
-                                <div class="avatar-content">
-                                    <a href="{% url 'single_workplace' item.id %}"><i class="feather icon-briefcase text-primary font-medium-5"></i></a>
-                                </div>
-                            </div>
-                            <a href="{% url 'single_workplace' item.id %}"><p class="mb-0">{{item.name}}</p></a>                            
-                            <h2 class="text-bold-700 mt-1 mb-25">{{item.employee_count}}</h2>
-                            <p class="mb-0">Empleados</p>
-                        </div>
-                        <div class="card-content">
-                            <br>
-                        </div>
-                    </div>
-                </div>
-                {%endfor%}
-                <div class="col-lg-3 col-md-6 col-12">
-                    <div class="card new_workplace">
-                        <div class="card-header d-flex flex-column text-center pb-0">
-                            <div class="avatar bg-rgba-primary p-50 m-0">
-                                <div class="avatar-content">
-                                    <i class="feather icon-plus text-primary font-medium-5"></i>
-                                </div>
-                            </div><br>
-                            <h2 class="text-bold-700 mb-0">Nuevo centro de trabajo</h2>
-                            
-                        </div>
-                        <div class="card-content">
-                            <br><br>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-        <!-- Dashboard Analytics end -->
 
-    </div>
+<div class="page-header">
+  <div class="page-header-text">
+    <h1>Centros de Trabajo</h1>
+    <p>Gestiona tus centros y su cumplimiento NOM-035</p>
+  </div>
+  <a href="/workplaceform" class="btn btn-primary btn-sm">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+    Nuevo centro
+  </a>
 </div>
-{% endblock%}
-{% block scripts %}
 
-    <script type="text/javascript">
-    $(document).ready(function(){
-    });
-    $(function(){
-        $(".new_workplace").click(function(){
-            location.href='/workplaceform'
-        })
-    });
-    </script>
-{% endblock%}
+<div class="wp-grid">
+
+  {% for item in workplaces %}
+  <div class="wp-card">
+    <div>
+      <div class="wp-card-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
+      </div>
+    </div>
+    <div>
+      <p class="wp-card-name">{{item.name}}</p>
+    </div>
+    <div>
+      <p class="wp-card-count">{{item.employee_count}}</p>
+      <p class="wp-card-count-label">Empleados</p>
+    </div>
+    <div class="wp-card-footer">
+      <a href="{% url 'single_workplace' item.id %}" class="wp-card-link">
+        Ver detalle
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </a>
+    </div>
+  </div>
+  {% endfor %}
+
+  <!-- New workplace -->
+  <div class="wp-card-new new_workplace">
+    <div class="wp-new-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+    </div>
+    <p class="wp-new-label">Nuevo centro de trabajo</p>
+  </div>
+
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script type="text/javascript">
+$(document).ready(function(){});
+$(function(){
+  $(".new_workplace").click(function(){
+    location.href = '/workplaceform';
+  });
+});
+</script>
+{% endblock %}

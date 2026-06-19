@@ -1,230 +1,425 @@
-{% extends 'index.html'%}
+{% extends 'index.html' %}
 {% load static %}
+
+{% block style %}
+<link rel="stylesheet" type="text/css" href="{% static 'app-assets/vendors/css/forms/select/select2.css' %}">
+<style>
+/* ── Page layout ─────────────────────────────────────────── */
+.evidence-header {
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 12px; margin-bottom: 20px;
+}
+
+/* ── Selector card ───────────────────────────────────────── */
+.section-card {
+  background: var(--bg-base);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+.section-card-header {
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--border);
+}
+.section-card-title {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 14px; font-weight: 800; color: var(--text-primary);
+}
+.section-card-body { padding: 20px 22px; }
+
+/* ── Workplace selector ──────────────────────────────────── */
+.workplace-selector { margin-bottom: 20px; }
+.form-label { display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 5px; }
+
+/* ── Results list ────────────────────────────────────────── */
+.results-list { display: flex; flex-direction: column; gap: 8px; }
+.result-item {
+  display: flex; align-items: center; justify-content: space-between; gap: 14px;
+  padding: 14px 18px;
+  background: var(--bg-base);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  transition: box-shadow .15s;
+}
+.result-item:hover { box-shadow: var(--shadow-sm); }
+.result-item-left { display: flex; align-items: center; gap: 12px; }
+.result-icon {
+  width: 36px; height: 36px; border-radius: 9px;
+  background: var(--primary-light); color: var(--primary);
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.result-icon svg { width: 16px; height: 16px; }
+.result-title { font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 2px; }
+.result-meta { font-size: 11px; color: var(--text-muted); }
+.result-download {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px; font-weight: 600; color: var(--primary);
+  text-decoration: none; padding: 7px 12px;
+  border: 1px solid #bfdbfe; border-radius: var(--radius-sm);
+  background: var(--primary-light); transition: background .15s;
+  white-space: nowrap; flex-shrink: 0;
+}
+.result-download:hover { background: #dbeafe; }
+.result-download svg { width: 13px; height: 13px; }
+
+/* ── Empty state ─────────────────────────────────────────── */
+.empty-state {
+  text-align: center; padding: 40px 20px;
+  color: var(--text-muted); font-size: 13px;
+}
+.empty-state svg { width: 40px; height: 40px; color: #cbd5e1; margin-bottom: 10px; display: block; margin-inline: auto; }
+
+/* ── Buttons ─────────────────────────────────────────────── */
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 18px; font-size: 13px; font-weight: 600; font-family: 'Inter', sans-serif; border-radius: var(--radius-md); border: 1px solid transparent; cursor: pointer; transition: background .15s, border-color .15s; text-decoration: none; }
+.btn svg { width: 14px; height: 14px; }
+.btn-primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+.btn-primary:hover { background: var(--primary-dark); border-color: var(--primary-dark); }
+.btn-danger  { background: var(--danger); color: #fff; border-color: var(--danger); }
+.btn-danger:hover { background: #b91c1c; }
+.btn-success { background: #16a34a; color: #fff; border-color: #16a34a; }
+.btn-success:hover { background: #15803d; }
+
+/* ── Modal ───────────────────────────────────────────────── */
+.modal-backdrop {
+  display: none; position: fixed; inset: 0;
+  background: rgba(15,23,42,.5); z-index: 500;
+  align-items: center; justify-content: center;
+  padding: 20px;
+}
+.modal-backdrop.open { display: flex; }
+.modal-box {
+  background: var(--bg-base); border-radius: var(--radius-lg);
+  width: 100%; max-width: 560px;
+  box-shadow: 0 20px 60px rgba(15,23,42,.25);
+  display: flex; flex-direction: column; max-height: 90vh;
+  animation: modal-in .18s ease;
+}
+@keyframes modal-in { from { opacity:0; transform:translateY(-12px); } to { opacity:1; transform:translateY(0); } }
+.modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--border);
+}
+.modal-title { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 15px; font-weight: 800; color: var(--text-primary); }
+.modal-close {
+  width: 30px; height: 30px; border-radius: var(--radius-sm);
+  border: 1px solid var(--border); background: transparent;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  color: var(--text-muted); transition: background .15s;
+}
+.modal-close:hover { background: var(--bg-surface); color: var(--text-primary); }
+.modal-close svg { width: 14px; height: 14px; }
+.modal-body { padding: 20px 22px; overflow-y: auto; flex: 1; }
+.modal-footer {
+  display: flex; align-items: center; justify-content: flex-end; gap: 10px;
+  padding: 16px 22px;
+  border-top: 1px solid var(--border);
+  background: var(--bg-surface);
+}
+
+/* ── Form inside modal ───────────────────────────────────── */
+.form-group { margin-bottom: 16px; }
+.form-control {
+  width: 100%; padding: 9px 12px;
+  font-size: 13px; font-family: 'Inter', sans-serif;
+  color: var(--text-primary); background: var(--bg-base);
+  border: 1px solid var(--border); border-radius: var(--radius-md);
+  outline: none; transition: border-color .2s, box-shadow .2s;
+}
+.form-control:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
+.form-control[type=file] { padding: 7px 10px; cursor: pointer; }
+.form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+/* Select2 */
+.select2-container .select2-selection--single {
+  height: 38px !important; border: 1px solid var(--border) !important;
+  border-radius: var(--radius-md) !important;
+  display: flex !important; align-items: center !important;
+}
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+  line-height: 38px !important; font-size: 13px !important;
+  color: var(--text-primary) !important; padding-left: 12px !important;
+}
+.select2-container--default .select2-selection--single .select2-selection__placeholder { color: var(--text-muted) !important; }
+.select2-container--default .select2-selection--single .select2-selection__arrow { height: 38px !important; }
+.select2-container--focus .select2-selection--single,
+.select2-container--open .select2-selection--single {
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 3px rgba(37,99,235,.1) !important; outline: none !important;
+}
+.select2-dropdown {
+  border: 1px solid var(--border) !important; border-radius: var(--radius-md) !important;
+  box-shadow: var(--shadow-md) !important; font-family: 'Inter', sans-serif !important;
+  font-size: 13px !important;
+}
+.select2-container--default .select2-results__option--highlighted { background: var(--primary) !important; }
+.select2-search__field {
+  border: 1px solid var(--border) !important; border-radius: var(--radius-sm) !important;
+  padding: 6px 10px !important; font-size: 13px !important; font-family: 'Inter', sans-serif !important; outline: none !important;
+}
+
+[v-cloak] { display: none; }
+</style>
+{% endblock %}
+
 {% block dashboard %}
-<div class="content-wrapper">
-    <div class="content-header row">
+
+<div class="content-body" id="app" v-cloak>
+
+  <div class="evidence-header">
+    <div>
+      <h1 style="font-family:'Plus Jakarta Sans',sans-serif;font-size:20px;font-weight:800;color:var(--text-primary);margin-bottom:3px;">Portafolio de evidencias</h1>
+      <p style="font-size:13px;color:var(--text-muted);">Documentos y resultados por centro de trabajo</p>
     </div>
-    <div class="content-body" id="app">
-        <!-- Dashboard Analytics Start -->
-        <section id="dashboard-analytics">
-            <div class="card">
-                <div class="card-header">
-                    <h4 class="card-title">Resultados de centros de trabajo</h4>
-                    {% if user.is_staff %}
-                    <button class="btn btn-primary" type="button" id="evidence_btn">Cargar resultado para centro de trabajo</button>
-                    {% endif %}
-                </div>
-                <div class="card-content">
-                    <div class="card-body">
-                        <select id="select_workplace" class="select2" placeholder="Selecciona un centro de trabajo" v-select2 v-model="workplace" @change="get_results">
-                            {%for item in workplaces%}
-                            <option value="{{item.id}}">{{item.name}}</option>
-                            {%endfor%}
-                        </select><br>
-                        <ul class="list-group" v-for="item in results">
-                            <li class="list-group-item">
-                                <p>Evaluación ${item.evaluation}: ${item.result_type}</p>
-                                <small>${item.date}</small>
-                                <a :href="item.image" target="_blank"><span class="mdl pull-right fa fa-save"></span></a>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
+    {% if user.is_staff %}
+    <button class="btn btn-primary" type="button" id="evidence_btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      Cargar resultado
+    </button>
+    {% endif %}
+  </div>
+
+  <div class="section-card">
+    <div class="section-card-header">
+      <span class="section-card-title">Resultados de centros de trabajo</span>
+    </div>
+    <div class="section-card-body">
+
+      <!-- Workplace selector -->
+      <div class="workplace-selector">
+        <label class="form-label">Centro de trabajo</label>
+        <select id="select_workplace" class="select2" placeholder="Selecciona un centro de trabajo" v-select2 v-model="workplace" @change="get_results">
+          {% for item in workplaces %}
+          <option value="{{item.id}}">{{item.name}}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Results -->
+      <div class="results-list" v-if="results.length">
+        <div class="result-item" v-for="item in results">
+          <div class="result-item-left">
+            <div class="result-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
             </div>
-        </section>
-        <!-- Dashboard Analytics end -->
+            <div>
+              <p class="result-title">${item.evaluation}: ${item.result_type}</p>
+              <p class="result-meta">${item.date}</p>
+            </div>
+          </div>
+          <a :href="item.image" target="_blank" class="result-download">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Descargar
+          </a>
+        </div>
+      </div>
+
+      <!-- Empty state -->
+      <div class="empty-state" v-else>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
+        Selecciona un centro de trabajo para ver sus evidencias
+      </div>
 
     </div>
+  </div>
+
 </div>
 
+<!-- ── Modal (staff only) ────────────────────────────────── -->
 {% if user.is_staff %}
-<div class="modal fade text-left" id="modal_evidence" >
-    <div class="modal-dialog modal-dialog-scrollable" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h4 class="modal-title" id="modal_contact">Subir evidencias</h4>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
-            </div>
-            <div class="modal-body">
-                <form action="" id="evidence_form">
-                    <span class="card-errors"></span>
-                    <div class="row">
-                      <div class="col-md-12">
-                        <div class="form-label-group">
-                            <select class="select2" data-placeholder="Usuarios/Empresa" id="users" >
-                                <option></option>
-                                {% for item in users%}
-                                    <option value='{{item.id}}'>{{item.text}}</option>
-                                {% endfor%}
-                            </select>
-                        </div>
-                      </div>
-                    </div>
-                    <div class="row">
-                      <div class="col-md-6">
-                        <div class="form-label-group">
-                            <select class="select2" data-placeholder="Centro de trabajo" name="workplace" id="workplace">
-                                <option></option>
-                                {# {% for item in workplaces%} #}
-                                    {# <option value='{{item.id}}'>{{item.name}}</option> #}
-                                {# {% endfor%} #}
-                            </select>
-                            <label for="age">Centro de trabajo</label>
-                            <p class="help-block"></p>
-                        </div>
-                      </div>
-                      <div class="col-md-6">
-                        <div class="form-label-group">
-                            <select class="select2" data-placeholder="Tipo de resultado" name="result_type" id="result_type">
-                                <option></option>
-                                    <option value='0'>Informe de resultados ejecutivo</option>
-                                    <option value='1'>Informe de resultados detallado</option>
-                                    <option value='2'>Resultados del Instrumento para Identificar los Factores de Riesgo Psicosocial</option>
-                                    <option value='3'>Gantt de Actividades</option>
-                                    <option value='4'>Lista de Verificación de Evidencias de la NOM35</option>
-                                    <option value='5'>Propuesta de Política de Prevención de Riesgos Psicosociales</option>
-                            </select>
-                            <label for="result_type">Tipo de resultado</label>
-                            <p class="help-block"></p>
-                        </div>
-                      </div>
-                    </div>
-                    <div class="row">
-                      <div class="col-md-12">
-                        <div class="form-group">
-                            <div class="controls">
-                                <label>Archivo</label>
-                                <input type="file" name="image" id="image" class="form-control" placeholder="Archivo">
-                            </div>
-                        </div>
-                      </div>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-danger waves-effect waves-light" data-dismiss="modal">Cerrar</button>
-                <button class="btn btn-success pull-right" id="add_evidence" type="button">Añadir evidencia</button>
-            </div>
-        </div>
+<div class="modal-backdrop" id="modal_evidence">
+  <div class="modal-box">
+    <div class="modal-header">
+      <p class="modal-title">Subir evidencias</p>
+      <button class="modal-close" data-dismiss="modal" aria-label="Cerrar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
     </div>
+    <div class="modal-body">
+      <form action="" id="evidence_form">
+        <span class="card-errors" style="font-size:12px;color:var(--danger);margin-bottom:8px;display:block;"></span>
+
+        <div class="form-group">
+          <label class="form-label">Usuario / Empresa</label>
+          <select class="select2" data-placeholder="Seleccionar empresa" id="users">
+            <option></option>
+            {% for item in users %}
+            <option value='{{item.id}}'>{{item.text}}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label class="form-label">Centro de trabajo</label>
+            <select class="select2" data-placeholder="Centro de trabajo" name="workplace" id="workplace">
+              <option></option>
+              {# {% for item in workplaces %} #}
+              {# <option value='{{item.id}}'>{{item.name}}</option> #}
+              {# {% endfor %} #}
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tipo de resultado</label>
+            <select class="select2" data-placeholder="Tipo de resultado" name="result_type" id="result_type">
+              <option></option>
+              <option value='0'>Informe de resultados ejecutivo</option>
+              <option value='1'>Informe de resultados detallado</option>
+              <option value='2'>Resultados del Instrumento para Identificar los Factores de Riesgo Psicosocial</option>
+              <option value='3'>Gantt de Actividades</option>
+              <option value='4'>Lista de Verificación de Evidencias de la NOM35</option>
+              <option value='5'>Propuesta de Política de Prevención de Riesgos Psicosociales</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Archivo</label>
+          <input type="file" name="image" id="image" class="form-control" placeholder="Archivo">
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-danger" data-dismiss="modal">Cerrar</button>
+      <button class="btn btn-success" id="add_evidence" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+        Añadir evidencia
+      </button>
+    </div>
+  </div>
 </div>
 {% endif %}
 
-{% endblock%}
-{% block style %}
-    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/plugins/forms/validation/form-validation.min.css' %}">
-    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/vendors/css/forms/select/select2.css' %}">
-    <style type="text/css">
-        .validation-error{
-            border-bottom: 2px solid #EA5455 !important;
-        }
-        .validation-valid{
-            border-bottom: 2px solid #28c76f !important;
-        }
-    </style>
-{% endblock%}
+{% endblock %}
+
 {% block scripts %}
-    
-    <script src="{% static 'app-assets/vendors/js/forms/validation/jquery.validate.min.js' %}"></script>
-    <script src="{% static 'app-assets/vendors/js/forms/select/select2.full.js' %}"></script>
-    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.min.js"></script>
-    <script type="text/javascript">
-    
-    $(function(){
-        // get_results
+<script src="{% static 'app-assets/vendors/js/forms/select/select2.full.js' %}"></script>
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.min.js"></script>
+<script type="text/javascript">
+
+/* ── Lightweight modal polyfill (replaces Bootstrap .modal()) ── */
+(function($){
+  $.fn.modal = function(action){
+    return this.each(function(){
+      var $el = $(this);
+      if (action === 'show') {
+        $el.addClass('open');
+        $('body').css('overflow','hidden');
+      } else if (action === 'hide') {
+        $el.removeClass('open');
+        $('body').css('overflow','');
+      }
     });
-var app
-Vue.directive('select2', {
-    inserted(el) {
-    $(el).on('select2:select',()=>{const event=new Event('change',{bubbles:true,cancelable:true});el.dispatchEvent(event);});
-    $(el).on('select2:unselect',()=>{const event=new Event('change',{bubbles:true,cancelable:true});el.dispatchEvent(event);});
-    },
+  };
+})(jQuery);
+
+/* Close on backdrop click or data-dismiss */
+$(document).on('click', '.modal-backdrop', function(e){
+  if (e.target === this) $(this).modal('hide');
 });
+$(document).on('click', '[data-dismiss="modal"]', function(){
+  $(this).closest('.modal-backdrop').modal('hide');
+});
+
+$(function(){
+  // get_results placeholder
+});
+
+var app;
+Vue.directive('select2', {
+  inserted(el) {
+    $(el).on('select2:select',()=>{ const event = new Event('change',{bubbles:true,cancelable:true}); el.dispatchEvent(event); });
+    $(el).on('select2:unselect',()=>{ const event = new Event('change',{bubbles:true,cancelable:true}); el.dispatchEvent(event); });
+  },
+});
+
 window.onload = function () {
-    app = new Vue({
-        el: '#app',
-        delimiters: ['${','}'],
-        data: {
-            workplace:null,
-            results:[]
-        },
-        methods: {
-            loadJsonData(){
-                var dis=this
-                $(function(){
-                    $("#app").block({ 
-                        message: '<i class="text-primary fa fa-3x fa-spinner fa-spin"></i>',
-                        timeout: 1000, //unblock after 3 seconds
-                        overlayCSS:{backgroundColor:'#fff',opacity:0.8,cursor:'wait'},
-                        css: {border: 0,padding: 0,backgroundColor: 'transparent'}
-                    })
-                });
-            },
-            get_results(){
-                var dis=this
-                $(function(){
-                    $.ajax({
-                        url: "{% url 'get_results'%}",
-                        method: 'GET',
-                        data:{'workplace_id':dis.workplace},
-                        dataType: 'json',
-                        success: function(data){
-                            dis.results=data.results
-                        }
-                    });
-                });
+  app = new Vue({
+    el: '#app',
+    delimiters: ['${','}'],
+    data: {
+      workplace: null,
+      results: []
+    },
+    methods: {
+      loadJsonData(){
+        var dis = this;
+        $(function(){
+          $("#app").block({
+            message: '<i class="text-primary fa fa-3x fa-spinner fa-spin"></i>',
+            timeout: 1000,
+            overlayCSS: {backgroundColor:'#fff',opacity:0.8,cursor:'wait'},
+            css: {border:0,padding:0,backgroundColor:'transparent'}
+          });
+        });
+      },
+      get_results(){
+        var dis = this;
+        $(function(){
+          $.ajax({
+            url: "{% url 'get_results' %}",
+            method: 'GET',
+            data: {'workplace_id': dis.workplace},
+            dataType: 'json',
+            success: function(data){
+              dis.results = data.results;
             }
-        },
-        computed: {},
-        mounted: function () {
-            this.$nextTick(function () {
-                $(document).ready(function(){
-                    $(".select2").select2({
-                        dropdownAutoWidth: true,
-                        width: '100%'
-                    })
-                });
-                 $(function(){
-                    $("#app").css('display','block')
-                    {% if user.is_superuser %}
-                    $("#evidence_btn").click(function(){
-                        $("#modal_evidence").modal("show")
-                    })
-                    $("#add_evidence").click(function(){
-                        var data = new FormData($('#evidence_form')[0]);
-                        data.append('file', $('#image')[0].files);
-                        $.ajax({
-                            url: "{% url 'add_evidence' %}",
-                            data: data,
-                            cache: false,
-                            contentType: false,
-                            processData: false,
-                            method: 'POST',
-                            success: function(data){
-                                toastr.success('Se ha añadido una nueva evidencia',"OK");
-                                $("#modal_evidence").modal("hide")
-                            }
-                        });
-                    })
-                    $("#users").change(function(){
-                        console.log($("#users").val())
-                        $.ajax({
-                            url: "{% url 'get_workplaces'%}",
-                            method: 'GET',
-                            data:{'user_id':$("#users").val()},
-                            dataType: 'json',
-                            success: function(data){
-                                $("#workplace").empty().trigger("change");
-                                $("#workplace").select2({data:data.results,width:"100%"})
-                            }
-                        });
-                    });
-                    {% endif %}
-                    
-                });
-            })
-        }
-    })
+          });
+        });
+      }
+    },
+    computed: {},
+    mounted: function () {
+      this.$nextTick(function () {
+        $(document).ready(function(){
+          $(".select2").select2({
+            dropdownAutoWidth: true,
+            width: '100%'
+          });
+        });
+        $(function(){
+          $("#app").css('display','block');
+          {% if user.is_superuser %}
+          $("#evidence_btn").click(function(){
+            $("#modal_evidence").modal("show");
+          });
+          $("#add_evidence").click(function(){
+            var data = new FormData($('#evidence_form')[0]);
+            data.append('file', $('#image')[0].files);
+            $.ajax({
+              url: "{% url 'add_evidence' %}",
+              data: data,
+              cache: false,
+              contentType: false,
+              processData: false,
+              method: 'POST',
+              success: function(data){
+                toastr.success('Se ha añadido una nueva evidencia', "OK");
+                $("#modal_evidence").modal("hide");
+              }
+            });
+          });
+          $("#users").change(function(){
+            console.log($("#users").val());
+            $.ajax({
+              url: "{% url 'get_workplaces' %}",
+              method: 'GET',
+              data: {'user_id': $("#users").val()},
+              dataType: 'json',
+              success: function(data){
+                $("#workplace").empty().trigger("change");
+                $("#workplace").select2({data:data.results,width:"100%"});
+              }
+            });
+          });
+          {% endif %}
+        });
+      });
+    }
+  });
 };
-    </script>
-{% endblock%}
+</script>
+{% endblock %}
