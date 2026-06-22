@@ -4,20 +4,98 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pago exitoso — IHES NOM-035</title>
-    <link href="https://fonts.googleapis.com/css?family=Montserrat:300,400,500,600" rel="stylesheet">
-    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/vendors/css/vendors.min.css' %}">
-    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/bootstrap.css' %}">
-    <link rel="stylesheet" type="text/css" href="{% static 'assets/css/style.css' %}">
+    <title>Pago exitoso — NormaIA</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@700;800&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f1f5f9;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+        .card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            box-shadow: 0 4px 24px rgba(15,23,42,.08);
+            padding: 48px 40px;
+            max-width: 460px;
+            width: 100%;
+            text-align: center;
+        }
+        .icon-wrap {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: #f0fdf4;
+            border: 2px solid #bbf7d0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+        }
+        .icon-wrap svg { width: 32px; height: 32px; color: #16a34a; }
+        h1 {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 24px;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 10px;
+        }
+        p {
+            font-size: 14px;
+            color: #64748b;
+            line-height: 1.6;
+            margin-bottom: 28px;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 11px 24px;
+            border-radius: 8px;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: background .15s, transform .1s;
+        }
+        .btn:hover { transform: translateY(-1px); }
+        .btn-primary {
+            background: #4f46e5;
+            color: #ffffff;
+            border: none;
+        }
+        .btn-primary:hover { background: #4338ca; }
+        .brand {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 13px;
+            font-weight: 700;
+            color: #4f46e5;
+            margin-bottom: 32px;
+            display: block;
+        }
+    </style>
 </head>
-<body class="vertical-layout" style="background:#f8f8f8;">
-<div class="d-flex align-items-center justify-content-center" style="min-height:100vh;">
-    <div class="text-center p-4" style="max-width:460px;">
-        <div style="font-size:64px;color:#28c76f;margin-bottom:16px;">✓</div>
-        <h2 style="color:#5e5873;font-weight:700;">¡Pago exitoso!</h2>
-        <p class="text-muted">Tu plan ha sido activado. Ya puedes usar todas las funciones de tu suscripción.</p>
-        <a href="{% url 'index' %}" class="btn btn-primary mt-2">Ir al Dashboard</a>
+<body>
+    <div class="card">
+        <span class="brand">NormaIA</span>
+        <div class="icon-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"/>
+            </svg>
+        </div>
+        <h1>¡Pago exitoso!</h1>
+        <p>Tu plan ha sido activado. Ya puedes usar todas las funciones de tu suscripción.</p>
+        <a href="{% url 'index' %}" class="btn btn-primary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            Ir al Dashboard
+        </a>
     </div>
-</div>
 </body>
 </html>
