@@ -36,7 +36,7 @@ PLANS = {
         'evaluaciones_mes': None,
     },
     'nom035_pyme_anual': {
-        'price_id': 'price_1TWKc9Kv0IwwlafKy0E41d62',
+        'price_id': 'price_1TlBdAKv0IwwlafKf7UKk7a3',
         'name': 'NOM-035 PyME Anual',
         'descripcion': 'Hasta 50 empleados — 20% descuento',
         'precio': 9500,
@@ -56,7 +56,7 @@ PLANS = {
         'evaluaciones_mes': None,
     },
     'nom035_empresarial_anual': {
-        'price_id': 'price_1TWKd1Kv0IwwlafKpHl9gx7Z',
+        'price_id': 'price_1TlBekKv0IwwlafKR8DD8GA8',
         'name': 'NOM-035 Empresarial Anual',
         'descripcion': 'Hasta 100 empleados — 20% descuento',
         'precio': 12000,
@@ -162,7 +162,7 @@ PLANS = {
         'evaluaciones_mes': 20,
     },
     'suite_pyme_anual': {
-        'price_id': 'price_1TWKhFKv0IwwlafKFMhecM5z',
+        'price_id': 'price_1TlBb3Kv0IwwlafKtUfE2PI1',
         'name': 'Suite PyME Anual',
         'descripcion': 'NOM-035 hasta 50 empleados + 20 evaluaciones/mes — anual',
         'precio': 15990,
@@ -182,7 +182,7 @@ PLANS = {
         'evaluaciones_mes': -1,
     },
     'suite_pro_anual': {
-        'price_id': 'price_1TWKhmKv0IwwlafKZbSatWBY',
+        'price_id': 'price_1TlBgOKv0IwwlafKyiU3obPy',
         'name': 'Suite Pro Anual',
         'descripcion': 'NOM-035 hasta 100 empleados + evaluaciones ilimitadas — anual',
         'precio': 19990,
