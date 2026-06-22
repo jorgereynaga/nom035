@@ -176,7 +176,7 @@ class Index(LoginRequiredMixin,View):
 		ctx['total_employees']=sum(item['employee_count'] for item in wk)
 		ctx['total_surveys']=sum(item['survey_completed'] for item in wk)
 		userapp=request.user.userapp
-		ctx['psico_disponibles']=getattr(userapp,'psico_evaluaciones_disponibles',0)
+		ctx['psico_disponibles']=getattr(userapp,'psico_evaluaciones_disponibles',0) + getattr(userapp,'psico_demo',0)
 		ctx['nom035_demo']=getattr(userapp,'nom035_demo',0)
 		ctx['psico_demo']=getattr(userapp,'psico_demo',0)
 		try:
@@ -184,11 +184,11 @@ class Index(LoginRequiredMixin,View):
 			workplace=request.user.workplaces.first()
 			if workplace:
 				wallet=CreditWallet.objects.filter(workplace=workplace).first()
-				ctx['nom035_disponibles']=wallet.nom035_available() if wallet else 0
+				ctx['nom035_disponibles']=(wallet.nom035_available() if wallet else 0) + getattr(userapp,'nom035_demo',0)
 			else:
-				ctx['nom035_disponibles']=0
+				ctx['nom035_disponibles']=getattr(userapp,'nom035_demo',0)
 		except Exception:
-			ctx['nom035_disponibles']=0
+			ctx['nom035_disponibles']=getattr(userapp,'nom035_demo',0)
 		plan_key=getattr(userapp,'stripe_plan_key','')
 		if plan_key:
 			try:
