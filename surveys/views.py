@@ -468,6 +468,8 @@ class LoginView(View):
 					login(request, user)
 					if 'redirect' in request.POST:
 						return HttpResponseRedirect(request.POST['redirect'])
+					elif not user.userapp.stripe_plan_key:
+						return HttpResponseRedirect(reverse_lazy('stripe_planes'))
 					else:
 						return HttpResponseRedirect(reverse_lazy('index'))
 				else:
