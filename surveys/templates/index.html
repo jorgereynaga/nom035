@@ -829,7 +829,19 @@
               </div>
               <p style="margin-bottom:14px;">No tienes un plan activo. Contrata uno para acceder a todas las funciones.</p>
             </div>
-            <a href="{% url 'stripe_planes' %}" class="btn btn-primary btn-sm btn-block">Ver planes y precios</a>
+            {% if nom035_disponibles or psico_disponibles %}
+            <div class="credits-row" style="margin-bottom:14px;">
+              <div class="credit-chip">
+                <span>NOM-035 demo</span>
+                <strong>{{nom035_disponibles}}</strong>
+              </div>
+              <div class="credit-chip">
+                <span>Psicometría demo</span>
+                <strong>{{psico_disponibles}}</strong>
+              </div>
+            </div>
+            {% endif %}
+<a href="{% url 'stripe_planes' %}" class="btn btn-primary btn-sm btn-block">Ver planes y precios</a>
           {% endif %}
         </div>
       </div>
