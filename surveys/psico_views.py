@@ -30,9 +30,6 @@ class CandidateCreateView(LoginRequiredMixin, View):
     login_url = reverse_lazy('login')
 
     def post(self, request):
-        from surveys.models import Workplace
-        if not Workplace.objects.filter(user=request.user).exists():
-            return JsonResponse({'error': 'Debes registrar un centro de trabajo antes de agregar candidatos.'}, status=400)
         nombre = request.POST.get('nombre', '').strip()
         email = request.POST.get('email', '').strip()
         puesto = request.POST.get('puesto', '').strip()
@@ -64,9 +61,6 @@ class CandidateDetailView(LoginRequiredMixin, View):
 
     def get(self, request, candidate_id):
         userapp = getattr(request.user, "userapp", None)
-        if userapp and not getattr(userapp, "psico_plan_key", ""):
-            from django.http import HttpResponse
-            return HttpResponse('<h2 style="font-family:sans-serif;text-align:center;margin-top:80px">&#128274; Reporte no disponible en modo demo.<br><a href="/stripe/planes/" style="color:#2563eb">Adquiere un plan para ver tus reportes</a></h2>', status=403)
         candidate = get_object_or_404(Candidate, id=candidate_id, user=request.user)
         sessions = candidate.sessions.select_related('instrumento').order_by('-record_create')
         instrumentos = PsychoInstrument.objects.filter(activo=True)

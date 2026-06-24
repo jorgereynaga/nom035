@@ -55,5 +55,36 @@ def assign_nom035_credits(user, plan_key):
         except Exception as e:
             print(f"⚠️ Error asignando psico: {e}")
 
+
+    elif modulo == 'suite':
+        # Creditos NOM-035
+        workplace = user.workplaces.first()
+        if workplace:
+            if periodo == 'mensual':
+                creditos_nom = empleados_max
+            elif periodo == 'anual':
+                creditos_nom = empleados_max * 12
+            else:
+                creditos_nom = empleados_max
+            wallet, created = CreditWallet.objects.get_or_create(workplace=workplace)
+            wallet.nom035_total += creditos_nom
+            wallet.save()
+            print(f"✅ {creditos_nom} creditos NOM-035 suite asignados")
+        # Creditos psicometria
+        if evaluaciones_mes == -1:
+            creditos_psico = 99999
+        elif periodo == 'mensual':
+            creditos_psico = evaluaciones_mes
+        elif periodo == 'anual':
+            creditos_psico = evaluaciones_mes * 12
+        else:
+            creditos_psico = evaluaciones_mes
+        try:
+            userapp = user.userapp
+            userapp.psico_evaluaciones_disponibles += creditos_psico
+            userapp.save()
+            print(f"✅ {creditos_psico} creditos psico suite asignados")
+        except Exception as e:
+            print(f"⚠️ Error asignando psico suite: {e}")
     else:
         print(f"⚠️ Módulo no manejado: {modulo}")
