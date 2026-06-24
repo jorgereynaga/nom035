@@ -117,16 +117,22 @@ var respuestas = {};
 // estructura: respuestas[item_id] = {mas: 'D', menos: 'C', item_id: X}
 
 function seleccionar(btn, itemId, dimension, tipo) {
-    // Deseleccionar otros del mismo tipo en este grupo
     var grupo = document.getElementById('grupo-' + grupoActual);
+    // Deseleccionar otros del mismo tipo en este grupo
     var botones = grupo.querySelectorAll('.btn-' + tipo);
     botones.forEach(function(b) { b.classList.remove('activo'); });
-
     btn.classList.add('activo');
-
+    // Si la dimensión opuesta tiene el mismo valor, limpiarla
+    var tipoOpuesto = tipo === 'mas' ? 'menos' : 'mas';
+    if (respuestas[itemId] && respuestas[itemId][tipoOpuesto] === dimension) {
+        respuestas[itemId][tipoOpuesto] = null;
+        // Deseleccionar visualmente el botón opuesto de esta fila
+        var row = btn.closest('.opcion-row');
+        row.querySelector('.btn-' + tipoOpuesto).classList.remove('activo');
+    }
     if (!respuestas[itemId]) respuestas[itemId] = { item_id: itemId };
     respuestas[itemId][tipo] = dimension;
-
+    respuestas[itemId].item_id = itemId;
     actualizarContador();
     document.getElementById('alertaError').style.display = 'none';
 }
