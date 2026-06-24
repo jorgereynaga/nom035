@@ -4,82 +4,130 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ instrumento.nombre }} — IHES</title>
-    <link href="https://fonts.googleapis.com/css?family=Montserrat:300,400,500,600" rel="stylesheet">
-    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/vendors/css/vendors.min.css' %}">
-    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/bootstrap.css' %}">
-    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/bootstrap-extended.css' %}">
+    <title>{{ instrumento.nombre }} — NormaIA</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { background: #f8f8f8; font-family: 'Montserrat', sans-serif; }
-        .test-header { background: #fff; border-bottom: 1px solid #e4e4e4; padding: 16px 24px; position: sticky; top: 0; z-index: 100; }
-        .progress-bar-custom { height: 6px; background: #e4e4e4; border-radius: 3px; margin-top: 8px; }
-        .progress-fill { height: 6px; background: #7367f0; border-radius: 3px; transition: width .3s; }
-        .grupo-card { background: #fff; border-radius: 12px; border: 1px solid #e4e4e4; padding: 24px; margin-bottom: 20px; }
-        .grupo-titulo { font-size: 13px; font-weight: 600; color: #b9b9c3; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px; }
-        .opcion-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border: 1px solid #e4e4e4; border-radius: 8px; margin-bottom: 8px; cursor: pointer; transition: all .15s; }
-        .opcion-row:hover { border-color: #7367f0; background: #f0effe; }
-        .opcion-texto { font-size: 14px; color: #5e5873; flex: 1; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: #f1f5f9; font-family: 'Inter', sans-serif; color: #0f172a; }
+
+        /* Header */
+        .test-header { background: #fff; border-bottom: 1px solid #e2e8f0; padding: 14px 24px; position: sticky; top: 0; z-index: 100; }
+        .header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+        .header-title { font-weight: 700; font-size: 15px; color: #0f172a; }
+        .header-sub { font-size: 12px; color: #94a3b8; }
+        .header-counter { font-size: 13px; color: #94a3b8; }
+        .progress-bar { height: 5px; background: #e2e8f0; border-radius: 3px; }
+        .progress-fill { height: 5px; background: #4f46e5; border-radius: 3px; transition: width .3s; }
+
+        /* Container */
+        .container { max-width: 700px; margin: 0 auto; padding: 24px 16px 120px; }
+
+        /* Welcome card */
+        .welcome-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; margin-bottom: 24px; }
+        .welcome-card h5 { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+        .welcome-card p { font-size: 14px; color: #475569; line-height: 1.6; margin-bottom: 14px; }
+        .instrucciones-box { background: #eef2ff; border-radius: 8px; padding: 14px 16px; font-size: 13px; color: #3730a3; line-height: 1.5; }
+        .meta-row { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 12px; }
+        .meta-item { font-size: 12px; color: #94a3b8; }
+
+        /* Grupo card */
+        .grupo-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; margin-bottom: 20px; }
+        .grupo-titulo { font-size: 12px; font-weight: 600; color: #94a3b8; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* DISC: opcion-row */
+        .opcion-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 8px; transition: all .15s; }
+        .opcion-row:hover { border-color: #4f46e5; background: #eef2ff; }
+        .opcion-texto { font-size: 14px; color: #475569; flex: 1; }
         .opcion-botones { display: flex; gap: 8px; flex-shrink: 0; }
-        .btn-mas, .btn-menos { border: 2px solid #e4e4e4; border-radius: 6px; padding: 4px 12px; font-size: 11px; font-weight: 600; cursor: pointer; background: #fff; transition: all .15s; white-space: nowrap; }
-        .btn-mas.activo { background: #7367f0; border-color: #7367f0; color: #fff; }
-        .btn-menos.activo { background: #ea5455; border-color: #ea5455; color: #fff; }
-        .btn-mas:hover:not(.activo) { border-color: #7367f0; color: #7367f0; }
-        .btn-menos:hover:not(.activo) { border-color: #ea5455; color: #ea5455; }
-        .sticky-footer { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-top: 1px solid #e4e4e4; padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; z-index: 100; }
-        .contador { font-size: 13px; color: #b9b9c3; }
-        .contador span { color: #7367f0; font-weight: 700; }
-        .alerta { background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 10px 16px; font-size: 13px; color: #856404; display: none; margin-bottom: 16px; }
+        .btn-mas, .btn-menos { border: 2px solid #e2e8f0; border-radius: 6px; padding: 5px 14px; font-size: 11px; font-weight: 600; cursor: pointer; background: #fff; transition: all .15s; white-space: nowrap; font-family: 'Inter', sans-serif; }
+        .btn-mas.activo { background: #4f46e5; border-color: #4f46e5; color: #fff; }
+        .btn-menos.activo { background: #dc2626; border-color: #dc2626; color: #fff; }
+        .btn-mas:hover:not(.activo) { border-color: #4f46e5; color: #4f46e5; }
+        .btn-menos:hover:not(.activo) { border-color: #dc2626; color: #dc2626; }
+
+        /* Multiple choice (Raven, Moss, Zavic) */
+        .pregunta-texto { font-size: 15px; font-weight: 600; color: #0f172a; margin-bottom: 16px; line-height: 1.5; }
+        .opcion-multiple { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border: 2px solid #e2e8f0; border-radius: 8px; margin-bottom: 8px; cursor: pointer; transition: all .15s; }
+        .opcion-multiple:hover { border-color: #4f46e5; background: #eef2ff; }
+        .opcion-multiple.activo { border-color: #4f46e5; background: #eef2ff; }
+        .opcion-multiple input[type="radio"] { display: none; }
+        .radio-circle { width: 20px; height: 20px; border-radius: 50%; border: 2px solid #cbd5e1; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all .15s; }
+        .opcion-multiple.activo .radio-circle { border-color: #4f46e5; background: #4f46e5; }
+        .radio-dot { width: 8px; height: 8px; border-radius: 50%; background: #fff; display: none; }
+        .opcion-multiple.activo .radio-dot { display: block; }
+        .opcion-letra { font-size: 12px; font-weight: 700; color: #94a3b8; min-width: 20px; }
+        .opcion-multiple.activo .opcion-letra { color: #4f46e5; }
+        .opcion-valor { font-size: 14px; color: #475569; }
+
+        /* Alerta */
+        .alerta { background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 10px 16px; font-size: 13px; color: #92400e; display: none; margin-bottom: 16px; }
+
+        /* Footer */
+        .sticky-footer { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-top: 1px solid #e2e8f0; padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; z-index: 100; }
+        .contador { font-size: 13px; color: #94a3b8; }
+        .contador span { color: #4f46e5; font-weight: 700; }
+        .btn-nav { border: none; border-radius: 8px; padding: 9px 20px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; transition: background .15s; }
+        .btn-nav.outline { background: #f1f5f9; color: #475569; }
+        .btn-nav.outline:hover { background: #e2e8f0; }
+        .btn-nav.primary { background: #4f46e5; color: #fff; }
+        .btn-nav.primary:hover { background: #4338ca; }
+        .btn-nav.success { background: #16a34a; color: #fff; }
+        .btn-nav.success:hover { background: #15803d; }
+        .btn-nav:disabled { opacity: .6; cursor: not-allowed; }
     </style>
 </head>
 <body>
 
 <div class="test-header">
-    <div class="d-flex align-items-center justify-content-between">
+    <div class="header-top">
         <div>
-            <div style="font-weight:700;color:#5e5873;font-size:16px;">{{ instrumento.nombre }}</div>
-            <div style="font-size:12px;color:#b9b9c3;">{{ candidate.nombre }} — {{ instrumento.tiempo_limite }} minutos</div>
+            <div class="header-title">{{ instrumento.nombre }}</div>
+            <div class="header-sub">{{ candidate.nombre }} — {{ instrumento.tiempo_limite }} minutos</div>
         </div>
-        <div style="font-size:13px;color:#b9b9c3;">Grupo <span id="grupoActual">1</span> de {{ items|length }}</div>
+        <div class="header-counter">Grupo <span id="grupoActual">1</span> de {{ items|length }}</div>
     </div>
-    <div class="progress-bar-custom">
+    <div class="progress-bar">
         <div class="progress-fill" id="progressFill" style="width:0%"></div>
     </div>
 </div>
 
-<div class="container" style="max-width:700px;padding:24px 16px 120px;">
+<div class="container">
 
     <div class="alerta" id="alertaError">
-        ⚠️ Debes seleccionar una opción que te describe MÁS y una que te describe MENOS antes de continuar.
+        ⚠️ Debes completar este grupo antes de continuar.
     </div>
 
     <!-- Bienvenida -->
-    <div style="background:#fff;border-radius:12px;border:1px solid #e4e4e4;padding:24px;margin-bottom:24px;">
-        <h5 style="font-weight:700;color:#5e5873;margin-bottom:4px;">{{ instrumento.nombre }}</h5>
-        <p style="font-size:14px;color:#6e6b7b;margin-bottom:16px;">
+    <div class="welcome-card">
+        <h5>{{ instrumento.nombre }}</h5>
+        <p>
             Bienvenido/a, <strong>{{ candidate.nombre }}</strong>.<br>
             Esta evaluación ha sido enviada por <strong>{{ candidate.user.userapp.name }}</strong>.
             {% if candidate.puesto %}
             <br>Evaluación para el puesto: <strong>{{ candidate.puesto }}</strong>.
             {% endif %}
         </p>
-        <div style="background:#f0effe;border-radius:8px;padding:14px 16px;font-size:13px;color:#5e5873;">
+        <div class="instrucciones-box">
             <strong>Instrucciones:</strong> {{ instrumento.instrucciones }}
         </div>
-        <div style="margin-top:12px;display:flex;gap:16px;flex-wrap:wrap;">
-            <span style="font-size:12px;color:#b9b9c3;"><i>⏱</i> Tiempo estimado: {{ instrumento.tiempo_limite }} minutos</span>
-            <span style="font-size:12px;color:#b9b9c3;"><i>📋</i> {{ items|length }} grupos de preguntas</span>
+        <div class="meta-row">
+            <span class="meta-item">⏱ Tiempo estimado: {{ instrumento.tiempo_limite }} minutos</span>
+            <span class="meta-item">📋 {{ items|length }} grupos de preguntas</span>
         </div>
     </div>
 
     {% for item in items %}
     <div class="grupo-card" id="grupo-{{ forloop.counter }}" style="{% if not forloop.first %}display:none;{% endif %}">
         <div class="grupo-titulo">Grupo {{ item.numero }} de {{ items|length }}</div>
+
+        {% if instrumento.tipo == 'disc' or instrumento.tipo == 'zavic' %}
+        {# Formato DISC / ZAVIC: botones Más / Menos #}
         {% for op in item.opciones %}
         <div class="opcion-row">
             <div class="opcion-texto">{{ op.texto }}</div>
             <div class="opcion-botones">
-                <button class="btn-mas" 
-                    data-grupo="{{ item.id }}" 
+                <button class="btn-mas"
+                    data-grupo="{{ item.id }}"
                     data-dim="{{ op.dimension }}"
                     data-tipo="mas"
                     onclick="seleccionar(this, {{ item.id }}, '{{ op.dimension }}', 'mas')">
@@ -95,6 +143,19 @@
             </div>
         </div>
         {% endfor %}
+
+        {% else %}
+        {# Formato multiple choice: Raven, Moss #}
+        <div class="pregunta-texto">{{ item.texto }}</div>
+        {% for op in item.opciones %}
+        <div class="opcion-multiple" id="op-{{ item.id }}-{{ op.letra }}" onclick="seleccionarMultiple({{ item.id }}, '{{ op.letra }}', this)">
+            <div class="radio-circle"><div class="radio-dot"></div></div>
+            <span class="opcion-letra">{{ op.letra }}.</span>
+            <span class="opcion-valor">{{ op.valor }}</span>
+        </div>
+        {% endfor %}
+        {% endif %}
+
     </div>
     {% endfor %}
 
@@ -103,9 +164,9 @@
 <div class="sticky-footer">
     <div class="contador">Completados: <span id="completados">0</span> / {{ items|length }}</div>
     <div style="display:flex;gap:10px;">
-        <button class="btn btn-outline-secondary btn-sm" id="btnAnterior" onclick="anterior()" style="display:none;">Anterior</button>
-        <button class="btn btn-primary btn-sm" id="btnSiguiente" onclick="siguiente()">Siguiente</button>
-        <button class="btn btn-success btn-sm" id="btnEnviar" onclick="enviar()" style="display:none;">Enviar evaluación</button>
+        <button class="btn-nav outline" id="btnAnterior" onclick="anterior()" style="display:none;">Anterior</button>
+        <button class="btn-nav primary" id="btnSiguiente" onclick="siguiente()">Siguiente</button>
+        <button class="btn-nav success" id="btnEnviar" onclick="enviar()" style="display:none;">Enviar evaluación</button>
     </div>
 </div>
 
@@ -113,20 +174,17 @@
 var totalGrupos = {{ items|length }};
 var grupoActual = 1;
 var respuestas = {};
+var tipoInstrumento = '{{ instrumento.tipo }}';
 
-// estructura: respuestas[item_id] = {mas: 'D', menos: 'C', item_id: X}
-
+/* ── DISC / ZAVIC ────────────────────────────────────────── */
 function seleccionar(btn, itemId, dimension, tipo) {
     var grupo = document.getElementById('grupo-' + grupoActual);
-    // Deseleccionar otros del mismo tipo en este grupo
     var botones = grupo.querySelectorAll('.btn-' + tipo);
     botones.forEach(function(b) { b.classList.remove('activo'); });
     btn.classList.add('activo');
-    // Si la dimensión opuesta tiene el mismo valor, limpiarla
     var tipoOpuesto = tipo === 'mas' ? 'menos' : 'mas';
     if (respuestas[itemId] && respuestas[itemId][tipoOpuesto] === dimension) {
         respuestas[itemId][tipoOpuesto] = null;
-        // Deseleccionar visualmente el botón opuesto de esta fila
         var row = btn.closest('.opcion-row');
         row.querySelector('.btn-' + tipoOpuesto).classList.remove('activo');
     }
@@ -137,12 +195,36 @@ function seleccionar(btn, itemId, dimension, tipo) {
     document.getElementById('alertaError').style.display = 'none';
 }
 
+/* ── Multiple choice (Raven, Moss) ───────────────────────── */
+function seleccionarMultiple(itemId, letra, el) {
+    var grupo = document.getElementById('grupo-' + grupoActual);
+    grupo.querySelectorAll('.opcion-multiple').forEach(function(o) { o.classList.remove('activo'); });
+    el.classList.add('activo');
+    if (!respuestas[itemId]) respuestas[itemId] = { item_id: itemId };
+    respuestas[itemId].respuesta = letra;
+    respuestas[itemId].item_id = itemId;
+    actualizarContador();
+    document.getElementById('alertaError').style.display = 'none';
+}
+
+/* ── Validación ──────────────────────────────────────────── */
 function grupoCompleto(grupoNum) {
     var grupo = document.getElementById('grupo-' + grupoNum);
     if (!grupo) return false;
-    var itemId = parseInt(grupo.querySelector('.btn-mas').dataset.grupo);
-    var r = respuestas[itemId];
-    return r && r.mas && r.menos && r.mas !== r.menos;
+
+    if (tipoInstrumento === 'disc' || tipoInstrumento === 'zavic') {
+        var btnMas = grupo.querySelector('.btn-mas');
+        if (!btnMas) return false;
+        var itemId = parseInt(btnMas.dataset.grupo);
+        var r = respuestas[itemId];
+        return r && r.mas && r.menos && r.mas !== r.menos;
+    } else {
+        var opcion = grupo.querySelector('.opcion-multiple');
+        if (!opcion) return false;
+        var itemId2 = parseInt(opcion.getAttribute('id').split('-')[1]);
+        var r2 = respuestas[itemId2];
+        return r2 && r2.respuesta;
+    }
 }
 
 function actualizarContador() {
@@ -156,6 +238,7 @@ function actualizarContador() {
     document.getElementById('grupoActual').innerText = grupoActual;
 }
 
+/* ── Navegación ──────────────────────────────────────────── */
 function siguiente() {
     if (!grupoCompleto(grupoActual)) {
         document.getElementById('alertaError').style.display = 'block';
@@ -166,7 +249,6 @@ function siguiente() {
     grupoActual++;
     document.getElementById('grupo-' + grupoActual).style.display = 'block';
     document.getElementById('btnAnterior').style.display = grupoActual > 1 ? 'inline-block' : 'none';
-
     if (grupoActual === totalGrupos) {
         document.getElementById('btnSiguiente').style.display = 'none';
         document.getElementById('btnEnviar').style.display = 'inline-block';
@@ -186,19 +268,26 @@ function anterior() {
     window.scrollTo(0, 0);
 }
 
+/* ── Envío ───────────────────────────────────────────────── */
 function enviar() {
     if (!grupoCompleto(grupoActual)) {
         document.getElementById('alertaError').style.display = 'block';
         return;
     }
-
     var btn = document.getElementById('btnEnviar');
     btn.disabled = true;
     btn.innerHTML = 'Enviando...';
 
-    var respuestasArray = Object.values(respuestas).map(function(r) {
-        return { item_id: r.item_id, respuesta: { mas: r.mas, menos: r.menos } };
-    });
+    var respuestasArray;
+    if (tipoInstrumento === 'disc' || tipoInstrumento === 'zavic') {
+        respuestasArray = Object.values(respuestas).map(function(r) {
+            return { item_id: r.item_id, respuesta: { mas: r.mas, menos: r.menos } };
+        });
+    } else {
+        respuestasArray = Object.values(respuestas).map(function(r) {
+            return { item_id: r.item_id, respuesta: r.respuesta };
+        });
+    }
 
     fetch("{% url 'test_completar' session.token %}", {
         method: 'POST',
