@@ -241,7 +241,7 @@
 <!-- NOM-035 -->
 <div class="row seccion-planes activo" id="planes-nom035">
     {% for key, plan in planes.items %}
-    {% if plan.modulo == 'nom035' %}
+    {% if plan.modulo == 'nom035' and plan.visible %}
     <div class="col-12 col-md-4 mb-3">
         <div class="plan-card {% if plan.periodo == 'anual' %}destacado{% endif %}">
             {% if plan.periodo == 'anual' %}<span class="plan-tag">Más popular</span>{% endif %}
@@ -249,7 +249,11 @@
             <div class="plan-desc">{{ plan.descripcion }}</div>
             <div class="plan-precio">${{ plan.precio|intcomma }}<span> MXN / {{ plan.periodo }}</span></div>
             <hr class="plan-divider">
-            <div class="plan-feature"><i class="feather icon-users"></i>Hasta {{ plan.empleados_max }} evaluaciones</div>
+            {% if plan.evaluaciones_total == -1 %}
+            <div class="plan-feature"><i class="feather icon-icons"></i>Evaluaciones ilimitadas — vigencia 1 año</div>
+            {% else %}
+            <div class="plan-feature"><i class="feather icon-users"></i>{{ plan.evaluaciones_total }} evaluaciones — vigencia 1 año</div>
+            {% endif %}
             
             <div class="plan-feature"><i class="feather icon-file-text"></i>Reportes y portafolio de evidencias</div>
             <div class="plan-feature"><i class="feather icon-shield"></i>Cumplimiento STPS</div>
@@ -295,7 +299,7 @@
 <!-- Suite Empresarial -->
 <div class="row seccion-planes" id="planes-suite">
     {% for key, plan in planes.items %}
-    {% if plan.modulo == 'suite' %}
+    {% if plan.modulo == 'suite' and plan.visible %}
     <div class="col-12 col-md-6 mb-3">
         <div class="plan-card {% if plan.periodo == 'anual' %}destacado{% endif %}">
             {% if plan.periodo == 'anual' %}<span class="plan-tag">Mejor valor</span>{% endif %}
@@ -303,7 +307,11 @@
             <div class="plan-desc">{{ plan.descripcion }}</div>
             <div class="plan-precio">${{ plan.precio|intcomma }}<span> MXN / {{ plan.periodo }}</span></div>
             <hr class="plan-divider">
-            <div class="plan-feature"><i class="feather icon-users"></i>NOM-035 hasta {{ plan.empleados_max }} empleados</div>
+            {% if plan.evaluaciones_total == -1 %}
+            <div class="plan-feature"><i class="feather icon-users"></i>Evaluaciones NOM-035 ilimitadas — vigencia 1 año</div>
+            {% else %}
+            <div class="plan-feature"><i class="feather icon-users"></i>{{ plan.evaluaciones_total }} evaluaciones NOM-035 — vigencia 1 año</div>
+            {% endif %}
             <div class="plan-feature"><i class="feather icon-target"></i>
                 {% if plan.evaluaciones_mes == -1 %}Psicometría ilimitada{% else %}{{ plan.evaluaciones_mes }} evaluaciones/mes{% endif %}
             </div>
