@@ -62,6 +62,7 @@ class Workplace(models.Model):
 	employee_num = models.IntegerField(u'Cantidad de empleados')
 	access_code = models.CharField(u'Codigo de acceso',max_length=255,unique=True)
 	record_create=models.DateTimeField(auto_now_add=True)
+	es_demo = models.BooleanField(u'Datos de ejemplo', default=False)
 	def __str__(self):
 		return f"{self.name}"
 	def survey_type(self):
@@ -134,6 +135,7 @@ class Employee(models.Model):
 		(4,'Entre 10 a 14 años'),(5,'Entre 15 a 19 años'),(6,'Entre 20 a 24 años'),(7,'Entre 25 años o Más'))
 	exp= models.IntegerField(u'Tiempo de experiencia laboral',choices=choices_exp)
 	record_create = models.DateTimeField(auto_now_add=True)
+	es_demo = models.BooleanField(u'Datos de ejemplo', default=False)
 	record_update = models.DateTimeField(auto_now=True)
 	def __str__(self):
 		return f"{self.name}"
@@ -219,6 +221,7 @@ class RiskSurveyA(models.Model):
 	r2_p45= models.IntegerField(u'Dificultan el logro de los resultados del trabajo',choices=not_choices, blank=True, null=True)
 	r2_p46= models.IntegerField(u'Ignoran las sugerencias para mejorar su trabajo',choices=not_choices, blank=True, null=True)
 	record_create = models.DateTimeField(auto_now_add=True)
+	es_demo = models.BooleanField(u'Datos de ejemplo', default=False)
 	evaluation=models.IntegerField('Número de evaluación')
 	def __str__(self):
 		return f"{self.employee.name}"
