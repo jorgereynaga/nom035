@@ -1655,6 +1655,11 @@ class UserappList(generics.ListCreateAPIView):
 				new_user=serializer.save()
 				new_user.validated_email=True
 				new_user.save()
+				try:
+					from django.core.management import call_command
+					call_command("cargar_datos_demo", user.id)
+				except Exception as demo_err:
+					print(f"Error cargando datos demo: {demo_err}")
 			except Exception as e:
 				print(e)
 				if user is not None:
