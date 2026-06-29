@@ -1,64 +1,35 @@
-# Estado del Proyecto NOM-035 / NormaIA
-Ultima actualizacion: 19 Junio 2026
+# ESTADO NormaIA — Actualizado 29 Jun 2026
 
-## Datos del Proyecto
-- Repo: github.com/jorgereynaga/nom035
-- Local: C:\Users\JorgeAlbertoReynagaJ\Documents\nom 035\nom035\
-- Deploy: Railway via git push origin main
-- URL produccion: nom035-production.up.railway.app
-- Dominio: 035.ihes.mx (pendiente conectar a nueva landing)
-- Admin: /ihes_admin/ admin / IhesAdmin2026!
-- Test account: prueba / TestIhes2026!
-- Stack: Django 3.2 + PostgreSQL + Stripe + Railway
-- Branch respaldo UI original: backup-ui-original
+## Último deploy exitoso
+- Migration 0030: es_demo en Workplace, Employee, Candidate
 
-## Completado reciente
-- Descuento creditos NOM-035 al completar cuestionario
-- Descuento creditos psicometricos al asignar prueba
-- Sistema demo: nom035_demo=1 y psico_demo=1 en Userapp (migracion 0028)
-- Bloqueo descarga PDF sin plan pagado (download_file, download_file2)
-- Bloqueo reporte psicometrico sin plan pagado (ReporteUnificadoView)
-- Validacion workplace obligatorio antes de crear candidato (CandidateCreateView)
-- Landing page NormaIA integrada (surveys/templates/landing.html)
-- Login y registro rediseñados estilo NormaIA
-- Auto-login post registro con ApiLoginView en /api/login/
-- reCAPTCHA v3 actualizado site key 6Le3XCEtAAAAAO-V0M9w9XaNgAtUHFj7TxrMJz0B
-- REDISEÑO COMPLETO UI dashboard (Replit Agent):
-  - index.html, workplace.html, workplace_detail.html, workplace_results.html
-  - psico_candidatos.html, psico_candidato_detalle.html
-  - employeeform.html, edit_profile.html, evidence.html
-  - auth-login.html, auth-register.html
-  - Sistema de variables CSS (--primary, --border, --radius, etc.)
-  - Fuentes: Inter + Plus Jakarta Sans
-  - Estilo: cards con border 1px solid #e2e8f0, border-radius 12px
+## Completado en sesiones recientes
+- stripe_plans.py: 9 nuevos planes (NOM-035, Psico, Suite)
+- Migration 0029: nom035_creditos en Userapp
+- credits.py: lógica user-scoped para NOM-035 y Suite
+- views.py: descuento nom035_creditos + dashboard muestra creditos correctos
+- stripe_planes.html: nuevos planes, campo visible, evaluaciones_total
+- workplaceform.html: rediseño NormaIA
+- employeeform.html: Select2 con opcion crear nueva area
+- psico_test.html: soporte multiple choice Raven/Moss, fix exclusividad Mas/Menos
+- Dashboard: seccion informativa NOM-035 eliminada
+- Migration 0030: es_demo en Workplace, Employee, Candidate
 
-## Pendiente inmediato
-- stripe_planes.html no se actualizo con el nuevo diseño (es standalone, tiene CSS propio)
+## Pendientes proxima sesion
+1. Comando cargar_datos_demo (workplace + empleados + cuestionarios + candidatos psico)
+2. Signal post-registro para disparar datos demo automaticamente
+3. Dashboard adaptivo NOM-035/Psicometria segun plan (con Replit)
+4. Boton "Eliminar datos de ejemplo"
+5. admin.py: agregar nom035_creditos visible
+6. Fix campo phone max_length a 15
 
-## Pendientes criticos
-- DEBUG=False y variables de entorno en Railway (Fase 0 seguridad)
-- Flujo crear Workplace para nuevo usuario post registro
-- Pagina exito post compra
-- Paginas 404 y 500
-- Creditos demo ligados a cuenta no reseteable (Punto 3 socios)
-- Conectar dominio 035.ihes.mx
+## Arquitectura creditos NOM-035
+- nom035_creditos en Userapp (user-scoped, compartido entre workplaces)
+- Descuento en views.py al guardar risksurveya/b/traumasurvey
+- Demo: nom035_demo en Userapp (1 credito, no se resetea)
 
-## Pendientes futuros
-- Rebranding IHES a NormaIA (pendiente aprobacion socios)
-- Email bienvenida y recordatorios
-- Terminos y condiciones
-- Estrategia marketing y SEO
-
-## Archivos clave
-- surveys/views.py: Dashboard, registro, webhook, download_file, LandingView, ApiLoginView
-- surveys/psico_views.py: CandidateCreateView, AssignTestView, ReporteUnificadoView
-- surveys/models.py: Userapp (nom035_demo, psico_demo), CreditWallet
-- nom035/urls.py: LandingView en '', WebIndex comentado, ApiLoginView en /api/login/
-- surveys/migrations/0028_*.py: Campos demo en Userapp
-
-## Notas tecnicas
-- Sublime mezcla tabs/espacios usar python -c con encoding utf-8 para ediciones
-- HTML inline en views.py usar comillas simples para evitar SyntaxError
-- Test card Stripe: 4242 4242 4242 4242
-- reCAPTCHA: probar en ventana incognito sin recargar
-- Para revertir UI: git checkout backup-ui-original -- surveys/templates/
+## Stack
+- Django 3.2 + PostgreSQL + Stripe + Railway
+- Deploy: git push origin main
+- Admin: /ihes_admin/ admin/IhesAdmin2026!
+- Test: prueba/TestIhes2026!
