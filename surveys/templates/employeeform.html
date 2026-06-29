@@ -251,7 +251,9 @@
         </div>
         <div class="form-group">
           <label class="form-label" for="department">Departamento, Sección o Área <span class="required">*</span></label>
-          <select class="form-control" id="department" name="department" data-placeholder="Buscar o crear área" required></select>
+          <select class="form-control" id="department" name="department" data-placeholder="Escribe para buscar o crear un área nueva..." required>
+              <option value=""></option>
+          </select>
         </div>
         <div class="form-group">
           <label class="form-label" for="charge_type">Tipo de puesto <span class="required">*</span></label>
@@ -367,7 +369,12 @@ $(document).ready(function(){
         success: function(data){
             $("#department").select2({
                 tags: true,
-                data: data.results
+                data: data.results,
+                placeholder: "Escribe para buscar o crear un área nueva...",
+                allowClear: true,
+                createTag: function(params) {
+                    return { id: params.term, text: params.term + ' (nueva área)' };
+                }
             });
         },
         error:function (xhr, ajaxOptions, thrownError){
