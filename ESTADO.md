@@ -1,4 +1,4 @@
-# ESTADO NormaIA — Actualizado 29 Jun 2026 (tarde)
+# ESTADO NormaIA — Actualizado 29 Jun 2026 (noche)
 
 ## Stack
 - Django 3.2 + PostgreSQL + Stripe + Railway
@@ -7,40 +7,38 @@
 - Test: prueba/TestIhes2026!
 - Repo: github.com/jorgereynaga/nom035
 - Local: C:\Users\JorgeAlbertoReynagaJ\Documents\nom 035\nom035\
-- Editor: Sublime Text (tabs, no espacios — editar Python con python -c por indice de linea)
+- Editor: Sublime Text (tabs — editar Python con python -c por indice de linea)
 
 ## Ultimo deploy exitoso
-- Comando cargar_datos_demo + auto-trigger post-registro
-- Fix CSRF en auth-register + errores arriba
+- auth-register: fix llave extra JS, CSRF cookie, errores arriba
+- Registro funciona — datos demo se crean automaticamente al registrar
 - Migration 0030: es_demo en Workplace, Employee, Candidate
 
-## BUG ACTIVO — auth-register.html
-- SyntaxError JS en linea ~355: "missing ) after argument list"
-- El formulario de registro no funciona
-- Pendiente revisar sed -n '350,360p' surveys/templates/auth-register.html
-- jQuery carga en linea 277, script en 281-360, cierre body 362
-- Posible causa: caracter especial o Django template tag dentro del JS
+## Bugs activos en datos demo (PRIORIDAD)
+1. Empleados: vista muestra solo 1 de 6 — probablemente filtro por evaluation o paginacion
+2. Empleados: dice "no contestó encuesta" aunque RiskSurveyA/B fueron creados
+3. Portafolio de evidencias: no muestra reportes del centro demo
+4. Candidatos: aparecen 0 aunque se crearon 2 — vista puede filtrar diferente
+5. Candidatos: no tienen sesiones psicometricas asignadas (TestSession) ni respuestas
 
-## Completado en sesiones recientes
-- stripe_plans.py: 9 nuevos planes (NOM-035, Psico, Suite)
+## Para investigar en proxima sesion
+- Ver como views.py filtra empleados en la vista de centro de trabajo
+- Ver como views.py detecta si empleado contestó encuesta
+- Ver modelo TestSession y como asignar evaluaciones a candidatos demo
+- grep -n "surveyA\|survey_a\|contestado\|completed" surveys/views.py
+
+## Completado
+- stripe_plans.py: 9 planes activos
 - Migration 0029: nom035_creditos en Userapp
-- credits.py: logica user-scoped para NOM-035 y Suite
-- workplaceform.html: rediseno NormaIA
-- employeeform.html: Select2 con opcion crear nueva area
-- psico_test.html: soporte multiple choice Raven/Moss
-- Dashboard: seccion informativa NOM-035 eliminada
-- cargar_datos_demo.py: comando completo con 6 empleados + 2 candidatos
+- Migration 0030: es_demo en Workplace, Employee, Candidate
+- cargar_datos_demo.py: crea workplace + 6 empleados + RiskSurveyA/B + 2 candidatos
 - views.py ~1658: call_command cargar_datos_demo post-registro
+- workplaceform.html, employeeform.html, psico_test.html: rediseños completados
+- auth-register.html: CSRF fix, errores arriba, llave JS extra corregida
 
-## Pendientes
-1. FIX URGENTE: SyntaxError JS en auth-register.html linea ~355
-2. Verificar que registro funciona y datos demo se crean
-3. Dashboard adaptivo NOM-035/Psicometria segun plan (con Replit)
-4. Boton "Eliminar datos de ejemplo"
-5. admin.py: agregar nom035_creditos visible
-6. Fix campo phone max_length a 15
-
-## Arquitectura creditos NOM-035
-- nom035_creditos en Userapp (user-scoped)
-- Descuento en views.py al guardar risksurveya/b/traumasurvey
-- Demo: nom035_demo=1, psico_demo=1 en Userapp
+## Pendientes generales
+1. Fix datos demo (ver bugs arriba)
+2. Dashboard adaptivo NOM-035/Psicometria segun plan (Replit)
+3. Boton "Eliminar datos de ejemplo"
+4. admin.py: nom035_creditos visible
+5. Fix phone max_length a 15
