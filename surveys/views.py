@@ -2261,7 +2261,7 @@ class EndEvaluation(APIView):
 	authentication_classes = (TokenAuthentication,SessionAuthentication)
 	def get(self, request, format=None):
 		try:
-			workplace_id=request.data['workplace_id']
+			workplace_id=request.query_params.get('workplace_id') or request.data.get('workplace_id')
 			workplace=Workplace.objects.filter(id=workplace_id).last()
 			workplace.evaluation=workplace.evaluation+1
 			workplace.paid=False
