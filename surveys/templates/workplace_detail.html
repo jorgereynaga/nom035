@@ -349,19 +349,22 @@ table.dataTable tbody tr:last-child td { border-bottom: none !important; }
     </a>
     {% endif %}
 
-    {% if not paid %}
-    <button disabled class="btn btn-outline btn-sm">Ver resultados</button>
-    <button disabled class="btn btn-outline btn-sm">Finalizar aplicación</button>
-    {% else %}
-    <button type="button" id="end_evaluation_confirm" class="btn btn-outline btn-sm">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
-      Finalizar aplicación
-    </button>
-    <a href="{% url 'workplace_result' workplace_id %}" class="btn btn-primary btn-sm">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-      Ver resultados
-    </a>
-    {% endif %}
+    {% if paid %}
+        <button type="button" id="end_evaluation_confirm" class="btn btn-outline btn-sm">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          Finalizar aplicación
+        </button>
+        {% else %}
+        <button disabled class="btn btn-outline btn-sm">Finalizar aplicación</button>
+        {% endif %}
+        {% if paid or evaluation > 1 %}
+        <a href="{% url 'workplace_result' workplace_id %}" class="btn btn-primary btn-sm">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          Ver resultados
+        </a>
+        {% else %}
+        <button disabled class="btn btn-outline btn-sm">Ver resultados</button>
+        {% endif %}
   </div>
 
 </div>
