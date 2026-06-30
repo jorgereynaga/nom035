@@ -598,8 +598,8 @@ class WorkplaceResultView(LoginRequiredMixin,View):
 			ctx['workplace_id']=kwargs['workplace_id']
 			wk=Workplace.objects.filter(id=kwargs['workplace_id']).last()
 			ctx['paid']=wk.paid
-			if not wk.paid:
-				return HttpResponseRedirect(reverse_lazy('payments'))
+			# if not wk.paid:
+			#	return HttpResponseRedirect(reverse_lazy('payments'))
 			ctx['name']=wk.name
 			ctx['access_code']=wk.access_code
 			ctx['address']=wk.address
