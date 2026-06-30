@@ -50,3 +50,28 @@
 - views.py ~1658: call_command cargar_datos_demo post-registro
 - workplaceform.html, employeeform.html: redisenos completados
 - auth-register.html: CSRF fix, errores arriba
+
+## MODULO AMBIENTE LABORAL — JSON recibido 29 Jun 2026
+- 40 reactivos, escala Likert 1-5
+- 8 dimensiones: liderazgo, comunicacion, trabajo_equipo, reconocimiento,
+  condiciones_trabajo, carga_equilibrio, desarrollo_crecimiento, pertenencia
+- Todos los reactivos directos (inverso=false) — sin recodificacion
+- Calculo: promedio por dimension + promedio general
+- Criterios: Critico(1-2.49), En riesgo(2.5-3.49), Adecuado(3.5-4.24), Favorable(4.25-5)
+- Minimo 32 respuestas validas para reporte general, 4 por dimension
+- Minimo 5 respuestas para reporte grupal (anonimato)
+- Salida: por area, departamento, empresa — NO por colaborador individual
+
+## Modelo Django sugerido para Ambiente Laboral
+- WorkEnvironmentSurvey: FK Workplace, campo departamento (texto libre), 40 campos IntegerField
+- WorkEnvironmentResult: FK Workplace, dimension, promedio, nivel (critico/riesgo/adecuado/favorable)
+- URL publica anonima: /clima/{access_code}/ — sin login requerido
+- Solo disponible en planes Suite o anuales
+
+## Pendiente para implementar
+1. Crear modelo WorkEnvironmentSurvey en models.py + migracion
+2. Vista publica anonima para responder
+3. Vista de resultados agregados por empresa/CT/area
+4. Comando cargar_datos_demo — agregar respuestas demo de clima laboral
+5. Dashboard — agregar seccion Clima Laboral
+6. PDF de resultados por dimension
