@@ -454,7 +454,7 @@ $(function(){
     $.ajax({
       url: "api/end_evaluation/",
       method: 'GET',
-      data: {'workplace_id': "{{workplaceid}}"},
+      data: {'workplace_id': "{{workplace_id}}"},
       dataType: 'json',
       success: function(data){
         toastr.success("Se ha cerrado la evaluación","ok");
