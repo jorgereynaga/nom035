@@ -452,7 +452,7 @@ $(document).ready(function(){
 $(function(){
   $(".end-evaluation").click(function(){
     $.ajax({
-      url: "api/end_evaluation/",
+      url: "/api/end_evaluation/",
       method: 'GET',
       data: {'workplace_id': "{{workplace_id}}"},
       dataType: 'json',
