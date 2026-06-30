@@ -1885,10 +1885,11 @@ class PDFCreate(APIView):
 			# 	return Response("Éste empleado no pertenece a tu centro de trabajo",status=400)
 		else:
 			return Response("Debes indicar un empleado",status=400)
-		if evaluation:
-			survey=employee.survey3.filter(evaluation=evaluation).last()
-		else:
-			survey=employee.survey3.last()
+		if template=="muestra_chart":
+			if evaluation:
+				survey=employee.survey3.filter(evaluation=evaluation).last()
+			else:
+				survey=employee.survey3.last()
 		domainsB={"Condiciones en el ambiente de trabajo":["r3_p1","r3_p2","r3_p3","r3_p4","r3_p5"],
 			"Carga de trabajo":["r3_p6","r3_p7","r3_p8","r3_p9","r3_p10","r3_p11","r3_p12","r3_p13","r3_p14","r3_p15","r3_p16","r3_p65","r3_p66","r3_p67","r3_p68"],
 			"Falta de control sobre el trabajo":["r3_p23","r3_p24","r3_p25","r3_p26","r3_p27","r3_p28","r3_p29","r3_p30","r3_p35","r3_p36",],
