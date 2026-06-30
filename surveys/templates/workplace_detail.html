@@ -358,7 +358,7 @@ table.dataTable tbody tr:last-child td { border-bottom: none !important; }
         <button disabled class="btn btn-outline btn-sm">Finalizar aplicación</button>
         {% endif %}
         {% if paid or evaluation > 1 %}
-        <a href="{% url 'workplace_result' workplace_id %}" class="btn btn-primary btn-sm">
+        <a href="/workplace_result/{{workplace_id}}/{{evaluation|add:"-1"}}/" class="btn btn-primary btn-sm">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
           Ver resultados
         </a>
