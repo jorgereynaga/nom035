@@ -646,26 +646,9 @@ table.dataTable tbody tr:last-child td { border-bottom: none !important; }
         $('#list').on('draw.dt', function () {$('[data-toggle="tooltip"]').tooltip();});
         $("#list_filter").addClass('pull-right').css("margin-right:16px;");
         $("#list tbody").on("click",'.get_file',function(){
-            toastr.success('Generando archivo, espera un momento...',"ok")
-            $.ajax({
-                url: "/api/create_pdf/?employee_id="+$(this).attr("data-fileid")+"&evaluation={{evaluation}}&template="+$(this).attr("data-temp"),
-                dataType: 'json',
-                success: function(data){
-                    toastr.success('<p>Archivo generado.</p><a target="_blank" href="'+data.pdf+'" class="btn btn-success">Descargar archivo</a>',"ok",{
-                        "closeButton": true,"positionClass": "toast-top-center","showDuration": "0","hideDuration": "0","timeOut": "0","extendedTimeOut": "0",})
-                },
-                error:function (xhr, ajaxOptions, thrownError){
-                if (xhr.status!=400) {
-                    toastr.success('Ha ocurrido un error: '+xhr.responseText,"Error");
-                }else{
-                    toastr.success('Ha ocurrido un error',"Error");
-                }
-                console.log(xhr.status)
-                console.log(xhr.responseText)
-            }
-            })
+            var url = "/reporte_html/"+$(this).attr("data-fileid")+"/{{evaluation}}/";
+            window.open(url, '_blank');
         });
-
         $(".results").click(function(){
             toastr.success('Generando archivo, espera un momento...',"ok")
             $.ajax({

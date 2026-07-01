@@ -2551,3 +2551,78 @@ def stripe_webhook(request):
             print(f"⚠️ Error guardando plan: {e}")
         print("🔥 CRÉDITOS ASIGNADOS")
     return HttpResponse(status=200)
+
+
+class ReporteHTMLView(LoginRequiredMixin, View):
+    login_url = '/login/'
+    def get(self, request, employee_id, evaluation):
+        from surveys.models import Employee, RiskSurveyA, RiskSurveyB
+        employee = Employee.objects.filter(id=employee_id).last()
+        if not employee:
+            return HttpResponse('Empleado no encontrado', status=404)
+        workplace = employee.workplace
+        col={0:'#9be5f7',1:'#6bf56e',2:'#ffff00',3:'#ffc000',4:'#ff7070'}
+        name={0:'Nulo',1:'Bajo',2:'Medio',3:'Alto',4:'Muy alto'}
+        val=None
+        result_class=None
+        result_text=None
+        promedio=None
+        survey_result=[]
+        domainsA={
+            'Condiciones en el ambiente de trabajo':['r2_p1','r2_p2','r2_p3'],
+            'Carga de trabajo':['r2_p4','r2_p5','r2_p6','r2_p7','r2_p8','r2_p9','r2_p10','r2_p11','r2_p12','r2_p13','r2_p41','r2_p42','r2_p43'],
+            'Falta de control sobre el trabajo':['r2_p18','r2_p19','r2_p20','r2_p21','r2_p22','r2_p26','r2_p27'],
+            'Jornada de trabajo':['r2_p14','r2_p15'],
+            'Interferencia en la relacion trabajo-familia':['r2_p16','r2_p17'],
+            'Liderazgo':['r2_p23','r2_p24','r2_p25','r2_p28','r2_p29'],
+            'Relaciones en el trabajo':['r2_p30','r2_p31','r2_p32','r2_p44','r2_p45','r2_p46'],
+            'Violencia':['r2_p33','r2_p34','r2_p35','r2_p36','r2_p37','r2_p38','r2_p39','r2_p40'],
+        }
+        survey = employee.surveyA.filter(evaluation=evaluation).last()
+        if survey:
+            res = 0
+            for field in RiskSurveyA._meta.fields:
+                if field.name not in ['id','employee','evaluation','record_create','record_update','r2_p_a','r2_p_b','es_demo']:
+                    res = res + (getattr(survey, field.attname) or 0)
+            val = f'{res}/184'
+            promedio = round((res/184)*100)
+            result_class,result_text = ('#9be5f7','Riesgo nulo') if res<20 else (('#6bf56e','Riesgo bajo') if res<45 else (('#ffff00','Riesgo medio') if res<70 else (('#ffc000','Riesgo alto') if res<90 else ('#ff7070','Riesgo muy alto'))))
+            for domain in domainsA:
+                _sum = 0
+                for question in domainsA[domain]:
+                    try:
+                        _sum = _sum + (getattr(survey, RiskSurveyA._meta.get_field(question).attname) or 0)
+                    except Exception:
+                        pass
+                max_score = len(domainsA[domain])*4
+                color = 0 if _sum < max_score*0.2 else (1 if _sum < max_score*0.4 else (2 if _sum < max_score*0.6 else (3 if _sum < max_score*0.8 else 4)))
+                survey_result.append({'type':'Dominio','cat_dom':domain,'value':f'{_sum}/{max_score}','promedio':round((_sum/max_score)*100),'result_class':col[color],'result_text':name[color]})
+        ctx = {
+            'name': workplace.name,
+            'address': workplace.address,
+            'address_locality': workplace.address_locality,
+            'address_state': workplace.address_state,
+            'address_postal_code': workplace.address_postal_code,
+            'phone': request.user.userapp.phone,
+            'emp_name': employee.name,
+            'gender': employee.get_gender_display(),
+            'age': employee.get_age_display(),
+            'civil_state': employee.get_civil_state_display(),
+            'study_level': employee.get_study_level_display(),
+            'ocupation': employee.ocupation,
+            'department': employee.department,
+            'charge_type': employee.get_charge_type_display(),
+            'contract_type': employee.get_contract_type_display(),
+            'employee_type': employee.get_employee_type_display(),
+            'shift_type': employee.get_shift_type_display(),
+            'shift_rotation': employee.get_shift_rotation_display(),
+            'time_in_charge': employee.get_time_in_charge_display(),
+            'exp': employee.get_exp_display(),
+            'result_val': val or '',
+            'result_class': result_class or '',
+            'result_text': result_text or '',
+            'promedio': promedio or '',
+            'survey_result': survey_result,
+            'print_mode': True,
+        }
+        return render(request, 'pdf/riesgo_psicosocial.html', ctx)
