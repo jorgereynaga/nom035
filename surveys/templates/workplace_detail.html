@@ -446,7 +446,7 @@ $(document).ready(function(){
       "sSearch": "Buscar"
     }
   });
-  $(document).on('change', '#list_length select', function() {
+  $(document).on('change', '.dataTables_length select', function() {
       table.page.len(parseInt($(this).val())).draw();
   });
   $(document).on('change', '#list_length select', function() {
