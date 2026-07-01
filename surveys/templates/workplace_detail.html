@@ -412,43 +412,42 @@ table.dataTable tbody tr:last-child td { border-bottom: none !important; }
 <script type="text/javascript">
 $(document).ready(function(){
 
-  // DataTable
   var table = $("#list").DataTable({
-    "lengthMenu": [[5,10,25,50,100],[5,10,25,50,100]],
-    "pageLength": 5,
-    "drawCallback": function(settings) {
-        var api = this.api();
-        var pageInfo = api.page.info();
-    },
-    "ajax": '/employees_dt/{{workplace_id}}/0/{% if not paid %}{{evaluation|add:"-1"}}{% else %}{{evaluation}}{% endif %}/',
-    "serverSide": true,
-    "columns": [
-      {"data": "name"},
-      {"data": "gender"},
-      {"data": "ocupation"},
-      {"data": "department"},
-      {"data": "status"},
-      {"data": "code"}
-    ],
-    "oLanguage": {
-      "sProcessing": "Cargando datos...",
-      "sLengthMenu": "Registros por página _MENU_",
-      "sZeroRecords": "No se encontraron registros",
-      "sInfo": "Mostrando página _PAGE_ de _PAGES_",
-      "sInfoEmpty": "",
-      "sInfoFiltered": "(Filtrando de un total de _MAX_ registros)",
-      "oPaginate": {
-        "sNext": "Siguiente",
-        "sPrevious": "Anterior",
-        "sFirst": "Primero",
-        "sLast": "Último"
+      "lengthMenu": [[5,10,25,50,100],[5,10,25,50,100]],
+      "pageLength": 5,
+      "ajax": '/employees_dt/{{workplace_id}}/0/{% if not paid %}{{evaluation|add:"-1"}}{% else %}{{evaluation}}{% endif %}/',
+      "serverSide": true,
+      "columns": [
+        {"data": "name"},
+        {"data": "gender"},
+        {"data": "ocupation"},
+        {"data": "department"},
+        {"data": "status"},
+        {"data": "code"}
+      ],
+      "initComplete": function() {
+          var api = this.api();
+          $('.dataTables_length select').on('change', function() {
+              api.page.len(parseInt($(this).val())).draw();
+          });
       },
-      "sSearch": "Buscar"
-    }
+      "oLanguage": {
+        "sProcessing": "Cargando datos...",
+        "sLengthMenu": "Registros por página _MENU_",
+        "sZeroRecords": "No se encontraron registros",
+        "sInfo": "Mostrando página _PAGE_ de _PAGES_",
+        "sInfoEmpty": "",
+        "sInfoFiltered": "(Filtrando de un total de _MAX_ registros)",
+        "oPaginate": {
+          "sNext": "Siguiente",
+          "sPrevious": "Anterior",
+          "sFirst": "Primero",
+          "sLast": "Último"
+        },
+        "sSearch": "Buscar"
+      }
   });
-  $(document).on('change', '.dataTables_length select', function() {
-      table.page.len(parseInt($(this).val())).draw();
-  });
+
   $(document).on('change', '#list_length select', function() {
       table.page.len($(this).val()).draw();
   });
