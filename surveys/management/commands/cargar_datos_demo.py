@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
-from surveys.models import Workplace, Employee, RiskSurveyA, RiskSurveyB, Candidate
+from surveys.models import Workplace, Employee, RiskSurveyA, RiskSurveyB, Candidate, WorkEnvironmentSurvey
 import random, string
 
 
@@ -179,4 +179,25 @@ class Command(BaseCommand):
             )
             self.stdout.write(f'  Candidato demo: {cand.nombre}')
 
+
+        # Datos demo clima laboral
+        departamentos = ['Administracion', 'Produccion', 'Direccion', 'Logistica', 'Recursos Humanos']
+        import random
+        perfiles_clima = [
+            [4,4,5,4,5, 4,3,4,3,4, 5,4,4,5,4, 3,3,4,4,5, 4,5,4,4,4, 4,4,5,4,4, 3,4,4,5,4, 5,4,4,5,5],
+            [3,3,3,2,4, 3,2,3,2,3, 3,3,3,3,3, 2,2,3,3,3, 3,3,3,3,3, 2,2,3,2,2, 2,3,2,3,3, 3,3,3,3,3],
+            [5,5,4,5,5, 5,4,5,4,5, 4,5,5,4,5, 4,4,5,5,5, 5,4,5,5,5, 4,5,4,5,4, 4,5,5,4,5, 5,5,5,4,5],
+            [2,2,2,1,3, 2,2,2,1,2, 2,2,2,2,2, 1,1,2,2,2, 2,2,2,2,2, 1,1,2,1,1, 1,2,1,2,2, 2,2,2,2,2],
+            [4,3,4,4,4, 3,3,4,3,3, 4,4,3,4,4, 3,3,4,3,4, 4,3,4,4,3, 3,3,4,3,3, 3,3,3,4,3, 4,4,3,4,4],
+            [5,4,5,5,5, 4,4,5,4,4, 5,4,5,4,5, 4,4,5,4,5, 5,4,5,5,4, 4,4,5,4,4, 4,4,4,5,4, 5,5,4,5,5],
+            [3,2,3,3,3, 2,2,3,2,2, 3,3,2,3,3, 2,2,3,2,3, 3,2,3,3,2, 2,2,3,2,2, 2,2,2,3,2, 3,3,2,3,3],
+            [4,4,4,3,4, 4,3,4,3,3, 4,4,4,4,4, 3,3,4,3,4, 4,4,4,4,3, 3,3,4,3,3, 3,4,3,4,3, 4,4,3,4,4],
+        ]
+        depts_asignados = ['Administracion','Produccion','Produccion','Logistica','Recursos Humanos','Direccion','Administracion','Produccion']
+        for idx, perfil in enumerate(perfiles_clima):
+            data = {'workplace': wp, 'department': depts_asignados[idx], 'es_demo': True}
+            for i, val in enumerate(perfil, 1):
+                data[f'cl_p{i}'] = val
+            WorkEnvironmentSurvey.objects.create(**data)
+        self.stdout.write('  Datos demo clima laboral cargados')
         self.stdout.write(self.style.SUCCESS('Datos demo cargados correctamente'))
