@@ -502,6 +502,7 @@ class Candidate(models.Model):
 	)
 	notas = models.TextField(u'Notas', blank=True)
 	record_create = models.DateTimeField(auto_now_add=True)
+	es_demo = models.BooleanField(u'Datos de ejemplo', default=False)
 
 	def __str__(self):
 		return f"{self.nombre} — {self.puesto or 'sin puesto'}"
