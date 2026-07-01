@@ -420,7 +420,7 @@ $(document).ready(function(){
         var api = this.api();
         var pageInfo = api.page.info();
     },
-    "ajax": '/employees_dt/{{workplace_id}}/0/{{evaluation}}/',
+    "ajax": '/employees_dt/{{workplace_id}}/0/{% if not paid %}{{evaluation|add:"-1"}}{% else %}{{evaluation}}{% endif %}/',
     "serverSide": true,
     "columns": [
       {"data": "name"},
