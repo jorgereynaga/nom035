@@ -464,9 +464,10 @@ $(function(){
       data: {'workplace_id': "{{workplace_id}}"},
       dataType: 'json',
       success: function(data){
-        toastr.success("Se ha cerrado la evaluación","ok");
-        $("#confirmModal").removeClass("active");
-      }
+              toastr.success("Se ha cerrado la evaluación","ok");
+              $("#confirmModal").removeClass("active");
+              setTimeout(function(){ location.reload(); }, 1500);
+            }
     });
   });
 });
