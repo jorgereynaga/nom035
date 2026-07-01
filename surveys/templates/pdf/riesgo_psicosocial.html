@@ -1,132 +1,165 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
-	<meta charset="utf-8">
-	<title>CUESTIONARIO PARA IDENTIFICAR LOS FACTORES DE RIESGO PSICOSOCIAL Y EVALUACIÓN DEL ENTORNO ORGANIZACIONAL EN LOS CENTROS DE TRABAJO</title>
+  <meta charset="utf-8">
+  <title>Reporte NOM-035 — {{emp_name}}</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: #f8f9fc; color: #1e293b; font-size: 13px; }
+    .page { max-width: 860px; margin: 24px auto; background: #fff; border-radius: 12px; box-shadow: 0 2px 16px rgba(0,0,0,0.08); overflow: hidden; }
 
-	<style type="text/css">
-		@page{size: letter;margin: 1cm; @bottom-right{content: counter(page) " de " counter(pages);}
-			@bottom-left {content:  string(title);}
-		}
-		footer{
-			position:fixed;
-			left:0;
-			bottom:0;
-			margin-bottom:-10mm;
-			height:10mm;
-			text-align:left;
-			font-size:10px;
-		}
-		li{FONT-FAMILY: FreeSerif_1q;color: rgb(53,55,68);}
-		@font-face {
-			font-family: FreeSerif_1q;
-			src: url("https://035.ihes.mx/static/app-assets/fonts/FreeSerif_1q.woff") format("woff");
-		}
-		/*.table > tbody > tr > td, .table > tbody > tr > th, .table > tfoot > tr > td, .table > tfoot > tr > th, .table > thead > tr > td, .table > thead > tr > th {padding: 5px 15px !important;font-size: 10px !important;}*/
-		.super-small-text{font-size: 8px;}
-		.medium-text{font-size: 14px !important;}
-		.row{background-color: white; width: 780px;}
-		small{font-size: 12px !important;}
-		p{font-size: 12px !important;}
-		body{width: 100% !important;background-color: white;}
-	</style>
+    /* Header */
+    .header { background: linear-gradient(135deg, #1e40af, #2563eb); color: #fff; padding: 28px 36px; }
+    .header h1 { font-size: 13px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; opacity: 0.85; margin-bottom: 4px; }
+    .header h2 { font-size: 18px; font-weight: 700; margin-bottom: 16px; }
+    .header-meta { display: flex; gap: 24px; flex-wrap: wrap; font-size: 12px; opacity: 0.9; }
+    .header-meta span { display: flex; align-items: center; gap: 6px; }
+
+    /* Sections */
+    .section { padding: 24px 36px; border-bottom: 1px solid #e2e8f0; }
+    .section-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #64748b; margin-bottom: 14px; }
+
+    /* Profile grid */
+    .profile-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 32px; }
+    .profile-item { display: flex; gap: 6px; font-size: 12px; padding: 4px 0; border-bottom: 1px solid #f1f5f9; }
+    .profile-label { color: #64748b; min-width: 140px; }
+    .profile-value { font-weight: 600; color: #1e293b; }
+
+    /* Risk summary */
+    .risk-summary { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+    .risk-card { border-radius: 10px; padding: 20px; text-align: center; }
+    .risk-card .label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; color: #64748b; }
+    .risk-card .value { font-size: 26px; font-weight: 800; color: #1e293b; }
+    .risk-card .sublabel { font-size: 11px; color: #64748b; margin-top: 4px; }
+    .risk-badge { display: inline-block; padding: 6px 18px; border-radius: 999px; font-size: 15px; font-weight: 700; margin-top: 4px; }
+
+    /* Table */
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    thead tr { background: #f1f5f9; }
+    th { padding: 10px 12px; text-align: left; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: #64748b; }
+    td { padding: 10px 12px; border-bottom: 1px solid #f1f5f9; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #f8fafc; }
+    .type-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 600; background: #e0e7ff; color: #3730a3; }
+    .type-badge.cat { background: #dcfce7; color: #166534; }
+    .color-dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
+    .risk-text { font-weight: 600; }
+
+    /* Print button */
+    .print-bar { padding: 16px 36px; background: #f8f9fc; display: flex; justify-content: flex-end; gap: 10px; }
+    .btn-print { background: #2563eb; color: #fff; border: none; padding: 10px 24px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; }
+    .btn-print:hover { background: #1d4ed8; }
+
+    /* Footer */
+    .footer { padding: 16px 36px; text-align: center; font-size: 11px; color: #94a3b8; border-top: 1px solid #e2e8f0; }
+
+    @media print {
+      body { background: #fff; }
+      .page { box-shadow: none; margin: 0; border-radius: 0; }
+      .print-bar { display: none; }
+    }
+  </style>
 </head>
 <body>
-<!-- Page content -->
-<div class="container">
-	<!-- Invoice template -->
-	<div class="row"><div class="col">
-		<h6 class="text-primary">CUESTIONARIO PARA IDENTIFICAR LOS FACTORES DE RIESGO PSICOSOCIAL<br>Y EVALUACIÓN DEL ENTORNO ORGANIZACIONAL EN LOS CENTROS DE TRABAJO</h6>
-	</div></div><br><br>
-	<div class="row">
-		<legend class="text-sm-left "><h6>Centro de trabajo <b>{{name}}</b></h6></legend>
-	</div>
-	<div class="row">
-		<div class="col-6">
-			<p>Domicilio: <b>{{address}}</b></p>
-			<b> {{address_postal_code}}, {{address_locality}}, {{address_state}}</b>
-			<b> {{phone}}</b>
-		</div>
-	</div><br><br>
-	<div class="row">
-		<legend class="text-sm-left "><h6>Perfil de {{emp_name}}</h6></legend>
-		<div class="col-6">
-			<p>Sexo: <b>{{gender}}</b></p>
-			<p>Estado Civil: <b>{{civil_state}}</b></p>
-			<p>Tipo de Puesto: <b>{{charge_type}}</b></p>
-			<p>Rotación de Turnos: <b>{{shift_rotation}}</b></p>
-			<p>Experiencia Laboral: <b>{{exp}}</b></p>
-			<p>Profesión/Puesto: <b>{{ocupation}}</b></p>
-			<p>Tipo de Jornada: <b>{{shift_type}}</b></p>
-		</div>
-		<div class="col-6">
-			<p>Edad: <b>{{age}}</b></p>
-			<p>Nivel de Estudios: <b>{{study_level}}</b></p>
-			<p>Tipo de Personal: <b>{{employee_type}}</b></p>
-			<p>Tiempo en el Puesto Actual: <b>{{time_in_charge}}</b></p>
-			<p>Tipo de Contratación: <b>{{contract_type}}</b></p>
-			<p>Departamento/Área: <b>{{department}}</b></p>
-		</div>
-	</div>
-	<div class="row" >
-		<div class="col-4">
-			<p>NIVEL DE RIESGO</p>
-			<table style="margin:0 !important;"><tbody>
-				<tr>
-					<td>{{result_text}}</td>
-				</tr>
-				<tr>
-					<td style="background-color:{{result_class}};"></td>
-				</tr>
-			</tbody></table>
 
-		</div>
-		<div class="col-4">
-			<p>PUNTAJES</p>
-			<p class="super-small-text">POSIBLES/TOTALES</p>
-			<p><b>{{result_val}}</b></p>
-		</div>
-		<div class="col-4">
-			<p>PORCENTAJE</p>
-			<p><b>{{promedio}}%</b></p>
-		</div>
-	</div>
-	<div class="row" >
-		<div class="col medium-text">
-		<p>A continuación se presentan las respuestas que el evaluado proporcionó clasificados por categoría y dominio:</p>
-		</div>
-	</div>
-	{%for item in survey_result%}
-	<div class="row" >
-		<div class="col-4">
-			<p>{{item.type}}:</p>
-			<p><b>{{item.cat_dom}}</b></p>
-		</div>
-		<div class="col-2">
-			<p>Puntos:</p>
-			<p><b>{{item.value}}</b></p>
-		</div>
-		<div class="col-2">
-			<p>Porcentaje:</p>
-			<p><b>{{item.promedio}}%</b></p>
-		</div>
-		<div class="col-2">
-			<p>Riesgo</p>
-			<table style="margin:0 !important;"><tbody>
-				<tr>
-					<td>{{item.result_text}}</td>
-				</tr>
-				<tr>
-					<td style="background-color:{{item.result_class}};"></td>
-				</tr>
-			</tbody></table>
-			
-		</div>
-	</div>
-	{%endfor%}
+<div class="print-bar">
+  <button class="btn-print" onclick="window.print()">🖨️ Imprimir / Guardar PDF</button>
 </div>
-<!-- /page content -->
-</body>
-<footer class="text-primary">INSTITUTO HISPANOAMERICANO DE ESTUDIOS SUPERIORES S.C.</footer>
-</html>
 
+<div class="page">
+
+  <!-- Header -->
+  <div class="header">
+    <h1>NOM-035-STPS-2018 — Reporte de Factores de Riesgo Psicosocial</h1>
+    <h2>{{emp_name}}</h2>
+    <div class="header-meta">
+      <span>🏢 {{name}}</span>
+      <span>📍 {{address}}, {{address_locality}}, {{address_state}}</span>
+    </div>
+  </div>
+
+  <!-- Perfil del empleado -->
+  <div class="section">
+    <div class="section-title">Perfil del colaborador</div>
+    <div class="profile-grid">
+      <div class="profile-item"><span class="profile-label">Género</span><span class="profile-value">{{gender}}</span></div>
+      <div class="profile-item"><span class="profile-label">Edad</span><span class="profile-value">{{age}}</span></div>
+      <div class="profile-item"><span class="profile-label">Estado Civil</span><span class="profile-value">{{civil_state}}</span></div>
+      <div class="profile-item"><span class="profile-label">Nivel de Estudios</span><span class="profile-value">{{study_level}}</span></div>
+      <div class="profile-item"><span class="profile-label">Puesto / Ocupación</span><span class="profile-value">{{ocupation}}</span></div>
+      <div class="profile-item"><span class="profile-label">Departamento / Área</span><span class="profile-value">{{department}}</span></div>
+      <div class="profile-item"><span class="profile-label">Tipo de Puesto</span><span class="profile-value">{{charge_type}}</span></div>
+      <div class="profile-item"><span class="profile-label">Tipo de Personal</span><span class="profile-value">{{employee_type}}</span></div>
+      <div class="profile-item"><span class="profile-label">Tipo de Contratación</span><span class="profile-value">{{contract_type}}</span></div>
+      <div class="profile-item"><span class="profile-label">Tipo de Jornada</span><span class="profile-value">{{shift_type}}</span></div>
+      <div class="profile-item"><span class="profile-label">Rotación de Turnos</span><span class="profile-value">{{shift_rotation}}</span></div>
+      <div class="profile-item"><span class="profile-label">Tiempo en el Puesto</span><span class="profile-value">{{time_in_charge}}</span></div>
+      <div class="profile-item"><span class="profile-label">Experiencia Laboral</span><span class="profile-value">{{exp}}</span></div>
+    </div>
+  </div>
+
+  <!-- Resultado general -->
+  <div class="section">
+    <div class="section-title">Resultado general</div>
+    <div class="risk-summary">
+      <div class="risk-card" style="background:#f1f5f9;">
+        <div class="label">Nivel de Riesgo</div>
+        <div><span class="risk-badge" style="background:{{result_class}};color:#1e293b;">{{result_text}}</span></div>
+      </div>
+      <div class="risk-card" style="background:#f1f5f9;">
+        <div class="label">Puntaje Obtenido</div>
+        <div class="value">{{result_val}}</div>
+        <div class="sublabel">Puntos / Total posible</div>
+      </div>
+      <div class="risk-card" style="background:#f1f5f9;">
+        <div class="label">Porcentaje</div>
+        <div class="value">{{promedio}}%</div>
+        <div class="sublabel">Del total de riesgo</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Resultados por dominio y categoría -->
+  <div class="section">
+    <div class="section-title">Resultados por dominio y categoría</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Tipo</th>
+          <th>Nombre</th>
+          <th>Puntos</th>
+          <th>Porcentaje</th>
+          <th>Nivel de Riesgo</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in survey_result %}
+        <tr>
+          <td>
+            {% if item.type == "Dominio" %}
+              <span class="type-badge">Dominio</span>
+            {% else %}
+              <span class="type-badge cat">Categoría</span>
+            {% endif %}
+          </td>
+          <td><strong>{{item.cat_dom}}</strong></td>
+          <td>{{item.value}}</td>
+          <td>{{item.promedio}}%</td>
+          <td>
+            <span class="color-dot" style="background:{{item.result_class}};"></span>
+            <span class="risk-text">{{item.result_text}}</span>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    Instituto Hispanoamericano de Estudios Superiores S.C. &nbsp;|&nbsp; NormaIA &nbsp;|&nbsp; NOM-035-STPS-2018
+  </div>
+
+</div>
+</body>
+</html>
