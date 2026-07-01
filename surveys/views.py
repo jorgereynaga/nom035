@@ -2626,3 +2626,116 @@ class ReporteHTMLView(LoginRequiredMixin, View):
             'print_mode': True,
         }
         return render(request, 'pdf/riesgo_psicosocial.html', ctx)
+
+
+CLIMA_REACTIVOS = [
+    (1,'liderazgo','Mi jefe inmediato comunica con claridad lo que espera de mi trabajo.'),
+    (2,'liderazgo','Recibo apoyo de mi jefe inmediato cuando enfrento dificultades en mi trabajo.'),
+    (3,'liderazgo','Mi jefe inmediato escucha mis opiniones antes de tomar decisiones que afectan mi trabajo.'),
+    (4,'liderazgo','Recibo retroalimentacion util para mejorar mi desempeno.'),
+    (5,'liderazgo','El trato que recibo de mi jefe inmediato es respetuoso.'),
+    (6,'comunicacion','La informacion importante para realizar mi trabajo se comunica de manera oportuna.'),
+    (7,'comunicacion','Los cambios relevantes dentro de la organizacion se comunican con claridad.'),
+    (8,'comunicacion','Puedo expresar dudas o inquietudes sin temor a represalias.'),
+    (9,'comunicacion','La comunicacion entre areas facilita el cumplimiento de los objetivos de trabajo.'),
+    (10,'comunicacion','Conozco los canales adecuados para comunicar problemas, solicitudes o propuestas.'),
+    (11,'trabajo_equipo','En mi area existe disposicion para colaborar entre companeros.'),
+    (12,'trabajo_equipo','Mis companeros me apoyan cuando necesito ayuda para cumplir mis actividades.'),
+    (13,'trabajo_equipo','El equipo de trabajo se coordina adecuadamente para alcanzar los objetivos.'),
+    (14,'trabajo_equipo','Los conflictos entre companeros se manejan de manera respetuosa.'),
+    (15,'trabajo_equipo','En mi equipo se comparten conocimientos y buenas practicas.'),
+    (16,'reconocimiento','Mi esfuerzo y resultados son reconocidos por la organizacion o por mi jefe inmediato.'),
+    (17,'reconocimiento','Cuando realizo bien mi trabajo, recibo algun tipo de reconocimiento o valoracion.'),
+    (18,'reconocimiento','Me siento motivado para dar un buen desempeno en mi puesto.'),
+    (19,'reconocimiento','La organizacion valora las aportaciones de sus colaboradores.'),
+    (20,'reconocimiento','Considero que mi trabajo tiene importancia para los resultados de la organizacion.'),
+    (21,'condiciones_trabajo','Cuento con las herramientas necesarias para realizar adecuadamente mi trabajo.'),
+    (22,'condiciones_trabajo','El espacio fisico donde trabajo es adecuado para desempenar mis funciones.'),
+    (23,'condiciones_trabajo','La tecnologia o sistemas que utilizo facilitan mi trabajo diario.'),
+    (24,'condiciones_trabajo','Las condiciones de seguridad e higiene en mi lugar de trabajo son adecuadas.'),
+    (25,'condiciones_trabajo','La organizacion proporciona los recursos necesarios para cumplir con mis responsabilidades.'),
+    (26,'carga_equilibrio','La carga de trabajo que tengo es razonable para el tiempo disponible.'),
+    (27,'carga_equilibrio','Las tareas se distribuyen de manera equilibrada dentro de mi equipo.'),
+    (28,'carga_equilibrio','Puedo cumplir mis responsabilidades laborales sin afectar de forma constante mi vida personal.'),
+    (29,'carga_equilibrio','Los tiempos de entrega de mis actividades suelen ser realistas.'),
+    (30,'carga_equilibrio','La presion laboral que experimento es manejable.'),
+    (31,'desarrollo_crecimiento','Tengo oportunidades para aprender nuevas habilidades dentro de la organizacion.'),
+    (32,'desarrollo_crecimiento','La capacitacion que recibo contribuye a mejorar mi desempeno.'),
+    (33,'desarrollo_crecimiento','Conozco las posibilidades de crecimiento o desarrollo que existen dentro de la organizacion.'),
+    (34,'desarrollo_crecimiento','Mi puesto me permite desarrollar mis capacidades profesionales.'),
+    (35,'desarrollo_crecimiento','La organizacion promueve el aprendizaje y la mejora continua.'),
+    (36,'pertenencia','Me siento orgulloso de pertenecer a esta organizacion.'),
+    (37,'pertenencia','Me identifico con los valores y objetivos de la organizacion.'),
+    (38,'pertenencia','Recomendaria esta organizacion como un buen lugar para trabajar.'),
+    (39,'pertenencia','Deseo continuar trabajando en esta organizacion en el futuro cercano.'),
+    (40,'pertenencia','Siento que mi trabajo contribuye al proposito general de la organizacion.'),
+]
+
+CLIMA_DIMENSIONES = {
+    'liderazgo': 'Liderazgo y supervision',
+    'comunicacion': 'Comunicacion interna',
+    'trabajo_equipo': 'Trabajo en equipo',
+    'reconocimiento': 'Reconocimiento y motivacion',
+    'condiciones_trabajo': 'Condiciones de trabajo',
+    'carga_equilibrio': 'Carga laboral y equilibrio',
+    'desarrollo_crecimiento': 'Desarrollo y crecimiento',
+    'pertenencia': 'Sentido de pertenencia',
+}
+
+class ClimaLaboralView(View):
+    def get(self, request, access_code):
+        wk = Workplace.objects.filter(access_code=access_code).last()
+        if not wk:
+            return HttpResponse('Centro de trabajo no encontrado', status=404)
+        departments = Employee.objects.filter(workplace=wk).values_list('department', flat=True).distinct()
+        ctx = {
+            'workplace': wk,
+            'reactivos': CLIMA_REACTIVOS,
+            'departments': [d for d in departments if d],
+        }
+        return render(request, 'clima_laboral.html', ctx)
+
+    def post(self, request, access_code):
+        wk = Workplace.objects.filter(access_code=access_code).last()
+        if not wk:
+            return HttpResponse('Centro de trabajo no encontrado', status=404)
+        department = request.POST.get('department', '')
+        data = {'workplace': wk, 'department': department}
+        for i in range(1, 41):
+            val = request.POST.get(f'cl_p{i}')
+            data[f'cl_p{i}'] = int(val) if val and val.isdigit() else None
+        WorkEnvironmentSurvey.objects.create(**data)
+        return render(request, 'clima_gracias.html', {'workplace': wk})
+
+class ClimaResultadosView(LoginRequiredMixin, View):
+    login_url = reverse_lazy('login')
+    def get(self, request, workplace_id):
+        wk = Workplace.objects.filter(id=workplace_id, user=request.user).last()
+        if not wk:
+            return HttpResponseRedirect(reverse_lazy('workplaces'))
+        surveys = WorkEnvironmentSurvey.objects.filter(workplace=wk)
+        total = surveys.count()
+        dimensiones = {}
+        for codigo, nombre in CLIMA_DIMENSIONES.items():
+            reactivos_dim = [r[0] for r in CLIMA_REACTIVOS if r[1] == codigo]
+            promedios = []
+            for s in surveys:
+                vals = [getattr(s, f'cl_p{i}') for i in reactivos_dim if getattr(s, f'cl_p{i}') is not None]
+                if len(vals) >= 3:
+                    promedios.append(sum(vals)/len(vals))
+            promedio_dim = round(sum(promedios)/len(promedios), 2) if promedios else None
+            if promedio_dim:
+                if promedio_dim < 2.5: nivel = ('Critico', '#ff7070')
+                elif promedio_dim < 3.5: nivel = ('En riesgo', '#ffc000')
+                elif promedio_dim < 4.25: nivel = ('Adecuado', '#ffff00')
+                else: nivel = ('Favorable', '#6bf56e')
+            else:
+                nivel = ('Sin datos', '#e2e8f0')
+            dimensiones[codigo] = {'nombre': nombre, 'promedio': promedio_dim, 'nivel': nivel[0], 'color': nivel[1]}
+        ctx = {
+            'workplace': wk,
+            'total': total,
+            'dimensiones': dimensiones,
+            'access_url': request.build_absolute_uri(f'/clima/{wk.access_code}/'),
+        }
+        return render(request, 'clima_resultados.html', ctx)

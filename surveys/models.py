@@ -941,3 +941,57 @@ class CreditWallet(models.Model):
 
     def __str__(self):
         return f"{self.workplace.name} - NOM035: {self.nom035_available()} | Psico: {self.psico_available()}"
+class WorkEnvironmentSurvey(models.Model):
+    workplace = models.ForeignKey(Workplace, related_name='climate_surveys', on_delete=models.CASCADE, verbose_name='Centro de trabajo')
+    department = models.CharField('Departamento/Area', max_length=150, blank=True)
+    periodo = models.CharField('Periodo', max_length=50, blank=True)
+    # 40 reactivos Likert 1-5
+    cl_p1 = models.IntegerField(null=True, blank=True)
+    cl_p2 = models.IntegerField(null=True, blank=True)
+    cl_p3 = models.IntegerField(null=True, blank=True)
+    cl_p4 = models.IntegerField(null=True, blank=True)
+    cl_p5 = models.IntegerField(null=True, blank=True)
+    cl_p6 = models.IntegerField(null=True, blank=True)
+    cl_p7 = models.IntegerField(null=True, blank=True)
+    cl_p8 = models.IntegerField(null=True, blank=True)
+    cl_p9 = models.IntegerField(null=True, blank=True)
+    cl_p10 = models.IntegerField(null=True, blank=True)
+    cl_p11 = models.IntegerField(null=True, blank=True)
+    cl_p12 = models.IntegerField(null=True, blank=True)
+    cl_p13 = models.IntegerField(null=True, blank=True)
+    cl_p14 = models.IntegerField(null=True, blank=True)
+    cl_p15 = models.IntegerField(null=True, blank=True)
+    cl_p16 = models.IntegerField(null=True, blank=True)
+    cl_p17 = models.IntegerField(null=True, blank=True)
+    cl_p18 = models.IntegerField(null=True, blank=True)
+    cl_p19 = models.IntegerField(null=True, blank=True)
+    cl_p20 = models.IntegerField(null=True, blank=True)
+    cl_p21 = models.IntegerField(null=True, blank=True)
+    cl_p22 = models.IntegerField(null=True, blank=True)
+    cl_p23 = models.IntegerField(null=True, blank=True)
+    cl_p24 = models.IntegerField(null=True, blank=True)
+    cl_p25 = models.IntegerField(null=True, blank=True)
+    cl_p26 = models.IntegerField(null=True, blank=True)
+    cl_p27 = models.IntegerField(null=True, blank=True)
+    cl_p28 = models.IntegerField(null=True, blank=True)
+    cl_p29 = models.IntegerField(null=True, blank=True)
+    cl_p30 = models.IntegerField(null=True, blank=True)
+    cl_p31 = models.IntegerField(null=True, blank=True)
+    cl_p32 = models.IntegerField(null=True, blank=True)
+    cl_p33 = models.IntegerField(null=True, blank=True)
+    cl_p34 = models.IntegerField(null=True, blank=True)
+    cl_p35 = models.IntegerField(null=True, blank=True)
+    cl_p36 = models.IntegerField(null=True, blank=True)
+    cl_p37 = models.IntegerField(null=True, blank=True)
+    cl_p38 = models.IntegerField(null=True, blank=True)
+    cl_p39 = models.IntegerField(null=True, blank=True)
+    cl_p40 = models.IntegerField(null=True, blank=True)
+    record_create = models.DateTimeField(auto_now_add=True)
+    es_demo = models.BooleanField(default=False)
+
+    class Meta:
+        verbose_name = 'Encuesta de Clima Laboral'
+        verbose_name_plural = 'Encuestas de Clima Laboral'
+
+    def __str__(self):
+        return f'Clima {self.workplace.name} - {self.department or "Sin area"} - {self.record_create.strftime("%d/%m/%Y")}'

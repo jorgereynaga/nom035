@@ -50,7 +50,8 @@ urlpatterns = [
     path('api/addCard/', AddCardList.as_view()),
     path('api/create_pdf/', PDFCreate.as_view()),
     path('reporte_html/<int:employee_id>/<int:evaluation>/', ReporteHTMLView.as_view(), name='reporte_html'),
-    path('reporte_html/<int:employee_id>/<int:evaluation>/', ReporteHTMLView.as_view(), name='reporte_html'),
+    path('clima/<str:access_code>/', ClimaLaboralView.as_view(), name='clima_laboral'),
+    path('clima/resultados/<int:workplace_id>/', ClimaResultadosView.as_view(), name='clima_resultados'),
     path('api/end_evaluation/', EndEvaluation.as_view()),
     path('api/save_chart/', SaveCharts.as_view()),
     #bot

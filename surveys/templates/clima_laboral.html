@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Encuesta de Clima Laboral — {{workplace.name}}</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: #f1f5f9; color: #1e293b; font-size: 14px; }
+    .header { background: linear-gradient(135deg, #1e40af, #2563eb); color: #fff; padding: 24px 20px; text-align: center; }
+    .header h1 { font-size: 17px; font-weight: 700; margin-bottom: 4px; }
+    .header p { font-size: 13px; opacity: 0.85; }
+    .container { max-width: 720px; margin: 24px auto; padding: 0 16px 40px; }
+    .instrucciones { background: #fff; border-radius: 10px; padding: 18px 20px; margin-bottom: 20px; border-left: 4px solid #2563eb; font-size: 13px; color: #475569; line-height: 1.6; }
+    .dept-card { background: #fff; border-radius: 10px; padding: 18px 20px; margin-bottom: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+    .dept-card label { font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 8px; }
+    .dept-card select { width: 100%; padding: 10px 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; color: #1e293b; background: #f8fafc; }
+    .dimension-title { font-size: 13px; font-weight: 800; color: #2563eb; text-transform: uppercase; letter-spacing: 0.8px; margin: 24px 0 12px; padding-bottom: 6px; border-bottom: 2px solid #e0e7ff; }
+    .reactivo-card { background: #fff; border-radius: 10px; padding: 16px 20px; margin-bottom: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.05); }
+    .reactivo-num { font-size: 10px; font-weight: 700; color: #94a3b8; margin-bottom: 6px; }
+    .reactivo-texto { font-size: 13px; color: #1e293b; line-height: 1.5; margin-bottom: 12px; }
+    .escala { display: flex; gap: 6px; flex-wrap: wrap; }
+    .escala label { flex: 1; min-width: 52px; text-align: center; cursor: pointer; }
+    .escala input { display: none; }
+    .escala-btn { display: block; padding: 8px 4px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 12px; font-weight: 600; color: #64748b; transition: all .15s; }
+    .escala input:checked + .escala-btn { border-color: #2563eb; background: #2563eb; color: #fff; }
+    .escala-btn:hover { border-color: #93c5fd; background: #eff6ff; }
+    .escala-textos { display: flex; justify-content: space-between; font-size: 10px; color: #94a3b8; margin-top: 4px; padding: 0 2px; }
+    .btn-submit { display: block; width: 100%; padding: 14px; background: #2563eb; color: #fff; border: none; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 28px; }
+    .btn-submit:hover { background: #1d4ed8; }
+    .anonimo { text-align: center; font-size: 12px; color: #94a3b8; margin-top: 16px; }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <h1>{{workplace.name}}</h1>
+  <p>Encuesta de Clima Laboral — Medición de Percepción Organizacional</p>
+</div>
+
+<div class="container">
+
+  <div class="instrucciones">
+    <strong>Instrucciones:</strong> Lee cuidadosamente cada afirmación y selecciona la opción que mejor refleje tu percepción sobre tu entorno laboral actual. No hay respuestas correctas o incorrectas. Responde con honestidad. Esta encuesta es completamente anónima.
+  </div>
+
+  <form method="POST">
+    {% csrf_token %}
+
+    <div class="dept-card">
+      <label>Departamento / Área</label>
+      <select name="department">
+        <option value="">— Selecciona tu área —</option>
+        {% for dept in departments %}
+        <option value="{{dept}}">{{dept}}</option>
+        {% endfor %}
+        <option value="Otro">Otro</option>
+      </select>
+    </div>
+
+    {% for reactivo in reactivos %}
+      {% if reactivo.0 == 1 %}<div class="dimension-title">Liderazgo y supervisión</div>{% endif %}
+      {% if reactivo.0 == 6 %}<div class="dimension-title">Comunicación interna</div>{% endif %}
+      {% if reactivo.0 == 11 %}<div class="dimension-title">Trabajo en equipo</div>{% endif %}
+      {% if reactivo.0 == 16 %}<div class="dimension-title">Reconocimiento y motivación</div>{% endif %}
+      {% if reactivo.0 == 21 %}<div class="dimension-title">Condiciones de trabajo</div>{% endif %}
+      {% if reactivo.0 == 26 %}<div class="dimension-title">Carga laboral y equilibrio</div>{% endif %}
+      {% if reactivo.0 == 31 %}<div class="dimension-title">Desarrollo y crecimiento</div>{% endif %}
+      {% if reactivo.0 == 36 %}<div class="dimension-title">Sentido de pertenencia</div>{% endif %}
+
+      <div class="reactivo-card">
+        <div class="reactivo-num">Pregunta {{reactivo.0}} de 40</div>
+        <div class="reactivo-texto">{{reactivo.2}}</div>
+        <div class="escala">
+          {% for val in '12345' %}
+          <label>
+            <input type="radio" name="cl_p{{reactivo.0}}" value="{{val}}" required>
+            <span class="escala-btn">{{val}}</span>
+          </label>
+          {% endfor %}
+        </div>
+        <div class="escala-textos">
+          <span>Totalmente en desacuerdo</span>
+          <span>Totalmente de acuerdo</span>
+        </div>
+      </div>
+    {% endfor %}
+
+    <button type="submit" class="btn-submit">Enviar mis respuestas</button>
+    <p class="anonimo">🔒 Tus respuestas son completamente anónimas y se procesarán de forma agregada.</p>
+  </form>
+
+</div>
+</body>
+</html>

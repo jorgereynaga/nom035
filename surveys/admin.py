@@ -58,3 +58,5 @@ admin.site.register(Payment)
 admin.site.register(PurchasedProducts)
 admin.site.register(ResultFiles)
 admin.site.register(Candidate)
+
+admin.site.register(WorkEnvironmentSurvey)
