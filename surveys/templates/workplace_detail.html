@@ -415,6 +415,11 @@ $(document).ready(function(){
   // DataTable
   var table = $("#list").DataTable({
     "lengthMenu": [[5,10,25,50,100],[5,10,25,50,100]],
+    "pageLength": 5,
+    "drawCallback": function(settings) {
+        var api = this.api();
+        var pageInfo = api.page.info();
+    },
     "ajax": '/employees_dt/{{workplace_id}}/0/{{evaluation}}/',
     "serverSide": true,
     "columns": [
@@ -440,6 +445,12 @@ $(document).ready(function(){
       },
       "sSearch": "Buscar"
     }
+  });
+  $(document).on('change', '#list_length select', function() {
+      table.page.len(parseInt($(this).val())).draw();
+  });
+  $(document).on('change', '#list_length select', function() {
+      table.page.len($(this).val()).draw();
   });
 
   $('#list').on('draw.dt', function(){ $('[data-toggle="tooltip"]').tooltip(); });
