@@ -159,6 +159,24 @@ class Index(LoginRequiredMixin,View):
 			else:
 				print("N")
 				survey_completed=0
+			# Calcular dimensiones para dashboard
+			dimensions_preview = []
+			col_map={0:"#9be5f7",1:"#6bf56e",2:"#ffff00",3:"#ffc000",4:"#ff7070"}
+			name_map={0:"Nulo",1:"Bajo",2:"Medio",3:"Alto",4:"Muy alto"}
+			domainsA_dash={"Condiciones en el ambiente de trabajo":["r2_p1","r2_p2","r2_p3"],"Carga de trabajo":["r2_p4","r2_p5","r2_p6","r2_p7","r2_p8","r2_p9","r2_p10","r2_p11","r2_p12","r2_p13","r2_p41","r2_p42","r2_p43"],"Falta de control":["r2_p18","r2_p19","r2_p20","r2_p21","r2_p22","r2_p26","r2_p27"],"Jornada de trabajo":["r2_p14","r2_p15"],"Interferencia trabajo-familia":["r2_p16","r2_p17"],"Liderazgo":["r2_p23","r2_p24","r2_p25","r2_p28","r2_p29"],"Relaciones en el trabajo":["r2_p30","r2_p31","r2_p32","r2_p44","r2_p45","r2_p46"],"Violencia":["r2_p33","r2_p34","r2_p35","r2_p36","r2_p37","r2_p38","r2_p39","r2_p40"]}
+			if item.survey_type() != 3 and survey_completed > 0:
+				survey_sample=RiskSurveyA.objects.filter(evaluation=eval_to_check,employee_id__in=list(employees.values_list("id",flat=True))).first()
+				if survey_sample:
+					for domain,fields in domainsA_dash.items():
+						_sum=0
+						for f in fields:
+							try:
+								_sum+=(getattr(survey_sample,f) or 0)
+							except:pass
+						max_score=len(fields)*4
+						pct=round((_sum/max_score)*100) if max_score else 0
+						color_idx=0 if pct<20 else (1 if pct<40 else (2 if pct<60 else (3 if pct<80 else 4)))
+						dimensions_preview.append({"name":domain,"pct":pct,"color":col_map[color_idx],"nivel":name_map[color_idx]})
 			print(survey_completed)
 			wk.append({"id":item.id,"name":item.name,"address":item.address,"employee_count":item.employee_num,
 			"access_code":f"https://n035.page.link/?link=https://035.ihes.mx/app/access?d={item.access_code}",#&apn=ihes.com.mx.n035",
@@ -167,7 +185,9 @@ class Index(LoginRequiredMixin,View):
 			"survey_completed":survey_completed,
 			"survey_completion":ceil((survey_completed/item.employee_num)*100),
 			"climate_surveys_count":item.climate_surveys.count(),
-			"raw_access_code":item.access_code,
+				"raw_access_code":item.access_code,
+				"dimensions_preview":dimensions_preview,
+			"dimensions_preview":dimensions_preview,
 			})
 		ctx={"workplaces":wk}
 		ctx['workplaces_available']=request.user.userapp.workplaces_available
