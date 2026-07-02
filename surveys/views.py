@@ -211,6 +211,8 @@ class Index(LoginRequiredMixin,View):
 		ctx['workplaces_available']=request.user.userapp.workplaces_available
 		ctx['has_workplaces']=Workplace.objects.filter(user_id=self.request.user.id).exists()
 		ctx['name']=request.user.userapp.name
+		ctx['dashboard_msg']=request.GET.get('msg','')
+		ctx['dashboard_msg']=request.GET.get('msg','')
 		ctx['phone']=request.user.userapp.phone
 		ctx['email']=request.user.email
 		ctx['len_workplaces']=len(ctx["workplaces"])
