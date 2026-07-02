@@ -186,6 +186,7 @@ class Index(LoginRequiredMixin,View):
 			"survey_completion":ceil((survey_completed/item.employee_num)*100),
 			"climate_surveys_count":item.climate_surveys.count(),
 				"raw_access_code":item.access_code,
+				"eval_to_check":eval_to_check,
 				"dimensions_preview":dimensions_preview,
 			"dimensions_preview":dimensions_preview,
 			})
