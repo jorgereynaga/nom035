@@ -30,6 +30,8 @@ class CandidateCreateView(LoginRequiredMixin, View):
     login_url = reverse_lazy('login')
 
     def post(self, request):
+        if not getattr(request.user.userapp, "psico_plan_key", None) and not getattr(request.user.userapp, "psico_evaluaciones_disponibles", 0):
+            return JsonResponse({"error": "Necesitas un plan para agregar candidatos. Contrata un plan desde Mi Plan."}, status=403)
         nombre = request.POST.get('nombre', '').strip()
         email = request.POST.get('email', '').strip()
         puesto = request.POST.get('puesto', '').strip()
