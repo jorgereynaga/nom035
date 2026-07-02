@@ -216,7 +216,7 @@ class Index(LoginRequiredMixin,View):
 		ctx['len_workplaces']=len(ctx["workplaces"])
 		ctx['total_employees']=sum(item['employee_count'] for item in wk)
 		ctx['total_surveys']=sum(item['survey_completed'] for item in wk)
-		ctx['candidates']=list(Candidate.objects.filter(user=request.user).order_by('-record_create')[:5].values('id','nombre','email','puesto','tipo'))
+		ctx['candidates']=list(Candidate.objects.filter(user=request.user).order_by('-record_create')[:3].values('id','nombre','email','puesto','tipo'))
 		userapp=request.user.userapp
 		ctx['psico_disponibles']=getattr(userapp,'psico_evaluaciones_disponibles',0) + getattr(userapp,'psico_demo',0)
 		ctx['nom035_demo']=getattr(userapp,'nom035_demo',0)
