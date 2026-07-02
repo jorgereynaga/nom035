@@ -165,6 +165,8 @@ class Index(LoginRequiredMixin,View):
 			"employee_completion":ceil((employees.count()/item.employee_num)*100),
 			"survey_completed":survey_completed,
 			"survey_completion":ceil((survey_completed/item.employee_num)*100),
+			"climate_surveys_count":item.climate_surveys.count(),
+			"raw_access_code":item.access_code,
 			})
 		ctx={"workplaces":wk}
 		ctx['workplaces_available']=request.user.userapp.workplaces_available

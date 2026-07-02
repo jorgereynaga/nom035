@@ -714,173 +714,507 @@
 
     {% block dashboard %}
 
-    <!-- Page header -->
-    <div class="page-header">
-      <div class="page-header-text">
-        <h1>Dashboard</h1>
-        <p>Bienvenido, {{name}}</p>
-      </div>
-      {% if plan_activo %}
-      <span class="plan-badge">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-        {{plan_activo}} &middot; activo
-      </span>
-      {% else %}
-      <a href="{% url 'stripe_planes' %}" class="plan-badge sin-plan">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-        Sin plan activo — contratar
-      </a>
-      {% endif %}
-    </div>
+    <style>
+          /* ── Dashboard section styles ── */
+          .db-section { margin-bottom: 36px; }
 
-    <!-- Alert -->
-    {% if not has_workplaces %}
-    <div class="alert alert-warning">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-      No tienes centros de trabajo registrados. <a href="/workplaceform/">Registra el primero aquí</a>.
-    </div>
-    {% endif %}
+          .db-section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            padding-bottom: 14px;
+            border-bottom: 2px solid;
+            flex-wrap: wrap;
+            gap: 10px;
+          }
+          .db-section-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 15px;
+            font-weight: 800;
+            letter-spacing: -.02em;
+          }
+          .db-section-icon {
+            width: 34px; height: 34px;
+            border-radius: 9px;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+          }
+          .db-section-icon svg { width: 16px; height: 16px; }
 
-    <!-- Stats -->
-    <div class="stats-grid">
-      <div class="stat-card">
-        <p class="stat-label">Centros de trabajo</p>
-        <p class="stat-value">{{len_workplaces}}</p>
-      </div>
-      <div class="stat-card">
-        <p class="stat-label">Total empleados</p>
-        <p class="stat-value">{{total_employees}}</p>
-      </div>
-      <div class="stat-card">
-        <p class="stat-label">Evaluaciones psico. disp.</p>
-        <p class="stat-value">{% if psico_disponibles == 99999 %}&infin;{% else %}{{psico_disponibles}}{% endif %}</p>
-      </div>
-      <div class="stat-card">
-        <p class="stat-label">Cuestionarios aplicados</p>
-        <p class="stat-value">{{total_surveys}}</p>
-      </div>
-    </div>
+          /* NOM-035 — azul */
+          .section-nom035 .db-section-header { border-color: #bfdbfe; }
+          .section-nom035 .db-section-title  { color: #1e40af; }
+          .section-nom035 .db-section-icon   { background: #dbeafe; color: #1d4ed8; }
 
-    <!-- NOM-035 + Plan row -->
-    <div class="two-col">
-      <!-- Centros de trabajo card -->
-      <div class="card">
-        <div class="card-header">
-          <span class="card-title">Estado NOM-035 por centro de trabajo</span>
-        </div>
-        <div class="card-body">
-          {% if workplaces %}
-            {% for item in workplaces %}
-            <div class="workplace-row">
-              <div>
-                <p class="workplace-name">{{item.name}}</p>
-                <p class="workplace-meta">{{item.employee_total}} / {{item.employee_count}} empleados &middot; {{item.survey_completion}}% cuestionarios</p>
-              </div>
-              {% if item.survey_completion >= 100 %}
-                <span class="badge badge-success">Completado</span>
-              {% elif item.survey_completion > 0 %}
-                <span class="badge badge-warning">En proceso</span>
-              {% else %}
-                <span class="badge badge-neutral">Pendiente</span>
-              {% endif %}
-            </div>
-            {% endfor %}
-          {% else %}
-            <div class="empty-state">
-              <div class="empty-state-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
-              </div>
-              <p>No hay centros de trabajo registrados</p>
-            </div>
-          {% endif %}
-        </div>
-      </div>
+          /* Psicometría — violeta */
+          .section-psico .db-section-header  { border-color: #ddd6fe; }
+          .section-psico .db-section-title   { color: #5b21b6; }
+          .section-psico .db-section-icon    { background: #ede9fe; color: #7c3aed; }
 
-      <!-- Plan card -->
-      <div class="card">
-        <div class="card-header">
-          <span class="card-title">Mi plan</span>
-        </div>
-        <div class="card-body">
-          {% if plan_activo %}
-            <p class="plan-name">{{plan_activo}}</p>
-            <p class="plan-price">${{plan_precio}} <small>/{{plan_periodo}}</small></p>
-            <ul class="plan-features">
-              {% if plan_empleados_max %}<li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>NOM-035 hasta {{plan_empleados_max}} empleados</li>{% endif %}
-              {% if plan_evaluaciones %}<li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>{% if plan_evaluaciones == -1 %}Evaluaciones ilimitadas{% else %}{{plan_evaluaciones}} evaluaciones/mes{% endif %}</li>{% endif %}
-            </ul>
-            <div class="credits-row">
-              <div class="credit-chip">
-                <span>NOM-035</span>
-                <strong>{{nom035_disponibles}}</strong>
-              </div>
-              <div class="credit-chip">
-                <span>Psicometría</span>
-                <strong>{{psico_disponibles}}</strong>
-              </div>
-            </div>
-            {% if psico_plan_activo %}
-            <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border);">
-              <p class="psico-sub-tag">Psicometría</p>
-              <p style="font-size:13px;font-weight:600;color:var(--text-primary);margin-bottom:2px;">{{psico_plan_activo}}</p>
-              {% if psico_plan_evaluaciones %}<p style="font-size:12px;color:var(--text-muted);">{{psico_plan_evaluaciones}} evaluaciones</p>{% endif %}
-            </div>
+          /* Clima Laboral — teal */
+          .section-clima .db-section-header  { border-color: #99f6e4; }
+          .section-clima .db-section-title   { color: #115e59; }
+          .section-clima .db-section-icon    { background: #ccfbf1; color: #0f766e; }
+
+          /* Pill de créditos */
+          .credit-pill {
+            display: inline-flex; align-items: center; gap: 5px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px; font-weight: 600;
+          }
+          .credit-pill-blue   { background:#dbeafe; color:#1d4ed8; border:1px solid #bfdbfe; }
+          .credit-pill-violet { background:#ede9fe; color:#7c3aed; border:1px solid #ddd6fe; }
+
+          /* Grilla de workplaces */
+          .wp-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 14px;
+          }
+          .wp-card {
+            background: var(--bg-base);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 18px 18px 14px;
+            box-shadow: var(--shadow-sm);
+            transition: box-shadow .2s, transform .15s;
+          }
+          .wp-card:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
+
+          .wp-card-top {
+            display: flex; align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 12px;
+          }
+          .wp-card-name {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 14px; font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 3px;
+          }
+          .wp-card-meta { font-size: 11px; color: var(--text-muted); }
+
+          .wp-progress-wrap { margin-bottom: 14px; }
+          .wp-progress-label {
+            display: flex; justify-content: space-between;
+            font-size: 11px; color: var(--text-muted);
+            margin-bottom: 5px;
+          }
+          .wp-progress-pct { font-weight: 700; }
+          .wp-progress-bar {
+            height: 5px; border-radius: 99px;
+            background: var(--bg-surface);
+            overflow: hidden;
+          }
+          .wp-progress-fill { height: 100%; border-radius: 99px; transition: width .4s ease; }
+          .fill-blue   { background: #2563eb; }
+          .fill-violet { background: #7c3aed; }
+          .fill-teal   { background: #0d9488; }
+
+          .wp-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+
+          /* Tabla candidatos */
+          .cand-table { width: 100%; border-collapse: collapse; }
+          .cand-table th {
+            font-size: 10px; font-weight: 700;
+            letter-spacing: .06em; text-transform: uppercase;
+            color: var(--text-muted);
+            padding: 8px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+            background: var(--bg-surface);
+          }
+          .cand-table td {
+            padding: 10px 16px;
+            font-size: 13px;
+            color: var(--text-primary);
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+          }
+          .cand-table tr:last-child td { border-bottom: none; }
+          .cand-table tr:hover td { background: #fafafa; }
+
+          /* Clima copy btn */
+          .copy-btn {
+            display: inline-flex; align-items: center; gap: 5px;
+            padding: 6px 12px;
+            font-size: 12px; font-weight: 600;
+            border-radius: var(--radius-sm);
+            border: 1px solid #99f6e4;
+            background: #ccfbf1;
+            color: #0f766e;
+            cursor: pointer;
+            transition: background .15s, color .15s;
+            font-family: inherit;
+          }
+          .copy-btn:hover { background: #99f6e4; }
+          .copy-btn svg { width: 13px; height: 13px; }
+
+          /* Badge incluido */
+          .included-badge {
+            display: inline-flex; align-items: center; gap: 5px;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 11px; font-weight: 600;
+            background: #ccfbf1; color: #0f766e;
+            border: 1px solid #99f6e4;
+          }
+
+          /* Grilla psico */
+          .psico-grid {
+            display: grid;
+            grid-template-columns: 220px 1fr;
+            gap: 14px;
+          }
+          .psico-stats { display: flex; flex-direction: column; gap: 12px; }
+          .stat-mini {
+            background: var(--bg-base);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 16px 18px;
+            box-shadow: var(--shadow-sm);
+          }
+          .stat-mini-label { font-size: 10px; font-weight: 700; letter-spacing:.06em; text-transform:uppercase; color:var(--text-muted); margin-bottom:6px; }
+          .stat-mini-val { font-family:'Plus Jakarta Sans',sans-serif; font-size:1.75rem; font-weight:800; line-height:1; }
+          .stat-mini-sub { font-size:11px; color:var(--text-muted); margin-top:4px; }
+
+          /* Responsive */
+          @media (max-width: 768px) {
+            .psico-grid { grid-template-columns: 1fr; }
+            .wp-grid    { grid-template-columns: 1fr; }
+          }
+        </style>
+
+        <!-- ── Header ─────────────────────────────────────────────── -->
+        <div class="page-header" style="margin-bottom:28px;">
+          <div class="page-header-text">
+            <h1>Dashboard</h1>
+            <p>Bienvenido de vuelta, <strong>{{name}}</strong></p>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            {% if plan_activo %}
+            <span class="plan-badge">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              {{plan_activo}} &middot; activo
+            </span>
+            {% else %}
+            <a href="{% url 'stripe_planes' %}" class="plan-badge sin-plan">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              Sin plan activo — contratar
+            </a>
             {% endif %}
-            <a href="{% url 'stripe_portal' %}" class="btn btn-outline btn-sm btn-block" style="margin-top:14px;">Gestionar plan</a>
-          {% else %}
-            <div class="empty-state">
-              <div class="empty-state-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-              </div>
-              <p style="margin-bottom:14px;">No tienes un plan activo. Contrata uno para acceder a todas las funciones.</p>
-            </div>
-            {% if nom035_disponibles or psico_disponibles %}
-            <div class="credits-row" style="margin-bottom:14px;">
-              <div class="credit-chip">
-                <span>NOM-035 demo</span>
-                <strong>{{nom035_disponibles}}</strong>
-              </div>
-              <div class="credit-chip">
-                <span>Psicometría demo</span>
-                <strong>{{psico_disponibles}}</strong>
-              </div>
-            </div>
-            {% endif %}
-<a href="{% url 'stripe_planes' %}" class="btn btn-primary btn-sm btn-block">Ver planes y precios</a>
-          {% endif %}
-        </div>
-      </div>
-    </div>
-
-    <!-- Psicometría card -->
-    <div class="full-col">
-      <div class="card">
-        <div class="card-header">
-          <span class="card-title">Evaluaciones psicométricas</span>
-          <a href="#" class="btn btn-primary btn-sm">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-            Nueva evaluación
-          </a>
-        </div>
-        <div class="card-body">
-          <div class="empty-state">
-            <div class="empty-state-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
-            </div>
-            <p>
-              {% if psico_disponibles == 0 and not plan_activo %}
-              Contrata un plan de psicometría para empezar a evaluar candidatos y empleados. <a href="{% url 'stripe_planes' %}">Ver planes</a>
-              {% else %}
-              Aún no hay evaluaciones registradas. Haz clic en "Nueva evaluación" para empezar.
-              {% endif %}
-            </p>
           </div>
         </div>
-      </div>
-    </div>
 
-    {% endblock %}
+        {% if not has_workplaces %}
+        <div class="alert alert-warning">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          No tienes centros de trabajo registrados. <a href="/workplaceform/">Registra el primero aquí</a>.
+        </div>
+        {% endif %}
 
+        <!-- ══════════════════════════════════════════════════════════
+             SECCIÓN 1 · NOM-035
+        ══════════════════════════════════════════════════════════ -->
+        <section class="db-section section-nom035">
+
+          <div class="db-section-header">
+            <div class="db-section-title">
+              <div class="db-section-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+              </div>
+              NOM-035 &mdash; Riesgo Psicosocial
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+              <span class="credit-pill credit-pill-blue">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
+                {{nom035_disponibles}} crédito{% if nom035_disponibles != 1 %}s{% endif %} disponible{% if nom035_disponibles != 1 %}s{% endif %}
+              </span>
+              <a href="{% url 'workplaceform' %}" class="btn btn-primary btn-sm">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+                Nuevo centro
+              </a>
+            </div>
+          </div>
+
+          {% if workplaces %}
+          <div class="wp-grid">
+            {% for item in workplaces %}
+            <div class="wp-card" style="border-top:3px solid #2563eb;">
+              <div class="wp-card-top">
+                <div>
+                  <p class="wp-card-name">{{item.name}}</p>
+                  <p class="wp-card-meta">
+                    {{item.employee_total}}&thinsp;/&thinsp;{{item.employee_count}} empleados
+                    &nbsp;&middot;&nbsp;
+                    Evaluación #{{item.cat}}
+                  </p>
+                </div>
+                {% if item.survey_completion >= 100 %}
+                  <span class="badge badge-success">Completado</span>
+                {% elif item.survey_completion > 0 %}
+                  <span class="badge badge-warning">En proceso</span>
+                {% else %}
+                  <span class="badge badge-neutral">Pendiente</span>
+                {% endif %}
+              </div>
+
+              <div class="wp-progress-wrap">
+                <div class="wp-progress-label">
+                  <span>Cuestionarios aplicados</span>
+                  <span class="wp-progress-pct" style="color:#2563eb;">{{item.survey_completion}}%</span>
+                </div>
+                <div class="wp-progress-bar">
+                  <div class="wp-progress-fill fill-blue" style="width:{{item.survey_completion}}%;"></div>
+                </div>
+              </div>
+
+              <div class="wp-actions">
+                <a href="{% url 'single_workplace' item.id %}" class="btn btn-outline btn-sm">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                  Ver centro
+                </a>
+                <a href="/clima/resultados/{{item.id}}/" class="btn btn-outline btn-sm">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                  Resultados
+                </a>
+                <a href="{% url 'evidence' %}" class="btn btn-outline btn-sm">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                  Portafolio
+                </a>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div class="card">
+            <div class="card-body">
+              <div class="empty-state">
+                <div class="empty-state-icon" style="background:#dbeafe;border-color:#bfdbfe;color:#2563eb;">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
+                </div>
+                <p>No hay centros registrados. <a href="/workplaceform/" style="color:#2563eb;font-weight:600;">Registra el primero</a>.</p>
+              </div>
+            </div>
+          </div>
+          {% endif %}
+
+        </section>
+
+        <!-- ══════════════════════════════════════════════════════════
+             SECCIÓN 2 · PSICOMETRÍA
+        ══════════════════════════════════════════════════════════ -->
+        <section class="db-section section-psico">
+
+          <div class="db-section-header">
+            <div class="db-section-title">
+              <div class="db-section-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+              </div>
+              Psicometría
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+              <span class="credit-pill credit-pill-violet">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
+                {% if psico_disponibles == 99999 %}&infin;{% else %}{{psico_disponibles}}{% endif %} evaluaciones disponibles
+              </span>
+              <a href="{% url 'candidato_nuevo' %}" class="btn btn-sm" style="background:#7c3aed;color:#fff;border-color:#7c3aed;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+                Nueva evaluación
+              </a>
+            </div>
+          </div>
+
+          <div class="psico-grid">
+
+            <!-- Stats laterales -->
+            <div class="psico-stats">
+              <div class="stat-mini" style="border-top:3px solid #7c3aed;">
+                <p class="stat-mini-label">Candidatos activos</p>
+                <p class="stat-mini-val" style="color:#7c3aed;">{{candidates|length}}</p>
+                <p class="stat-mini-sub">en proceso de evaluación</p>
+              </div>
+              <div class="stat-mini" style="border-top:3px solid #7c3aed;">
+                <p class="stat-mini-label">Evaluaciones disp.</p>
+                <p class="stat-mini-val" style="color:#7c3aed;">
+                  {% if psico_disponibles == 99999 %}&infin;{% else %}{{psico_disponibles}}{% endif %}
+                </p>
+                <p class="stat-mini-sub">en tu plan actual</p>
+              </div>
+              <a href="{% url 'candidatos' %}" class="btn btn-outline btn-block" style="border-color:#ddd6fe;color:#7c3aed;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                Ver todos los candidatos
+              </a>
+            </div>
+
+            <!-- Últimos candidatos -->
+            <div class="card" style="border-top:3px solid #7c3aed;overflow:hidden;">
+              <div class="card-header" style="padding-bottom:0;">
+                <span class="card-title" style="color:#5b21b6;">Últimos candidatos</span>
+              </div>
+              {% if candidates %}
+              <table class="cand-table" style="margin-top:12px;">
+                <thead>
+                  <tr>
+                    <th>Candidato</th>
+                    <th>Estado</th>
+                    <th style="text-align:right;">Acción</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for c in candidates %}
+                  <tr>
+                    <td>
+                      <div style="font-weight:600;">{{c.name}}</div>
+                      <div style="font-size:11px;color:var(--text-muted);">{{c.email|default:"—"}}</div>
+                    </td>
+                    <td>
+                      {% if c.completed %}
+                        <span class="badge badge-success">Completado</span>
+                      {% else %}
+                        <span class="badge badge-warning">Pendiente</span>
+                      {% endif %}
+                    </td>
+                    <td style="text-align:right;">
+                      <a href="{% url 'candidato_detalle' c.id %}" class="btn btn-outline btn-sm">Ver</a>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+              {% else %}
+              <div class="card-body">
+                <div class="empty-state">
+                  <div class="empty-state-icon" style="background:#ede9fe;border-color:#ddd6fe;color:#7c3aed;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                  </div>
+                  <p>
+                    {% if psico_disponibles == 0 and not plan_activo %}
+                      Contrata un plan para empezar a evaluar candidatos.
+                      <a href="{% url 'stripe_planes' %}" style="color:#7c3aed;font-weight:600;">Ver planes</a>
+                    {% else %}
+                      Aún no hay candidatos.
+                      <a href="{% url 'candidato_nuevo' %}" style="color:#7c3aed;font-weight:600;">Crear el primero</a>
+                    {% endif %}
+                  </p>
+                </div>
+              </div>
+              {% endif %}
+            </div>
+
+          </div>
+        </section>
+
+        <!-- ══════════════════════════════════════════════════════════
+             SECCIÓN 3 · CLIMA LABORAL
+        ══════════════════════════════════════════════════════════ -->
+        <section class="db-section section-clima">
+
+          <div class="db-section-header">
+            <div class="db-section-title">
+              <div class="db-section-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+              </div>
+              Clima Laboral
+            </div>
+            <span class="included-badge">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:11px;height:11px"><polyline points="20 6 9 17 4 12"/></svg>
+              Incluido en todos los planes
+            </span>
+          </div>
+
+          {% if workplaces %}
+          <div class="wp-grid">
+            {% for item in workplaces %}
+            <div class="wp-card" style="border-top:3px solid #0d9488;">
+              <div class="wp-card-top">
+                <div>
+                  <p class="wp-card-name">{{item.name}}</p>
+                  <p class="wp-card-meta">
+                    {% if item.climate_surveys_count %}
+                      {{item.climate_surveys_count}} respuesta{% if item.climate_surveys_count != 1 %}s{% endif %} recibida{% if item.climate_surveys_count != 1 %}s{% endif %}
+                    {% else %}
+                      Sin respuestas aún
+                    {% endif %}
+                  </p>
+                </div>
+                {% if item.climate_surveys_count %}
+                  <span class="badge" style="background:#ccfbf1;color:#0f766e;border:1px solid #99f6e4;">{{item.climate_surveys_count}} resp.</span>
+                {% else %}
+                  <span class="badge badge-neutral">Sin datos</span>
+                {% endif %}
+              </div>
+
+              {% if item.climate_surveys_count %}
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;padding:10px 14px;background:#f0fdfa;border-radius:var(--radius-sm);border:1px solid #99f6e4;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#0d9488" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;flex-shrink:0;"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                <span style="font-size:13px;color:#0f766e;font-weight:600;">{{item.climate_surveys_count}} respuesta{% if item.climate_surveys_count != 1 %}s{% endif %} recopilada{% if item.climate_surveys_count != 1 %}s{% endif %}</span>
+              </div>
+              {% else %}
+              <div style="margin-bottom:14px;padding:10px 14px;background:#f0fdfa;border-radius:var(--radius-sm);border:1px dashed #5eead4;text-align:center;">
+                <p style="font-size:12px;color:#0f766e;margin-bottom:0;">Comparte el enlace para empezar a recopilar respuestas</p>
+              </div>
+              {% endif %}
+
+              <div class="wp-actions">
+                <button class="copy-btn" onclick="copyClimaLink('{{item.raw_access_code}}', this)">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                  Copiar enlace
+                </button>
+                <a href="{% url 'clima_resultados' item.id %}" class="btn btn-outline btn-sm" style="border-color:#99f6e4;color:#0f766e;">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                  Ver resultados
+                </a>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div class="card" style="border-top:3px solid #0d9488;">
+            <div class="card-body">
+              <div class="empty-state">
+                <div class="empty-state-icon" style="background:#ccfbf1;border-color:#99f6e4;color:#0d9488;">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+                </div>
+                <p>Registra un centro de trabajo para activar las encuestas de clima laboral.
+                  <a href="/workplaceform/" style="color:#0d9488;font-weight:600;">Registrar ahora</a>
+                </p>
+              </div>
+            </div>
+          </div>
+          {% endif %}
+
+        </section>
+
+        <script>
+        function copyClimaLink(rawCode, btn) {
+          var url = window.location.origin + '/clima/' + rawCode + '/';
+          if (navigator.clipboard) {
+            navigator.clipboard.writeText(url).then(function() { flashCopied(btn); });
+          } else {
+            var ta = document.createElement('textarea');
+            ta.value = url; document.body.appendChild(ta);
+            ta.select(); document.execCommand('copy');
+            document.body.removeChild(ta); flashCopied(btn);
+          }
+        }
+        function flashCopied(btn) {
+          var orig = btn.innerHTML;
+          btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px"><polyline points="20 6 9 17 4 12"/></svg> ¡Copiado!';
+          btn.style.background = '#0d9488'; btn.style.color = '#fff'; btn.style.borderColor = '#0d9488';
+          setTimeout(function() {
+            btn.innerHTML = orig;
+            btn.style.background = ''; btn.style.color = ''; btn.style.borderColor = '';
+          }, 2200);
+        }
+        </script>
+
+        {% endblock %}
   </main>
 
 </div>
