@@ -341,7 +341,7 @@
                 contentType: 'application/json',
                 data: JSON.stringify({username: $('#inputEmail').val(), password: $('#inputPassword').val()}),
                 dataType: 'json',
-                success: function(loginData){ location.replace('/stripe/planes/'); },
+                success: function(loginData){ location.replace('/'); },
                 error: function(){ location.replace('/login'); }
               });
             },
