@@ -50,6 +50,8 @@ urlpatterns = [
     path('api/addCard/', AddCardList.as_view()),
     path('api/create_pdf/', PDFCreate.as_view()),
     path('reporte_html/<int:employee_id>/<int:evaluation>/', ReporteHTMLView.as_view(), name='reporte_html'),
+    path('borrar_demo/', BorrarDemoView.as_view(), name='borrar_demo'),
+    path('borrar_demo/', BorrarDemoView.as_view(), name='borrar_demo'),
     path('clima/<str:access_code>/', ClimaLaboralView.as_view(), name='clima_laboral'),
     path('clima/resultados/<int:workplace_id>/', ClimaResultadosView.as_view(), name='clima_resultados'),
     path('api/end_evaluation/', EndEvaluation.as_view()),

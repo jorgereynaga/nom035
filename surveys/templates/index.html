@@ -1050,10 +1050,23 @@
           Sin plan activo — contratar
         </a>
         {% endif %}
-      </div>
-    </div>
-
-    {% if not has_workplaces %}
+                {% if nom035_demo %}
+                <button onclick="borrarDemo()" class="plan-badge sin-plan" style="border:1px solid #e2e8f0;background:#fff8f0;color:#92400e;cursor:pointer;">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+                  Borrar datos de prueba
+                </button>
+                {% endif %}
+              </div>
+            </div>
+            <script>
+            function borrarDemo() {
+              if (!confirm('¿Seguro que deseas eliminar todos los datos de prueba? Esta acción no se puede deshacer.')) return;
+              fetch('/borrar_demo/', {method:'POST', headers:{'X-CSRFToken':getCookie('csrftoken')}})
+                .then(r=>r.json()).then(d=>{ alert(d.msg); location.reload(); })
+                .catch(()=>alert('Error al borrar datos de prueba.'));
+            }
+            </script>
+            {% if not has_workplaces %}
     <div class="alert alert-warning">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
       No tienes centros de trabajo registrados. <a href="/workplaceform/">Registra el primero aquí</a>.
