@@ -147,14 +147,15 @@ class Index(LoginRequiredMixin,View):
 		wk=[]
 		for item in Workplace.objects.filter(user_id=self.request.user.id):
 			employees=item.employees.all()
+			eval_to_check = item.evaluation if item.paid else max(1, item.evaluation - 1)
 			print(employees.count())
 			print(list(employees.values_list('id',flat=True)))
 			if item.survey_type() != 3:
 				print("A")
-				survey_completed=RiskSurveyA.objects.filter(evaluation=item.evaluation,employee_id__in=list(employees.values_list('id',flat=True))).count()
+				survey_completed=RiskSurveyA.objects.filter(evaluation=eval_to_check,employee_id__in=list(employees.values_list('id',flat=True))).count()
 			elif item.survey_type() == 3:
 				print("B")
-				survey_completed=RiskSurveyB.objects.filter(evaluation=item.evaluation,employee_id__in=list(employees.values_list('id',flat=True))).count()
+				survey_completed=RiskSurveyB.objects.filter(evaluation=eval_to_check,employee_id__in=list(employees.values_list('id',flat=True))).count()
 			else:
 				print("N")
 				survey_completed=0
