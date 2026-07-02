@@ -1061,7 +1061,7 @@
             <script>
             function borrarDemo() {
               if (!confirm('¿Seguro que deseas eliminar todos los datos de prueba? Esta acción no se puede deshacer.')) return;
-              fetch('/borrar_demo/', {method:'POST', headers:{'X-CSRFToken':getCookie('csrftoken')}})
+              fetch('/borrar_demo/', {method:'POST', headers:{'X-CSRFToken':document.cookie.match(/csrftoken=([^;]+)/)?.[1]||''}})
                 .then(r=>r.json()).then(d=>{ alert(d.msg); location.reload(); })
                 .catch(()=>alert('Error al borrar datos de prueba.'));
             }
