@@ -178,17 +178,34 @@ class Index(LoginRequiredMixin,View):
 						color_idx=0 if pct<20 else (1 if pct<40 else (2 if pct<60 else (3 if pct<80 else 4)))
 						dimensions_preview.append({"name":domain,"pct":pct,"color":col_map[color_idx],"nivel":name_map[color_idx]})
 			print(survey_completed)
+			# Dimensiones clima laboral
+			climate_dims=[]
+			CLIMA_DIM_FIELDS={"Liderazgo y supervision":[1,2,3,4,5],"Comunicacion interna":[6,7,8,9,10],"Trabajo en equipo":[11,12,13,14,15],"Reconocimiento y motivacion":[16,17,18,19,20],"Condiciones de trabajo":[21,22,23,24,25],"Carga laboral y equilibrio":[26,27,28,29,30],"Desarrollo y crecimiento":[31,32,33,34,35],"Sentido de pertenencia":[36,37,38,39,40]}
+			climate_surveys=item.climate_surveys.all()
+			if climate_surveys.exists():
+				for dim_name,fields in CLIMA_DIM_FIELDS.items():
+					promedios=[]
+					for s in climate_surveys:
+						vals=[getattr(s,f"cl_p{i}") for i in fields if getattr(s,f"cl_p{i}") is not None]
+						if vals: promedios.append(sum(vals)/len(vals))
+					if promedios:
+						prom=round(sum(promedios)/len(promedios),2)
+						if prom<2.5: nivel,color="Critico","#ff7070"
+						elif prom<3.5: nivel,color="En riesgo","#ffc000"
+						elif prom<4.25: nivel,color="Adecuado","#ffff00"
+						else: nivel,color="Favorable","#6bf56e"
+						climate_dims.append({"name":dim_name,"prom":prom,"nivel":nivel,"color":color})
 			wk.append({"id":item.id,"name":item.name,"address":item.address,"employee_count":item.employee_num,
 			"access_code":f"https://n035.page.link/?link=https://035.ihes.mx/app/access?d={item.access_code}",#&apn=ihes.com.mx.n035",
-			"employee_total":employees.count(),"cat":item.survey_type(),
 			"employee_completion":ceil((employees.count()/item.employee_num)*100),
+			"employee_total":employees.count(),"cat":item.survey_type(),
 			"survey_completed":survey_completed,
 			"survey_completion":ceil((survey_completed/item.employee_num)*100),
 			"climate_surveys_count":item.climate_surveys.count(),
-				"raw_access_code":item.access_code,
-				"eval_to_check":eval_to_check,
-				"dimensions_preview":dimensions_preview,
+			"raw_access_code":item.access_code,
+			"eval_to_check":eval_to_check,
 			"dimensions_preview":dimensions_preview,
+			"climate_dimensions_preview":climate_dims,
 			})
 		ctx={"workplaces":wk}
 		ctx['workplaces_available']=request.user.userapp.workplaces_available
