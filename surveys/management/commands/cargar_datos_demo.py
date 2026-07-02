@@ -200,4 +200,24 @@ class Command(BaseCommand):
                 data[f'cl_p{i}'] = val
             WorkEnvironmentSurvey.objects.create(**data)
         self.stdout.write('  Datos demo clima laboral cargados')
+
+        # Asignar evaluaciones psicometricas demo
+        from surveys.models import PsychoInstrument, TestSession
+        import uuid
+        from django.utils import timezone
+        from datetime import timedelta
+        candidatos = list(Candidate.objects.filter(user=user, es_demo=True))
+        instrumentos = list(PsychoInstrument.objects.filter(activo=True)[:2])
+        for i, cand in enumerate(candidatos):
+            if i < len(instrumentos):
+                instrumento = instrumentos[i]
+                token = uuid.uuid4().hex
+                expira_en = timezone.now() + timedelta(days=365)
+                TestSession.objects.create(
+                    candidate=cand,
+                    instrumento=instrumento,
+                    token=token,
+                    expira_en=expira_en,
+                )
+                self.stdout.write(f'  Sesion psicometrica demo: {cand.nombre} -> {instrumento.nombre}')
         self.stdout.write(self.style.SUCCESS('Datos demo cargados correctamente'))
