@@ -714,7 +714,7 @@
 
     {% block dashboard %}
 
-    <style>
+        <style>
           /* ── Dashboard section styles ── */
           .db-section { margin-bottom: 36px; }
 
@@ -770,74 +770,236 @@
           .credit-pill-blue   { background:#dbeafe; color:#1d4ed8; border:1px solid #bfdbfe; }
           .credit-pill-violet { background:#ede9fe; color:#7c3aed; border:1px solid #ddd6fe; }
 
-          /* Grilla de workplaces */
-          .wp-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 14px;
-          }
-          .wp-card {
+          /* ── NOM-035 workplace cards (horizontal, 3 columnas) ── */
+          .nom-wp-list { display: flex; flex-direction: column; gap: 14px; }
+
+          .nom-wp-card {
             background: var(--bg-base);
             border: 1px solid var(--border);
+            border-top: 3px solid #2563eb;
             border-radius: var(--radius-lg);
-            padding: 18px 18px 14px;
             box-shadow: var(--shadow-sm);
-            transition: box-shadow .2s, transform .15s;
+            display: grid;
+            grid-template-columns: 240px 1fr 172px;
+            overflow: hidden;
+            transition: box-shadow .2s;
           }
-          .wp-card:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
+          .nom-wp-card:hover { box-shadow: var(--shadow-md); }
 
-          .wp-card-top {
-            display: flex; align-items: flex-start;
-            justify-content: space-between;
-            margin-bottom: 12px;
+          /* Columna izquierda — info + acciones */
+          .nom-wp-left {
+            padding: 16px 18px;
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            gap: 0;
           }
-          .wp-card-name {
+          .nom-wp-name {
             font-family: 'Plus Jakarta Sans', sans-serif;
             font-size: 14px; font-weight: 700;
             color: var(--text-primary);
             margin-bottom: 3px;
           }
-          .wp-card-meta { font-size: 11px; color: var(--text-muted); }
+          .nom-wp-meta { font-size: 11px; color: var(--text-muted); margin-bottom: 12px; }
 
-          .wp-progress-wrap { margin-bottom: 14px; }
-          .wp-progress-label {
+          .nom-wp-progress-label {
             display: flex; justify-content: space-between;
-            font-size: 11px; color: var(--text-muted);
-            margin-bottom: 5px;
+            font-size: 10px; color: var(--text-muted);
+            margin-bottom: 4px;
           }
-          .wp-progress-pct { font-weight: 700; }
-          .wp-progress-bar {
+          .nom-wp-progress-bar {
             height: 5px; border-radius: 99px;
             background: var(--bg-surface);
             overflow: hidden;
+            margin-bottom: 14px;
           }
-          .wp-progress-fill { height: 100%; border-radius: 99px; transition: width .4s ease; }
-          .fill-blue   { background: #2563eb; }
-          .fill-violet { background: #7c3aed; }
-          .fill-teal   { background: #0d9488; }
+          .nom-wp-progress-fill {
+            height: 100%; border-radius: 99px;
+            background: #2563eb;
+            transition: width .4s ease;
+          }
+          .nom-wp-actions { display: flex; flex-wrap: wrap; gap: 5px; margin-top: auto; }
 
-          .wp-actions { display: flex; flex-wrap: wrap; gap: 6px; }
-
-          /* Tabla candidatos */
-          .cand-table { width: 100%; border-collapse: collapse; }
-          .cand-table th {
+          /* Columna central — dimensiones de riesgo */
+          .nom-wp-center {
+            padding: 14px 16px;
+            border-right: 1px solid var(--border);
+          }
+          .nom-wp-center-label {
             font-size: 10px; font-weight: 700;
             letter-spacing: .06em; text-transform: uppercase;
             color: var(--text-muted);
-            padding: 8px 16px;
-            text-align: left;
-            border-bottom: 1px solid var(--border);
-            background: var(--bg-surface);
+            margin-bottom: 10px;
           }
-          .cand-table td {
-            padding: 10px 16px;
-            font-size: 13px;
+
+          .dim-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+            gap: 7px;
+          }
+          .dim-card {
+            border-radius: var(--radius-sm);
+            padding: 8px 10px;
+            border: 1px solid transparent;
+          }
+          .dim-card-name {
+            font-size: 10px; font-weight: 600;
             color: var(--text-primary);
-            border-bottom: 1px solid var(--border);
-            vertical-align: middle;
+            margin-bottom: 4px;
+            line-height: 1.3;
           }
-          .cand-table tr:last-child td { border-bottom: none; }
-          .cand-table tr:hover td { background: #fafafa; }
+          .dim-card-pct {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 15px; font-weight: 800;
+            line-height: 1;
+            margin-bottom: 4px;
+          }
+          .dim-badge {
+            display: inline-block;
+            padding: 1px 7px;
+            border-radius: 20px;
+            font-size: 9px; font-weight: 700;
+            letter-spacing: .04em; text-transform: uppercase;
+            border: 1px solid transparent;
+          }
+
+          /* colores por nivel */
+          .dim-critico  { background: #fef2f2; border-color: #fecaca; }
+          .dim-critico  .dim-card-pct { color: #b91c1c; }
+          .dim-critico  .dim-badge    { background: #fee2e2; color: #b91c1c; border-color: #fca5a5; }
+
+          .dim-alto     { background: #fff7ed; border-color: #fed7aa; }
+          .dim-alto     .dim-card-pct { color: #c2410c; }
+          .dim-alto     .dim-badge    { background: #ffedd5; color: #c2410c; border-color: #fdba74; }
+
+          .dim-medio    { background: #fefce8; border-color: #fde68a; }
+          .dim-medio    .dim-card-pct { color: #a16207; }
+          .dim-medio    .dim-badge    { background: #fef9c3; color: #a16207; border-color: #fde047; }
+
+          .dim-bajo     { background: #f0fdf4; border-color: #bbf7d0; }
+          .dim-bajo     .dim-card-pct { color: #15803d; }
+          .dim-bajo     .dim-badge    { background: #dcfce7; color: #15803d; border-color: #86efac; }
+
+          .dim-nulo     { background: #f8fafc; border-color: #e2e8f0; }
+          .dim-nulo     .dim-card-pct { color: #475569; }
+          .dim-nulo     .dim-badge    { background: #f1f5f9; color: #475569; border-color: #cbd5e1; }
+
+          .dim-empty {
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            text-align: center;
+            padding: 20px 10px;
+            border: 1px dashed var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text-muted);
+            font-size: 11px;
+            line-height: 1.5;
+            min-height: 80px;
+          }
+
+          /* Columna derecha — criterios de interpretación */
+          .nom-wp-right {
+            padding: 14px 14px;
+            background: #f8fafc;
+          }
+          .nom-wp-right-label {
+            font-size: 10px; font-weight: 700;
+            letter-spacing: .06em; text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+          }
+          .criteria-list { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+          .criteria-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 7px;
+            font-size: 11px;
+            color: var(--text-secondary);
+            line-height: 1.35;
+          }
+          .criteria-dot { font-size: 13px; line-height: 1; flex-shrink: 0; margin-top: 0px; }
+          .criteria-name { font-weight: 700; color: var(--text-primary); }
+          .criteria-range { font-size: 10px; color: var(--text-muted); display: block; }
+
+          /* ── Clima Laboral workplace cards (horizontal, 3 columnas) ── */
+          .clima-wp-list { display: flex; flex-direction: column; gap: 14px; }
+
+          .clima-wp-card {
+            background: var(--bg-base);
+            border: 1px solid var(--border);
+            border-top: 3px solid #0d9488;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+            display: grid;
+            grid-template-columns: 220px 1fr 172px;
+            overflow: hidden;
+            transition: box-shadow .2s;
+          }
+          .clima-wp-card:hover { box-shadow: var(--shadow-md); }
+
+          .clima-wp-left {
+            padding: 16px 18px;
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+          }
+          .clima-wp-name {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 14px; font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+          }
+          .clima-wp-meta { font-size: 11px; color: var(--text-muted); margin-bottom: auto; }
+          .clima-wp-actions { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 14px; }
+
+          .clima-wp-center {
+            padding: 14px 16px;
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+          }
+          .clima-count-big {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 2.25rem; font-weight: 800;
+            color: #0d9488;
+            line-height: 1;
+            margin-bottom: 4px;
+          }
+          .clima-count-label { font-size: 12px; color: #0f766e; font-weight: 500; margin-bottom: 12px; }
+          .clima-progress-bar {
+            height: 5px; border-radius: 99px;
+            background: #ccfbf1;
+            overflow: hidden;
+            margin-bottom: 6px;
+          }
+          .clima-progress-fill {
+            height: 100%; border-radius: 99px;
+            background: #0d9488;
+            transition: width .4s ease;
+          }
+          .clima-progress-note { font-size: 10px; color: var(--text-muted); }
+
+          .clima-wp-right {
+            padding: 14px;
+            background: #f0fdfa;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            gap: 8px;
+          }
+          .clima-cta-icon {
+            width: 36px; height: 36px;
+            background: #ccfbf1;
+            border: 1px solid #99f6e4;
+            border-radius: 9px;
+            display: flex; align-items: center; justify-content: center;
+            color: #0d9488;
+          }
+          .clima-cta-icon svg { width: 17px; height: 17px; }
+          .clima-cta-text { font-size: 11px; color: #0f766e; line-height: 1.4; }
 
           /* Clima copy btn */
           .copy-btn {
@@ -865,7 +1027,28 @@
             border: 1px solid #99f6e4;
           }
 
-          /* Grilla psico */
+          /* Tabla candidatos */
+          .cand-table { width: 100%; border-collapse: collapse; }
+          .cand-table th {
+            font-size: 10px; font-weight: 700;
+            letter-spacing: .06em; text-transform: uppercase;
+            color: var(--text-muted);
+            padding: 8px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+            background: var(--bg-surface);
+          }
+          .cand-table td {
+            padding: 10px 16px;
+            font-size: 13px;
+            color: var(--text-primary);
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+          }
+          .cand-table tr:last-child td { border-bottom: none; }
+          .cand-table tr:hover td { background: #fafafa; }
+
+          /* Psico grid */
           .psico-grid {
             display: grid;
             grid-template-columns: 220px 1fr;
@@ -884,9 +1067,15 @@
           .stat-mini-sub { font-size:11px; color:var(--text-muted); margin-top:4px; }
 
           /* Responsive */
-          @media (max-width: 768px) {
-            .psico-grid { grid-template-columns: 1fr; }
-            .wp-grid    { grid-template-columns: 1fr; }
+          @media (max-width: 900px) {
+            .nom-wp-card   { grid-template-columns: 1fr; }
+            .nom-wp-left   { border-right: none; border-bottom: 1px solid var(--border); }
+            .nom-wp-center { border-right: none; border-bottom: 1px solid var(--border); }
+            .nom-wp-right  { border-radius: 0; }
+            .clima-wp-card  { grid-template-columns: 1fr; }
+            .clima-wp-left  { border-right: none; border-bottom: 1px solid var(--border); }
+            .clima-wp-center { border-right: none; border-bottom: 1px solid var(--border); }
+            .psico-grid     { grid-template-columns: 1fr; }
           }
         </style>
 
@@ -943,51 +1132,121 @@
           </div>
 
           {% if workplaces %}
-          <div class="wp-grid">
+          <div class="nom-wp-list">
             {% for item in workplaces %}
-            <div class="wp-card" style="border-top:3px solid #2563eb;">
-              <div class="wp-card-top">
-                <div>
-                  <p class="wp-card-name">{{item.name}}</p>
-                  <p class="wp-card-meta">
-                    {{item.employee_total}}&thinsp;/&thinsp;{{item.employee_count}} empleados
-                    &nbsp;&middot;&nbsp;
-                    Evaluación #{{item.cat}}
-                  </p>
+            <div class="nom-wp-card">
+
+              <!-- COL 1: info + progreso + acciones -->
+              <div class="nom-wp-left">
+                <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px;">
+                  <div>
+                    <p class="nom-wp-name">{{item.name}}</p>
+                    <p class="nom-wp-meta">
+                      {{item.employee_total}}&thinsp;/&thinsp;{{item.employee_count}} empleados
+                      &nbsp;&middot;&nbsp; Evaluación #{{item.cat}}
+                    </p>
+                  </div>
+                  {% if item.survey_completion >= 100 %}
+                    <span class="badge badge-success" style="flex-shrink:0;">Completado</span>
+                  {% elif item.survey_completion > 0 %}
+                    <span class="badge badge-warning" style="flex-shrink:0;">En proceso</span>
+                  {% else %}
+                    <span class="badge badge-neutral" style="flex-shrink:0;">Pendiente</span>
+                  {% endif %}
                 </div>
-                {% if item.survey_completion >= 100 %}
-                  <span class="badge badge-success">Completado</span>
-                {% elif item.survey_completion > 0 %}
-                  <span class="badge badge-warning">En proceso</span>
+
+                <div class="nom-wp-progress-label">
+                  <span>Cuestionarios aplicados</span>
+                  <span style="font-weight:700;color:#2563eb;">{{item.survey_completion}}%</span>
+                </div>
+                <div class="nom-wp-progress-bar">
+                  <div class="nom-wp-progress-fill" style="width:{{item.survey_completion}}%;"></div>
+                </div>
+
+                <div class="nom-wp-actions">
+                  <a href="{% url 'single_workplace' item.id %}" class="btn btn-outline btn-sm">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                    Ver centro
+                  </a>
+                  <a href="/workplace/{{item.id}}/resultados/" class="btn btn-outline btn-sm">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                    Resultados
+                  </a>
+                  <a href="{% url 'evidence' %}" class="btn btn-outline btn-sm">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                    Portafolio
+                  </a>
+                </div>
+              </div>
+
+              <!-- COL 2: dimensiones de riesgo -->
+              <div class="nom-wp-center">
+                <p class="nom-wp-center-label">Dimensiones de riesgo</p>
+                {% if item.dimensions_preview %}
+                <div class="dim-grid">
+                  {% for dim in item.dimensions_preview %}
+                  <div class="dim-card dim-{{dim.nivel|lower}}">
+                    <p class="dim-card-name">{{dim.name}}</p>
+                    <p class="dim-card-pct">{{dim.pct}}%</p>
+                    <span class="dim-badge">{{dim.nivel}}</span>
+                  </div>
+                  {% endfor %}
+                </div>
                 {% else %}
-                  <span class="badge badge-neutral">Pendiente</span>
+                <div class="dim-empty">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px;color:var(--text-muted);margin-bottom:6px;"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+                  Aplica la evaluación para ver resultados por dimensión
+                </div>
                 {% endif %}
               </div>
 
-              <div class="wp-progress-wrap">
-                <div class="wp-progress-label">
-                  <span>Cuestionarios aplicados</span>
-                  <span class="wp-progress-pct" style="color:#2563eb;">{{item.survey_completion}}%</span>
-                </div>
-                <div class="wp-progress-bar">
-                  <div class="wp-progress-fill fill-blue" style="width:{{item.survey_completion}}%;"></div>
-                </div>
+              <!-- COL 3: criterios de interpretación -->
+              <div class="nom-wp-right">
+                <p class="nom-wp-right-label">Interpretación</p>
+                <ul class="criteria-list">
+                  <li class="criteria-item">
+                    <span class="criteria-dot">🔴</span>
+                    <span>
+                      <span class="criteria-name">Crítico</span>
+                      <span class="criteria-range">1.0 – 2.49</span>
+                      Atención prioritaria
+                    </span>
+                  </li>
+                  <li class="criteria-item">
+                    <span class="criteria-dot">🟠</span>
+                    <span>
+                      <span class="criteria-name">Alto</span>
+                      <span class="criteria-range">2.5 – 3.99</span>
+                      Área de oportunidad
+                    </span>
+                  </li>
+                  <li class="criteria-item">
+                    <span class="criteria-dot">🟡</span>
+                    <span>
+                      <span class="criteria-name">Medio</span>
+                      <span class="criteria-range">4.0 – 5.99</span>
+                      Riesgo moderado
+                    </span>
+                  </li>
+                  <li class="criteria-item">
+                    <span class="criteria-dot">🟢</span>
+                    <span>
+                      <span class="criteria-name">Bajo</span>
+                      <span class="criteria-range">6.0 – 7.99</span>
+                      Riesgo bajo
+                    </span>
+                  </li>
+                  <li class="criteria-item">
+                    <span class="criteria-dot">⚪</span>
+                    <span>
+                      <span class="criteria-name">Nulo</span>
+                      <span class="criteria-range">8.0+</span>
+                      Sin riesgo significativo
+                    </span>
+                  </li>
+                </ul>
               </div>
 
-              <div class="wp-actions">
-                <a href="{% url 'single_workplace' item.id %}" class="btn btn-outline btn-sm">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-                  Ver centro
-                </a>
-                <a href="/clima/resultados/{{item.id}}/" class="btn btn-outline btn-sm">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-                  Resultados
-                </a>
-                <a href="{% url 'evidence' %}" class="btn btn-outline btn-sm">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-                  Portafolio
-                </a>
-              </div>
             </div>
             {% endfor %}
           </div>
@@ -1129,48 +1388,86 @@
           </div>
 
           {% if workplaces %}
-          <div class="wp-grid">
+          <div class="clima-wp-list">
             {% for item in workplaces %}
-            <div class="wp-card" style="border-top:3px solid #0d9488;">
-              <div class="wp-card-top">
-                <div>
-                  <p class="wp-card-name">{{item.name}}</p>
-                  <p class="wp-card-meta">
-                    {% if item.climate_surveys_count %}
-                      {{item.climate_surveys_count}} respuesta{% if item.climate_surveys_count != 1 %}s{% endif %} recibida{% if item.climate_surveys_count != 1 %}s{% endif %}
-                    {% else %}
-                      Sin respuestas aún
-                    {% endif %}
-                  </p>
+            <div class="clima-wp-card">
+
+              <!-- COL 1: info + acciones -->
+              <div class="clima-wp-left">
+                <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px;">
+                  <p class="clima-wp-name">{{item.name}}</p>
+                  {% if item.climate_surveys_count %}
+                    <span class="badge" style="background:#ccfbf1;color:#0f766e;border:1px solid #99f6e4;flex-shrink:0;">Activo</span>
+                  {% else %}
+                    <span class="badge badge-neutral" style="flex-shrink:0;">Sin datos</span>
+                  {% endif %}
                 </div>
+                <p class="clima-wp-meta">
+                  {{item.employee_count}} empleados registrados
+                </p>
+                <div class="clima-wp-actions">
+                  <button class="copy-btn" onclick="copyClimaLink('{{item.raw_access_code}}', this)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                    Copiar enlace
+                  </button>
+                  <a href="{% url 'clima_resultados' item.id %}" class="btn btn-outline btn-sm" style="border-color:#99f6e4;color:#0f766e;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                    Ver resultados
+                  </a>
+                </div>
+              </div>
+
+              <!-- COL 2: resumen de respuestas -->
+              <div class="clima-wp-center">
                 {% if item.climate_surveys_count %}
-                  <span class="badge" style="background:#ccfbf1;color:#0f766e;border:1px solid #99f6e4;">{{item.climate_surveys_count}} resp.</span>
+                <p class="clima-count-big">{{item.climate_surveys_count}}</p>
+                <p class="clima-count-label">respuesta{% if item.climate_surveys_count != 1 %}s{% endif %} recibida{% if item.climate_surveys_count != 1 %}s{% endif %}</p>
+                <div class="clima-progress-bar">
+                  {% with pct=item.climate_surveys_count|floatformat:0 %}
+                  <div class="clima-progress-fill" style="width:{% if item.employee_count > 0 %}{% widthratio item.climate_surveys_count item.employee_count 100 %}{% else %}0{% endif %}%;"></div>
+                  {% endwith %}
+                </div>
+                <p class="clima-progress-note">
+                  de {{item.employee_count}} empleado{% if item.employee_count != 1 %}s{% endif %} del centro
+                </p>
                 {% else %}
-                  <span class="badge badge-neutral">Sin datos</span>
+                <div style="display:flex;flex-direction:column;align-items:flex-start;gap:6px;">
+                  <p style="font-size:12px;color:var(--text-muted);line-height:1.5;margin-bottom:4px;">
+                    Aún no se han recibido respuestas.<br>
+                    Comparte el enlace de encuesta para comenzar.
+                  </p>
+                  <div style="display:flex;align-items:center;gap:6px;padding:7px 10px;background:#f0fdfa;border:1px dashed #5eead4;border-radius:var(--radius-sm);">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#0d9488" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;flex-shrink:0;"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+                    <span style="font-size:11px;color:#0f766e;font-weight:600;">
+                      {{request.get_host}}/clima/{{item.raw_access_code}}/
+                    </span>
+                  </div>
+                </div>
                 {% endif %}
               </div>
 
-              {% if item.climate_surveys_count %}
-              <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;padding:10px 14px;background:#f0fdfa;border-radius:var(--radius-sm);border:1px solid #99f6e4;">
-                <svg viewBox="0 0 24 24" fill="none" stroke="#0d9488" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;flex-shrink:0;"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                <span style="font-size:13px;color:#0f766e;font-weight:600;">{{item.climate_surveys_count}} respuesta{% if item.climate_surveys_count != 1 %}s{% endif %} recopilada{% if item.climate_surveys_count != 1 %}s{% endif %}</span>
-              </div>
-              {% else %}
-              <div style="margin-bottom:14px;padding:10px 14px;background:#f0fdfa;border-radius:var(--radius-sm);border:1px dashed #5eead4;text-align:center;">
-                <p style="font-size:12px;color:#0f766e;margin-bottom:0;">Comparte el enlace para empezar a recopilar respuestas</p>
-              </div>
-              {% endif %}
-
-              <div class="wp-actions">
-                <button class="copy-btn" onclick="copyClimaLink('{{item.raw_access_code}}', this)">
+              <!-- COL 3: CTA / estado visual -->
+              <div class="clima-wp-right">
+                {% if item.climate_surveys_count %}
+                <div class="clima-cta-icon" style="background:#ccfbf1;border-color:#99f6e4;">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="#0d9488" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                </div>
+                <p class="clima-cta-text">Tienes respuestas.<br>Consulta el análisis completo.</p>
+                <a href="{% url 'clima_resultados' item.id %}" class="btn btn-sm" style="background:#0d9488;color:#fff;border-color:#0d9488;width:100%;justify-content:center;">
+                  Ver análisis
+                </a>
+                {% else %}
+                <div class="clima-cta-icon" style="background:#f0fdfa;border-color:#99f6e4;">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="#0d9488" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+                </div>
+                <p class="clima-cta-text">Comparte el enlace con tus colaboradores para recopilar respuestas.</p>
+                <button class="copy-btn" onclick="copyClimaLink('{{item.raw_access_code}}', this)" style="width:100%;justify-content:center;">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
                   Copiar enlace
                 </button>
-                <a href="{% url 'clima_resultados' item.id %}" class="btn btn-outline btn-sm" style="border-color:#99f6e4;color:#0f766e;">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-                  Ver resultados
-                </a>
+                {% endif %}
               </div>
+
             </div>
             {% endfor %}
           </div>
