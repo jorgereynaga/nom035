@@ -1266,7 +1266,7 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
             {% if psico_disponibles == 99999 %}&infin;{% else %}{{psico_disponibles}}{% endif %} evaluaciones disponibles
           </span>
-          <a href="{% url 'candidato_nuevo' %}" class="btn btn-sm" style="background:#7c3aed;color:#fff;border-color:#7c3aed;">
+          <a href="{% url 'candidatos' %}" class="btn btn-sm" style="background:#7c3aed;color:#fff;border-color:#7c3aed;">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
             Nueva evaluación
           </a>
@@ -1342,7 +1342,7 @@
                   <a href="{% url 'stripe_planes' %}" style="color:#7c3aed;font-weight:600;">Ver planes</a>
                 {% else %}
                   Aún no hay candidatos.
-                  <a href="{% url 'candidato_nuevo' %}" style="color:#7c3aed;font-weight:600;">Crear el primero</a>
+                  <a href="{% url 'candidatos' %}" style="color:#7c3aed;font-weight:600;">Crear el primero</a>
                 {% endif %}
               </p>
             </div>
