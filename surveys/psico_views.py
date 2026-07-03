@@ -411,6 +411,8 @@ class ReporteUnificadoView(LoginRequiredMixin, View):
             status='completada'
         ).select_related('instrumento', 'result').order_by('fecha_completado')
 
+        if not sesiones.exists():
+            return render(request, "psico_reporte_sin_datos.html", {"candidate": candidate})
         resultados = []
         for s in sesiones:
             try:

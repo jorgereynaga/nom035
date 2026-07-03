@@ -1,0 +1,16 @@
+{% extends 'index.html' %}
+{% block dashboard %}
+<div style="display:flex;align-items:center;justify-content:center;min-height:60vh;">
+  <div style="background:#fff;border-radius:16px;padding:48px 40px;text-align:center;max-width:480px;box-shadow:0 4px 24px rgba(0,0,0,0.08);border:1px solid var(--border);">
+    <div style="font-size:56px;margin-bottom:20px;">📋</div>
+    <h2 style="font-family:'Plus Jakarta Sans',sans-serif;font-size:20px;font-weight:800;color:var(--text-primary);margin-bottom:12px;">Sin evaluaciones completadas</h2>
+    <p style="font-size:14px;color:var(--text-muted);line-height:1.6;margin-bottom:24px;">
+      <strong>{{candidate.nombre}}</strong> aún no ha completado ninguna evaluación psicométrica. 
+      Asigna una prueba y comparte el enlace con el candidato para que pueda responderla.
+    </p>
+    <a href="{% url 'candidato_detalle' candidate.id %}" style="display:inline-block;padding:12px 28px;background:var(--primary);color:#fff;border-radius:8px;font-weight:700;text-decoration:none;font-size:14px;">
+      Ir al perfil del candidato
+    </a>
+  </div>
+</div>
+{% endblock %}
