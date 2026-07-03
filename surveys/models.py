@@ -20,7 +20,7 @@ class Userapp(models.Model):
 	#empresa
 	user=models.OneToOneField(User,related_name="userapp",on_delete=models.CASCADE)
 	name=models.CharField(u'Nombre, Denominación, Razón social', max_length=150)
-	phone=models.CharField(u'Teléfono', max_length=12)
+	phone=models.CharField(u'Teléfono', max_length=15)
 	client_id=models.CharField(u'Cliente conekta', max_length=30, blank=True, null=True)
 	validated_email=models.BooleanField(u'Correo Validado',default=False)
 	workplaces_available=models.IntegerField(u'Centros pagados A', default=0)
