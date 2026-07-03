@@ -1,275 +1,184 @@
+{% extends 'index.html' %}
 {% load static %}
 {% load psico_filters %}
-<!DOCTYPE html>
-<html class="loading" lang="es" data-textdirection="ltr">
-<head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimal-ui">
-    <title>Resultados — {{ candidate.nombre }}</title>
-    <link rel="shortcut icon" type="image/x-icon" href="{% static 'app-assets/images/ico/favicon.ico' %}">
-    <link href="https://fonts.googleapis.com/css?family=Montserrat:300,400,500,600" rel="stylesheet">
-    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/vendors/css/vendors.min.css' %}">
-    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/bootstrap.css' %}">
-    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/bootstrap-extended.css' %}">
-    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/colors.css' %}">
-    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/components.css' %}">
-    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/core/menu/menu-types/vertical-menu.css' %}">
-    <link rel="stylesheet" type="text/css" href="{% static 'assets/css/style.css' %}">
-    <style>
-        .result-card { background:#fff; border-radius:12px; border:1px solid #e4e4e4; padding:24px; margin-bottom:20px; }
-        .perfil-badge { display:inline-block; padding:6px 16px; border-radius:20px; color:#fff; font-weight:700; font-size:13px; }
-        .bar-container { background:#f0f0f0; border-radius:6px; height:12px; margin-bottom:8px; }
-        .bar-fill { height:12px; border-radius:6px; transition: width 1s; }
-        .dim-label { font-size:13px; font-weight:600; color:#5e5873; width:120px; }
-        .dim-pct { font-size:13px; color:#b9b9c3; width:40px; text-align:right; }
-        .alerta-box { background:#fff3cd; border:1px solid #ffc107; border-radius:8px; padding:12px 16px; font-size:13px; color:#856404; }
-        .fortaleza-item { padding:6px 0; border-bottom:1px solid #f5f5f5; font-size:13px; color:#6e6b7b; }
-        .fortaleza-item:last-child { border-bottom:none; }
-    </style>
-</head>
-<body class="vertical-layout vertical-menu-modern 2-columns navbar-floating footer-static" data-open="click" data-menu="vertical-menu-modern" data-col="2-columns">
+{% block style %}
+<style>
+.result-header { margin-bottom: 24px; }
+.result-header h2 { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 20px; font-weight: 800; color: var(--text-primary); margin-bottom: 4px; }
+.result-header p { font-size: 13px; color: var(--text-muted); }
+.result-back { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--primary); text-decoration: none; margin-bottom: 16px; font-weight: 600; }
+.result-back:hover { text-decoration: underline; }
+.result-grid { display: grid; grid-template-columns: 1fr 320px; gap: 20px; }
+@media (max-width: 900px) { .result-grid { grid-template-columns: 1fr; } }
+.section-card { background: var(--bg-base); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px 24px; margin-bottom: 16px; }
+.section-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin-bottom: 14px; }
+.perfil-badge { display: inline-block; padding: 8px 20px; border-radius: 999px; color: #fff; font-weight: 700; font-size: 14px; margin-bottom: 12px; }
+.perfil-desc { font-size: 14px; color: var(--text-muted); line-height: 1.6; }
+.bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.bar-label { font-size: 13px; font-weight: 600; color: var(--text-primary); min-width: 120px; }
+.bar-wrap { flex: 1; background: var(--bg-surface); border-radius: 999px; height: 10px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 999px; transition: width .6s; }
+.bar-pct { font-size: 12px; color: var(--text-muted); min-width: 36px; text-align: right; }
+.list-item { display: flex; align-items: flex-start; gap: 8px; padding: 7px 0; border-bottom: 1px solid var(--border); font-size: 13px; color: var(--text-secondary); }
+.list-item:last-child { border-bottom: none; }
+.list-item svg { flex-shrink: 0; margin-top: 2px; }
+.nivel-badge { display: inline-block; padding: 4px 14px; border-radius: 999px; font-size: 12px; font-weight: 700; color: #1e293b; }
+.info-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+.info-row:last-child { border-bottom: none; }
+.info-label { color: var(--text-muted); }
+.info-val { font-weight: 700; color: var(--text-primary); }
+</style>
+{% endblock %}
 
-<nav class="header-navbar navbar-expand-lg navbar navbar-with-menu floating-nav navbar-light navbar-shadow">
-    <div class="navbar-wrapper">
-        <div class="navbar-container content">
-            <div class="navbar-collapse" id="navbar-mobile">
-                <div class="mr-auto float-left bookmark-wrapper d-flex align-items-center">
-                    <ul class="nav navbar-nav">
-                        <li class="nav-item nav-toggle"><a class="nav-link modern-nav-toggle pr-0" data-toggle="collapse"><i class="feather icon-menu d-block d-xl-none font-medium-4 primary toggle-icon"></i><i class="toggle-icon feather icon-menu font-medium-4 d-none d-xl-block collapse-toggle-icon primary" data-ticon="icon-menu"></i></a></li>
-                    </ul>
-                </div>
-                <ul class="nav navbar-nav float-right">
-                    <li class="dropdown dropdown-user nav-item">
-                        <a class="dropdown-toggle nav-link dropdown-user-link" href="#" data-toggle="dropdown">
-                            <div class="user-nav d-sm-flex d-none"><span class="user-name text-bold-600">{{request.user.username}}</span><span class="user-status">Empresa</span></div>
-                            <span><img class="round" src="{% static 'app-assets/images/portrait/small/avatar-s-1.png' %}" alt="avatar" height="40" width="40"></span>
-                        </a>
-                        <div class="dropdown-menu dropdown-menu-right">
-                            <a class="dropdown-item" href="{% url 'logout' %}"><i class="feather icon-power"></i> Cerrar sesión</a>
-                        </div>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </div>
-</nav>
+{% block dashboard %}
+<a href="{% url 'candidato_detalle' candidate.id %}" class="result-back">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><polyline points="15 18 9 12 15 6"/></svg>
+  {{ candidate.nombre }}
+</a>
 
-<div class="main-menu menu-fixed menu-light menu-accordion menu-shadow" data-scroll-to-active="true">
-    <div class="navbar-header">
-        <ul class="nav navbar-nav flex-row">
-            <li class="nav-item mr-auto"><a class="navbar-brand" href="{% url 'index' %}"><img src="{% static '/app-assets/images/logo/logo.png'%}" style="height:auto;width:50px;"><h2 class="brand-text mb-0">NOM - 035</h2></a></li>
-        </ul>
-    </div>
-    <div class="shadow-bottom"></div>
-    <div class="main-menu-content">
-        <ul class="navigation navigation-main" id="main-menu-navigation" data-menu="menu-navigation">
-            <li class="nav-item"><a href="{% url 'index'%}"><i class="feather icon-home"></i><span class="menu-title">Dashboard</span></a></li>
-            <li class="nav-item"><a href="{% url 'workplaces'%}"><i class="feather icon-briefcase"></i><span class="menu-title">Centros de Trabajo</span></a></li>
-            <li class="navigation-header"><span>Psicometría</span></li>
-            <li class="nav-item active"><a href="{% url 'candidatos' %}"><i class="feather icon-user-check"></i><span class="menu-title">Candidatos</span></a></li>
-            <li class="navigation-header"><span>Cuenta</span></li>
-            <li class="nav-item"><a href="{% url 'stripe_planes' %}"><i class="feather icon-credit-card"></i><span class="menu-title">Mi plan</span></a></li>
-        </ul>
-    </div>
+<div class="result-header">
+  <h2>Resultados — {{ instrumento.nombre }}</h2>
+  <p>Completado el {{ session.fecha_completado|date:"d/m/Y H:i" }}</p>
 </div>
 
-<div class="app-content content">
-    <div class="content-overlay"></div>
-    <div class="content-wrapper">
-        <div class="content-header row">
-            <div class="content-header-left col-12 mb-2">
-                <a href="{% url 'candidato_detalle' candidate.id %}" class="text-muted" style="font-size:13px;"><i class="feather icon-arrow-left"></i> {{ candidate.nombre }}</a>
-                <h3 class="content-header-title mb-0 mt-1">Resultados — {{ instrumento.nombre }}</h3>
-                <p class="text-muted mb-0">Completado el {{ session.fecha_completado|date:"d/m/Y H:i" }}</p>
-            </div>
-        </div>
-
-        <div class="content-body">
-
-            {% if tipo == 'disc' %}
-            <!-- RESULTADOS DISC -->
-            <div class="row">
-                <div class="col-12 col-md-8">
-                    <div class="result-card">
-                        <div class="mb-3">
-                            <span class="perfil-badge" style="background:{{ perfil_dominante.color }};">{{ perfil_nombre }}</span>
-                        </div>
-                        <p style="font-size:14px;color:#6e6b7b;">{{ perfil_dominante.desc }}</p>
-
-                        <h6 style="font-weight:700;margin-top:20px;margin-bottom:12px;">Puntuaciones por dimensión</h6>
-                        {% for k, v in scores.items %}
-                        <div class="d-flex align-items-center mb-2">
-                            <div class="dim-label">
-                                {% if k == 'D' %}Dominancia{% elif k == 'I' %}Influencia{% elif k == 'S' %}Estabilidad{% else %}Cumplimiento{% endif %}
-                                <span style="font-size:11px;color:#b9b9c3;">({{ k }})</span>
-                            </div>
-                            <div class="flex-1 mx-2" style="flex:1;">
-                                <div class="bar-container">
-                                    <div class="bar-fill" style="width:{{ pct|get_item:k }}%;background:{{ perfiles|get_item:k|get_item:'color' }};"></div>
-                                </div>
-                            </div>
-                            <div class="dim-pct">{{ pct|get_item:k }}%</div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-                <div class="col-12 col-md-4">
-                    <div class="result-card">
-                        <h6 style="font-weight:700;margin-bottom:12px;"><i class="feather icon-check-circle" style="color:#28c76f;"></i> Fortalezas</h6>
-                        {% for f in perfil_dominante.fortalezas %}
-                        <div class="fortaleza-item">✓ {{ f }}</div>
-                        {% endfor %}
-                    </div>
-                    <div class="result-card">
-                        <h6 style="font-weight:700;margin-bottom:12px;"><i class="feather icon-trending-up" style="color:#ff9f43;"></i> Áreas de desarrollo</h6>
-                        {% for d in perfil_dominante.desarrollo %}
-                        <div class="fortaleza-item">→ {{ d }}</div>
-                        {% endfor %}
-                    </div>
-                    <div class="result-card">
-                        <h6 style="font-weight:700;margin-bottom:8px;"><i class="feather icon-briefcase" style="color:#7367f0;"></i> Puestos recomendados</h6>
-                        <p style="font-size:13px;color:#6e6b7b;margin:0;">{{ perfil_dominante.puestos }}</p>
-                    </div>
-                </div>
-            </div>
-
-            {% elif tipo == 'moss' %}
-            <!-- RESULTADOS MOSS -->
-            <div class="row justify-content-center">
-                <div class="col-12 col-md-6">
-                    <div class="result-card text-center">
-                        <div style="font-size:64px;font-weight:700;color:{{ color }};">{{ pct }}%</div>
-                        <div class="perfil-badge mb-3" style="background:{{ color }};">{{ nivel }}</div>
-                        <p style="font-size:14px;color:#6e6b7b;">{{ interpretacion }}</p>
-                        <div style="margin-top:16px;padding-top:16px;border-top:1px solid #f0f0f0;">
-                            {% if apto %}
-                            <span style="color:#28c76f;font-weight:700;font-size:15px;"><i class="feather icon-check-circle"></i> Apto para puestos de supervisión</span>
-                            {% else %}
-                            <span style="color:#ea5455;font-weight:700;font-size:15px;"><i class="feather icon-x-circle"></i> No recomendado para supervisión directa</span>
-                            {% endif %}
-                        </div>
-                        <div class="bar-container mt-3">
-                            <div class="bar-fill" style="width:{{ pct }}%;background:{{ color }};"></div>
-                        </div>
-                        <div style="font-size:12px;color:#b9b9c3;margin-top:4px;">Puntuación: {{ total }} / 90</div>
-                    </div>
-                </div>
-            </div>
-
-            {% elif tipo == 'raven' %}
-            <!-- RESULTADOS RAVEN -->
-            <div class="row justify-content-center">
-                <div class="col-12 col-md-6">
-                    <div class="result-card text-center">
-                        <div style="font-size:64px;font-weight:700;color:{{ color }};">{{ pct }}%</div>
-                        <div class="perfil-badge mb-3" style="background:{{ color }};">{{ nivel }}</div>
-                        <p style="font-size:14px;color:#6e6b7b;">{{ desc }}</p>
-                        <div class="bar-container mt-3">
-                            <div class="bar-fill" style="width:{{ pct }}%;background:{{ color }};"></div>
-                        </div>
-                        <div style="font-size:12px;color:#b9b9c3;margin-top:4px;">Correctas: {{ correctas }} / {{ total_items }}</div>
-                    </div>
-                </div>
-            </div>
-
-            {% elif tipo == 'zavic' %}
-            <!-- RESULTADOS ZAVIC -->
-            <div class="row">
-                <div class="col-12 col-md-8">
-                    <div class="result-card">
-                        <h6 style="font-weight:700;margin-bottom:16px;">Perfil de valores e intereses</h6>
-                        {% for k, v in scores.items %}
-                        <div class="d-flex align-items-center mb-2">
-                            <div class="dim-label">{{ escalas|get_item:k|get_item:'nombre' }}</div>
-                            <div class="flex-1 mx-2" style="flex:1;">
-                                <div class="bar-container">
-                                    <div class="bar-fill" style="width:{{ pct|get_item:k }}%;background:{{ escalas|get_item:k|get_item:'color' }};"></div>
-                                </div>
-                            </div>
-                            <div class="dim-pct">{{ pct|get_item:k }}%</div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-                <div class="col-12 col-md-4">
-                    {% if alerta_corrupcion %}
-                    <div class="alerta-box">
-                        <strong>⚠️ Atención:</strong> El perfil muestra tendencia a actuar en beneficio propio. Se recomienda evaluación adicional antes de asignar puestos con acceso a recursos.
-                    </div>
-                    {% else %}
-                    <div class="result-card" style="border-color:#28c76f;">
-                        <p style="color:#28c76f;font-weight:700;margin:0;"><i class="feather icon-check-circle"></i> Perfil de valores compatible con la organización.</p>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-            {% endif %}
-
-           <div class="row mt-3">
-    <div class="col-12">
-        <div class="result-card" id="perfil-narrativo-card">
-            <div class="mb-3">
-                <h6 style="font-weight:700;margin:0 0 12px 0;"><i class="feather icon-cpu" style="color:#7367f0;"></i> Perfil Narrativo con IA</h6>
-                <button id="btn-generar-perfil" class="btn btn-primary btn-sm" onclick="generarPerfil()">
-                  <i class="feather icon-zap"></i> Generar perfil
-                </button>
-            </div>
-            <div id="perfil-resultado" style="display:none;">
-                <div id="perfil-texto" style="font-size:14px;color:#6e6b7b;line-height:1.8;white-space:pre-wrap;"></div>
-                <button class="btn btn-outline-secondary btn-sm mt-3" onclick="copiarPerfil()">
-                    <i class="feather icon-copy"></i> Copiar texto
-                </button>
-            </div>
-            <div id="perfil-loading" style="display:none;text-align:center;padding:20px;">
-                <div class="spinner-border text-primary" role="status"></div>
-                <p style="margin-top:10px;color:#b9b9c3;font-size:13px;">Generando perfil narrativo...</p>
-            </div>
-        </div>
+{% if tipo == 'disc' %}
+<div class="result-grid">
+  <div>
+    <div class="section-card">
+      <div class="section-title">Perfil dominante</div>
+      <span class="perfil-badge" style="background:{{ perfil_dominante.color }};">{{ perfil_nombre }}</span>
+      <p class="perfil-desc">{{ perfil_dominante.desc }}</p>
     </div>
+    <div class="section-card">
+      <div class="section-title">Puntuaciones por dimensión</div>
+      {% for key, val in pct.items %}
+      <div class="bar-row">
+        <div class="bar-label">{{ perfiles|get_item:key|get_item:'nombre' }} ({{ key }})</div>
+        <div class="bar-wrap">
+          <div class="bar-fill" style="width:{{ val }}%;background:{{ perfiles|get_item:key|get_item:'color' }};"></div>
+        </div>
+        <div class="bar-pct">{{ val }}%</div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  <div>
+    <div class="section-card">
+      <div class="section-title">Fortalezas</div>
+      {% for f in perfil_dominante.fortalezas %}
+      <div class="list-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#28c76f" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><polyline points="20 6 9 17 4 12"/></svg>
+        {{ f }}
+      </div>
+      {% endfor %}
+    </div>
+    <div class="section-card">
+      <div class="section-title">Áreas de desarrollo</div>
+      {% for d in perfil_dominante.desarrollo %}
+      <div class="list-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#ff9f43" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><polyline points="9 18 15 12 9 6"/></svg>
+        {{ d }}
+      </div>
+      {% endfor %}
+    </div>
+    <div class="section-card">
+      <div class="section-title">Puestos recomendados</div>
+      <p style="font-size:13px;color:var(--text-secondary);line-height:1.6;">{{ perfil_dominante.puestos }}</p>
+    </div>
+  </div>
 </div>
 
-<script>
-function generarPerfil() {
-    document.getElementById('btn-generar-perfil').disabled = true;
-    document.getElementById('perfil-loading').style.display = 'block';
-    document.getElementById('perfil-resultado').style.display = 'none';
-    fetch('{% url "perfil_narrativo" session.id %}', {
-        method: 'POST',
-        headers: {'X-CSRFToken': '{{ csrf_token }}'},
-    })
-    .then(r => r.json())
-    .then(data => {
-        document.getElementById('perfil-loading').style.display = 'none';
-        if (data.perfil) {
-            document.getElementById('perfil-texto').textContent = data.perfil;
-            document.getElementById('perfil-resultado').style.display = 'block';
-        } else {
-            document.getElementById('perfil-texto').textContent = 'Error: ' + (data.error || 'desconocido');
-            document.getElementById('perfil-resultado').style.display = 'block';
-        }
-        document.getElementById('btn-generar-perfil').disabled = false;
-    })
-    .catch(() => {
-        document.getElementById('perfil-loading').style.display = 'none';
-        document.getElementById('btn-generar-perfil').disabled = false;
-        alert('Error de conexion');
-    });
-}
-function copiarPerfil() {
-    navigator.clipboard.writeText(document.getElementById('perfil-texto').textContent)
-        .then(() => alert('Texto copiado'));
-}
-</script> 
-
-
-        </div>
+{% elif tipo == 'moss' %}
+<div class="result-grid">
+  <div>
+    <div class="section-card">
+      <div class="section-title">Resultado general</div>
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;">
+        <span class="nivel-badge" style="background:{{ color }};font-size:15px;padding:8px 20px;">{{ nivel }}</span>
+        <span style="font-size:28px;font-weight:800;color:var(--text-primary);">{{ total }}/90</span>
+        <span style="font-size:18px;color:var(--text-muted);">{{ pct }}%</span>
+      </div>
+      <div class="bar-wrap" style="height:14px;margin-bottom:16px;">
+        <div class="bar-fill" style="width:{{ pct }}%;background:{{ color }};"></div>
+      </div>
+      <p style="font-size:13px;color:var(--text-muted);line-height:1.6;">{{ interpretacion }}</p>
     </div>
+    {% if apto %}
+    <div class="section-card" style="border-left:4px solid #28c76f;">
+      <p style="font-size:14px;font-weight:600;color:#28c76f;">✓ Candidato apto para puestos de supervisión</p>
+    </div>
+    {% else %}
+    <div class="section-card" style="border-left:4px solid #ff9f43;">
+      <p style="font-size:14px;font-weight:600;color:#ff9f43;">→ Se recomienda desarrollo adicional antes de asumir roles de supervisión</p>
+    </div>
+    {% endif %}
+  </div>
+  <div>
+    <div class="section-card">
+      <div class="section-title">Información del instrumento</div>
+      <div class="info-row"><span class="info-label">Instrumento</span><span class="info-val">Moss</span></div>
+      <div class="info-row"><span class="info-label">Puntuación</span><span class="info-val">{{ total }}/90</span></div>
+      <div class="info-row"><span class="info-label">Percentil</span><span class="info-val">{{ pct }}%</span></div>
+      <div class="info-row"><span class="info-label">Nivel</span><span class="info-val">{{ nivel }}</span></div>
+    </div>
+  </div>
 </div>
 
-<div class="sidenav-overlay"></div>
-<div class="drag-target"></div>
-<script src="{% static 'app-assets/vendors/js/vendors.min.js' %}"></script>
-<script src="{% static 'app-assets/js/core/app-menu.js' %}"></script>
-<script src="{% static 'app-assets/js/core/app.js' %}"></script>
-</body>
-</html>
+{% elif tipo == 'raven' %}
+<div class="result-grid">
+  <div>
+    <div class="section-card">
+      <div class="section-title">Resultado — Razonamiento abstracto</div>
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;">
+        <span class="nivel-badge" style="background:{{ color }};font-size:15px;padding:8px 20px;">{{ nivel }}</span>
+        <span style="font-size:28px;font-weight:800;color:var(--text-primary);">{{ correctas }}/{{ total_items }}</span>
+        <span style="font-size:18px;color:var(--text-muted);">{{ pct }}%</span>
+      </div>
+      <div class="bar-wrap" style="height:14px;margin-bottom:16px;">
+        <div class="bar-fill" style="width:{{ pct }}%;background:{{ color }};"></div>
+      </div>
+      <p style="font-size:13px;color:var(--text-muted);line-height:1.6;">{{ desc }}</p>
+    </div>
+  </div>
+  <div>
+    <div class="section-card">
+      <div class="section-title">Información del instrumento</div>
+      <div class="info-row"><span class="info-label">Instrumento</span><span class="info-val">Raven</span></div>
+      <div class="info-row"><span class="info-label">Respuestas correctas</span><span class="info-val">{{ correctas }}/{{ total_items }}</span></div>
+      <div class="info-row"><span class="info-label">Percentil</span><span class="info-val">{{ pct }}%</span></div>
+      <div class="info-row"><span class="info-label">Nivel</span><span class="info-val">{{ nivel }}</span></div>
+    </div>
+  </div>
+</div>
+
+{% elif tipo == 'zavic' %}
+<div class="result-grid">
+  <div>
+    <div class="section-card">
+      <div class="section-title">Valores e Intereses</div>
+      {% for dim, val in pct.items %}
+      <div class="bar-row">
+        <div class="bar-label">{{ dim }}</div>
+        <div class="bar-wrap">
+          <div class="bar-fill" style="width:{{ val }}%;background:var(--primary);"></div>
+        </div>
+        <div class="bar-pct">{{ val }}%</div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  <div>
+    <div class="section-card">
+      <div class="section-title">Información del instrumento</div>
+      <div class="info-row"><span class="info-label">Instrumento</span><span class="info-val">Zavic</span></div>
+    </div>
+  </div>
+</div>
+
+{% else %}
+<div class="section-card">
+  <p style="font-size:14px;color:var(--text-muted);">Tipo de instrumento no reconocido: {{ tipo }}</p>
+</div>
+{% endif %}
+
+{% endblock %}
