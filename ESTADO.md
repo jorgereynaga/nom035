@@ -1,4 +1,4 @@
-# ESTADO NormaIA — Actualizado 2 Jul 2026
+# ESTADO NormaIA — Actualizado 3 Jul 2026
 
 ## Stack
 - Django 3.2 + PostgreSQL + Stripe + Railway
@@ -6,7 +6,7 @@
 - Admin: /ihes_admin/ admin/IhesAdmin2026!
 - Test: jorge.reynaga.j@gmail.com (usuario activo con datos demo)
 
-## Completado hoy
+## Completado
 - Fix flujo completo NOM-035 (EndEvaluation, Ver resultados, reporte HTML)
 - Modulo Clima Laboral completo con datos demo (8 respuestas, 8 dimensiones)
 - Dashboard rediseñado 3 secciones con preview de dimensiones 4x2 con colores
@@ -17,9 +17,9 @@
 - Boton borrar datos demo (manual) + borrado automatico al contratar plan
 - Reporte HTML profesional sin WeasyPrint
 - Reporte unificado desbloqueado para usuarios demo
-- Mensaje sin evaluaciones cuando candidato no tiene sesiones completadas
-- Fix: related_name sessions (no test_sessions) en candidatos dashboard
-- Fix: tabs/espacios en BorrarDemoView y candidates en views.py
+- psico_resultado.html rediseñado correctamente extendiendo index.html ✅
+- NOM-035 dimension preview: promedio de todos los empleados ✅
+- DEBUG=False en Railway ✅
 
 ## Estado actual (dashboard funcional)
 - NOM-035: 100% cuestionarios, Completado, dimensiones 4x2 visibles ✅
@@ -27,21 +27,25 @@
 - Psicometria: 2 candidatos demo con evaluacion asignada ✅
 - Borrar datos demo: FUNCIONA ✅
 - Bloqueos sin plan: FUNCIONA ✅
-- Reporte unificado: FUNCIONA (desbloqueado) ✅
+- Reporte unificado: FUNCIONA ✅
 - Dashboard carga correctamente ✅
 
+## EN PROGRESO
+- Quitar creditos gratis al crear cuenta (nom035_demo, psico_demo)
+- Nueva logica de bloqueo:
+  - Con datos demo (es_demo=True): puede VER todo, NO puede crear/registrar/agregar
+  - Con plan activo: todo desbloqueado segun plan
+  - Bloquear: registrar encuestas nuevas, agregar empleados, crear centros, agregar candidatos
+
 ## Pendientes
-1. Rediseno psico_resultado.html — template de Replit causo crash, pendiente redisenar correctamente
-2. Portafolio de evidencias automatico (pendiente revision norma)
-3. admin.py: nom035_creditos visible
-4. Fix phone max_length a 15
-5. Restriccion clima laboral — acceso enlace publico solo con plan
-6. Pruebas finales: navegacion entre evaluaciones multiples
-7. NOM-035 dimension preview — promedio de todos los empleados, no solo el primero
-8. DEBUG=True en Railway — CAMBIAR A FALSE antes de pruebas con clientes
+1. Restriccion clima laboral — enlace publico solo con plan activo
+2. admin.py: nom035_creditos visible en UserAdmin
+3. Fix phone max_length a 15 caracteres
+4. Portafolio de evidencias automatico (pendiente revision norma)
+5. Pruebas finales: navegacion entre evaluaciones multiples
 
 ## Notas tecnicas
-- psico_resultado.html: template original restaurado (diseno viejo), pendiente rediseno
-- views.py: mezcla tabs/espacios es el principal riesgo — siempre verificar con py_compile antes de push
+- views.py: mezcla tabs/espacios es el principal riesgo — siempre py_compile antes de push
 - WeasyPrint: permanentemente bloqueado en Railway, usar HTML imprimible
 - Migraciones: siempre manuales, ultima es 0032
+- nom035_demo y psico_demo: campos en Userapp, pendiente eliminar del flujo de registro
