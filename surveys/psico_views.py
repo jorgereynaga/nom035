@@ -406,6 +406,7 @@ class ReporteUnificadoView(LoginRequiredMixin, View):
         # if userapp and not getattr(userapp, "psico_plan_key", ""):
         #     from django.http import HttpResponse
         #     return HttpResponse("Reporte no disponible", status=403)
+        candidate = get_object_or_404(Candidate, id=candidate_id, user=request.user)
         sesiones = TestSession.objects.filter(
             candidate=candidate,
             status='completada'
