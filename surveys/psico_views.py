@@ -402,10 +402,10 @@ class ReporteUnificadoView(LoginRequiredMixin, View):
 
     def get(self, request, candidate_id):
         userapp = getattr(request.user, "userapp", None)
-        if userapp and not getattr(userapp, "psico_plan_key", ""):
-            from django.http import HttpResponse
-            return HttpResponse('<h2 style="font-family:sans-serif;text-align:center;margin-top:80px">&#128274; Reporte no disponible en modo demo.<br><a href="/stripe/planes/" style="color:#2563eb">Adquiere un plan para ver tus reportes</a></h2>', status=403)
-        candidate = get_object_or_404(Candidate, id=candidate_id, user=request.user)
+        # userapp = getattr(request.user, "userapp", None)
+        # if userapp and not getattr(userapp, "psico_plan_key", ""):
+        #     from django.http import HttpResponse
+        #     return HttpResponse("Reporte no disponible", status=403)
         sesiones = TestSession.objects.filter(
             candidate=candidate,
             status='completada'
