@@ -11,7 +11,7 @@ class UserInline(admin.StackedInline):
         'workplaces_available', 'workplaces_availableB', 'workplaces_availableC',
         'stripe_customer_id', 'stripe_subscription_id',
         'stripe_plan_key', 'psico_plan_key', 'psico_evaluaciones_disponibles',
-        'nom035_demo', 'psico_demo',
+        'nom035_creditos', 'nom035_demo', 'psico_demo',
         'image',
     )
 
