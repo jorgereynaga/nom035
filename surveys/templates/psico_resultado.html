@@ -1,275 +1,655 @@
-{% load static %}
+{% extends 'index.html' %}
 {% load psico_filters %}
-<!DOCTYPE html>
-<html class="loading" lang="es" data-textdirection="ltr">
-<head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimal-ui">
-    <title>Resultados — {{ candidate.nombre }}</title>
-    <link rel="shortcut icon" type="image/x-icon" href="{% static 'app-assets/images/ico/favicon.ico' %}">
-    <link href="https://fonts.googleapis.com/css?family=Montserrat:300,400,500,600" rel="stylesheet">
-    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/vendors/css/vendors.min.css' %}">
-    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/bootstrap.css' %}">
-    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/bootstrap-extended.css' %}">
-    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/colors.css' %}">
-    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/components.css' %}">
-    <link rel="stylesheet" type="text/css" href="{% static 'app-assets/css/core/menu/menu-types/vertical-menu.css' %}">
-    <link rel="stylesheet" type="text/css" href="{% static 'assets/css/style.css' %}">
-    <style>
-        .result-card { background:#fff; border-radius:12px; border:1px solid #e4e4e4; padding:24px; margin-bottom:20px; }
-        .perfil-badge { display:inline-block; padding:6px 16px; border-radius:20px; color:#fff; font-weight:700; font-size:13px; }
-        .bar-container { background:#f0f0f0; border-radius:6px; height:12px; margin-bottom:8px; }
-        .bar-fill { height:12px; border-radius:6px; transition: width 1s; }
-        .dim-label { font-size:13px; font-weight:600; color:#5e5873; width:120px; }
-        .dim-pct { font-size:13px; color:#b9b9c3; width:40px; text-align:right; }
-        .alerta-box { background:#fff3cd; border:1px solid #ffc107; border-radius:8px; padding:12px 16px; font-size:13px; color:#856404; }
-        .fortaleza-item { padding:6px 0; border-bottom:1px solid #f5f5f5; font-size:13px; color:#6e6b7b; }
-        .fortaleza-item:last-child { border-bottom:none; }
-    </style>
-</head>
-<body class="vertical-layout vertical-menu-modern 2-columns navbar-floating footer-static" data-open="click" data-menu="vertical-menu-modern" data-col="2-columns">
 
-<nav class="header-navbar navbar-expand-lg navbar navbar-with-menu floating-nav navbar-light navbar-shadow">
-    <div class="navbar-wrapper">
-        <div class="navbar-container content">
-            <div class="navbar-collapse" id="navbar-mobile">
-                <div class="mr-auto float-left bookmark-wrapper d-flex align-items-center">
-                    <ul class="nav navbar-nav">
-                        <li class="nav-item nav-toggle"><a class="nav-link modern-nav-toggle pr-0" data-toggle="collapse"><i class="feather icon-menu d-block d-xl-none font-medium-4 primary toggle-icon"></i><i class="toggle-icon feather icon-menu font-medium-4 d-none d-xl-block collapse-toggle-icon primary" data-ticon="icon-menu"></i></a></li>
-                    </ul>
-                </div>
-                <ul class="nav navbar-nav float-right">
-                    <li class="dropdown dropdown-user nav-item">
-                        <a class="dropdown-toggle nav-link dropdown-user-link" href="#" data-toggle="dropdown">
-                            <div class="user-nav d-sm-flex d-none"><span class="user-name text-bold-600">{{request.user.username}}</span><span class="user-status">Empresa</span></div>
-                            <span><img class="round" src="{% static 'app-assets/images/portrait/small/avatar-s-1.png' %}" alt="avatar" height="40" width="40"></span>
-                        </a>
-                        <div class="dropdown-menu dropdown-menu-right">
-                            <a class="dropdown-item" href="{% url 'logout' %}"><i class="feather icon-power"></i> Cerrar sesión</a>
-                        </div>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </div>
-</nav>
+{% block style %}
+<style>
+  /* ── psico_resultado page styles ── */
 
-<div class="main-menu menu-fixed menu-light menu-accordion menu-shadow" data-scroll-to-active="true">
-    <div class="navbar-header">
-        <ul class="nav navbar-nav flex-row">
-            <li class="nav-item mr-auto"><a class="navbar-brand" href="{% url 'index' %}"><img src="{% static '/app-assets/images/logo/logo.png'%}" style="height:auto;width:50px;"><h2 class="brand-text mb-0">NOM - 035</h2></a></li>
-        </ul>
-    </div>
-    <div class="shadow-bottom"></div>
-    <div class="main-menu-content">
-        <ul class="navigation navigation-main" id="main-menu-navigation" data-menu="menu-navigation">
-            <li class="nav-item"><a href="{% url 'index'%}"><i class="feather icon-home"></i><span class="menu-title">Dashboard</span></a></li>
-            <li class="nav-item"><a href="{% url 'workplaces'%}"><i class="feather icon-briefcase"></i><span class="menu-title">Centros de Trabajo</span></a></li>
-            <li class="navigation-header"><span>Psicometría</span></li>
-            <li class="nav-item active"><a href="{% url 'candidatos' %}"><i class="feather icon-user-check"></i><span class="menu-title">Candidatos</span></a></li>
-            <li class="navigation-header"><span>Cuenta</span></li>
-            <li class="nav-item"><a href="{% url 'stripe_planes' %}"><i class="feather icon-credit-card"></i><span class="menu-title">Mi plan</span></a></li>
-        </ul>
-    </div>
+  .pr-back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-decoration: none;
+    margin-bottom: 10px;
+    transition: color .15s;
+  }
+  .pr-back-link:hover { color: var(--text-primary); }
+  .pr-back-link svg { width: 14px; height: 14px; }
+
+  .pr-title {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: -.02em;
+    color: var(--text-primary);
+    margin: 0 0 3px 0;
+  }
+  .pr-subtitle { font-size: 12px; color: var(--text-muted); }
+
+  /* Candidate info strip */
+  .pr-candidate-strip {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: var(--bg-base);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    padding: 14px 18px;
+    margin-bottom: 22px;
+    flex-wrap: wrap;
+  }
+  .pr-avatar {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: #fff;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 15px; font-weight: 800;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .pr-candidate-name {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 14px; font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+  }
+  .pr-candidate-meta { font-size: 11px; color: var(--text-muted); }
+  .pr-divider { width: 1px; height: 32px; background: var(--border); flex-shrink: 0; }
+  .pr-strip-item { display: flex; flex-direction: column; gap: 2px; }
+  .pr-strip-label { font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--text-muted); }
+  .pr-strip-val { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+
+  /* Layout */
+  .pr-grid {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 16px;
+    align-items: start;
+  }
+  .pr-grid-narrow {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 16px;
+    align-items: start;
+  }
+  .pr-grid-center {
+    max-width: 520px;
+    margin: 0 auto;
+  }
+
+  /* Card section label */
+  .pr-card-label {
+    font-size: 10px; font-weight: 700;
+    letter-spacing: .06em; text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 14px;
+  }
+
+  /* Profile badge (big) */
+  .pr-perfil-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 18px;
+    border-radius: 24px;
+    color: #fff;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 14px; font-weight: 800;
+    letter-spacing: -.01em;
+    margin-bottom: 12px;
+  }
+  .pr-perfil-desc {
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--text-muted);
+    margin-bottom: 22px;
+  }
+
+  /* DISC bars */
+  .disc-dim-list { display: flex; flex-direction: column; gap: 10px; }
+  .disc-dim-row { display: flex; align-items: center; gap: 10px; }
+  .disc-dim-label {
+    width: 130px;
+    flex-shrink: 0;
+    font-size: 12px; font-weight: 600;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .disc-dim-letter {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px; height: 20px;
+    border-radius: 5px;
+    color: #fff;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 11px; font-weight: 800;
+    flex-shrink: 0;
+  }
+  .disc-bar-track {
+    flex: 1;
+    height: 8px;
+    border-radius: 99px;
+    background: var(--bg-surface, #f1f5f9);
+    overflow: hidden;
+  }
+  .disc-bar-fill {
+    height: 100%;
+    border-radius: 99px;
+    transition: width .6s ease;
+  }
+  .disc-dim-pct {
+    width: 34px;
+    text-align: right;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 12px; font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  /* Side cards */
+  .pr-side-stack { display: flex; flex-direction: column; gap: 12px; }
+  .pr-side-card {
+    background: var(--bg-base);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+  }
+  .pr-side-card-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-surface, #f8fafc);
+  }
+  .pr-side-card-icon {
+    width: 28px; height: 28px;
+    border-radius: 7px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .pr-side-card-icon svg { width: 14px; height: 14px; }
+  .pr-side-card-title {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 12px; font-weight: 700;
+    color: var(--text-primary);
+  }
+  .pr-side-card-body { padding: 10px 16px 14px; }
+  .pr-list-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 7px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--text-primary);
+    line-height: 1.4;
+  }
+  .pr-list-item:last-child { border-bottom: none; }
+  .pr-list-dot { font-size: 10px; flex-shrink: 0; margin-top: 2px; color: var(--text-muted); }
+
+  /* Big score (MOSS / RAVEN) */
+  .pr-big-score {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 4rem; font-weight: 800;
+    line-height: 1;
+    margin-bottom: 10px;
+  }
+  .pr-score-bar-track {
+    height: 10px;
+    border-radius: 99px;
+    background: var(--bg-surface, #f1f5f9);
+    overflow: hidden;
+    margin: 16px 0 6px;
+  }
+  .pr-score-bar-fill {
+    height: 100%;
+    border-radius: 99px;
+    transition: width .6s ease;
+  }
+  .pr-score-note { font-size: 11px; color: var(--text-muted); }
+  .pr-apto-strip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    border-radius: var(--radius-sm);
+    font-size: 13px; font-weight: 700;
+    margin-top: 16px;
+  }
+  .pr-apto-strip svg { width: 16px; height: 16px; }
+  .pr-apto-strip.apto     { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+  .pr-apto-strip.no-apto  { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+
+  /* ZAVIC */
+  .zavic-dim-list { display: flex; flex-direction: column; gap: 10px; }
+  .zavic-alerta {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 16px;
+    border-radius: var(--radius-md);
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    font-size: 13px;
+    color: #92400e;
+    line-height: 1.5;
+  }
+  .zavic-alerta-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+  .zavic-ok {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    border-radius: var(--radius-md);
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    font-size: 13px; font-weight: 700;
+    color: #15803d;
+  }
+  .zavic-ok svg { width: 16px; height: 16px; }
+
+  /* AI Narrative card */
+  .pr-ai-card {
+    background: var(--bg-base);
+    border: 1px solid var(--border);
+    border-top: 3px solid #7c3aed;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    margin-top: 20px;
+    overflow: hidden;
+  }
+  .pr-ai-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+  }
+  .pr-ai-icon {
+    width: 32px; height: 32px;
+    border-radius: 9px;
+    background: #ede9fe;
+    color: #7c3aed;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .pr-ai-icon svg { width: 16px; height: 16px; }
+  .pr-ai-title {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 14px; font-weight: 700;
+    color: var(--text-primary);
+  }
+  .pr-ai-subtitle { font-size: 11px; color: var(--text-muted); }
+  .pr-ai-body { padding: 16px 18px; }
+  .pr-ai-text {
+    font-size: 13px;
+    color: var(--text-primary);
+    line-height: 1.8;
+    white-space: pre-wrap;
+  }
+  .pr-ai-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 28px;
+    color: var(--text-muted);
+    font-size: 13px;
+  }
+  .pr-spinner {
+    width: 28px; height: 28px;
+    border: 3px solid #ddd6fe;
+    border-top-color: #7c3aed;
+    border-radius: 50%;
+    animation: pr-spin .7s linear infinite;
+  }
+  @keyframes pr-spin { to { transform: rotate(360deg); } }
+
+  /* Responsive */
+  @media (max-width: 860px) {
+    .pr-grid, .pr-grid-narrow { grid-template-columns: 1fr; }
+    .pr-candidate-strip { flex-direction: column; align-items: flex-start; }
+    .pr-divider { display: none; }
+  }
+</style>
+{% endblock %}
+
+{% block dashboard %}
+
+<!-- ── Breadcrumb + header ─────────────────────────────────────── -->
+<div style="margin-bottom: 22px;">
+  <a href="{% url 'candidato_detalle' candidate.id %}" class="pr-back-link">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    {{ candidate.nombre }}
+  </a>
+  <h1 class="pr-title">{{ instrumento.nombre }}</h1>
+  <p class="pr-subtitle">Resultados de evaluación &middot; completado el {{ session.fecha_completado|date:"d/m/Y \a \l\a\s H:i" }}</p>
 </div>
 
-<div class="app-content content">
-    <div class="content-overlay"></div>
-    <div class="content-wrapper">
-        <div class="content-header row">
-            <div class="content-header-left col-12 mb-2">
-                <a href="{% url 'candidato_detalle' candidate.id %}" class="text-muted" style="font-size:13px;"><i class="feather icon-arrow-left"></i> {{ candidate.nombre }}</a>
-                <h3 class="content-header-title mb-0 mt-1">Resultados — {{ instrumento.nombre }}</h3>
-                <p class="text-muted mb-0">Completado el {{ session.fecha_completado|date:"d/m/Y H:i" }}</p>
+<!-- ── Candidate strip ────────────────────────────────────────── -->
+<div class="pr-candidate-strip">
+  <div class="pr-avatar">{{ candidate.nombre|slice:":1"|upper }}</div>
+  <div>
+    <p class="pr-candidate-name">{{ candidate.nombre }}</p>
+    <p class="pr-candidate-meta">{{ candidate.email }}</p>
+  </div>
+  {% if candidate.puesto %}
+  <div class="pr-divider"></div>
+  <div class="pr-strip-item">
+    <span class="pr-strip-label">Puesto</span>
+    <span class="pr-strip-val">{{ candidate.puesto }}</span>
+  </div>
+  {% endif %}
+  <div class="pr-divider"></div>
+  <div class="pr-strip-item">
+    <span class="pr-strip-label">Instrumento</span>
+    <span class="pr-strip-val">{{ instrumento.nombre }}</span>
+  </div>
+  <div class="pr-divider"></div>
+  <div class="pr-strip-item">
+    <span class="pr-strip-label">Tipo</span>
+    <span class="pr-strip-val">{{ tipo|upper }}</span>
+  </div>
+  <div style="margin-left:auto;">
+    <a href="{% url 'candidato_detalle' candidate.id %}" class="btn btn-outline btn-sm">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+      Ver candidato
+    </a>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     DISC
+══════════════════════════════════════════════════════════════ -->
+{% if tipo == 'disc' %}
+<div class="pr-grid">
+
+  <!-- COL PRINCIPAL -->
+  <div>
+    <div class="card" style="border-top: 3px solid {{ perfil_dominante.color }};">
+      <div class="card-header">
+        <span class="card-title">Perfil conductual</span>
+      </div>
+      <div class="card-body">
+
+        <!-- Badge de perfil -->
+        <span class="pr-perfil-badge" style="background: {{ perfil_dominante.color }};">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+          {{ perfil_nombre }}
+        </span>
+        {% if scores.segundo %}
+        <span class="pr-perfil-badge" style="background: {{ perfil_segundo.color }}; opacity: .75; font-size: 12px;">
+          {{ perfil_segundo.nombre }}
+        </span>
+        {% endif %}
+
+        <p class="pr-perfil-desc">{{ perfil_dominante.desc }}</p>
+
+        <!-- Barras DISC -->
+        <p class="pr-card-label">Puntuaciones por dimensión</p>
+        <div class="disc-dim-list">
+          {% for k, v in scores.items %}
+          <div class="disc-dim-row">
+            <div class="disc-dim-label">
+              <span class="disc-dim-letter" style="background: {{ perfiles|get_item:k|get_item:'color' }};">{{ k }}</span>
+              {% if k == 'D' %}Dominancia
+              {% elif k == 'I' %}Influencia
+              {% elif k == 'S' %}Estabilidad
+              {% else %}Cumplimiento{% endif %}
             </div>
+            <div class="disc-bar-track">
+              <div class="disc-bar-fill" style="width: {{ pct|get_item:k }}%; background: {{ perfiles|get_item:k|get_item:'color' }};"></div>
+            </div>
+            <div class="disc-dim-pct">{{ pct|get_item:k }}%</div>
+          </div>
+          {% endfor %}
         </div>
 
-        <div class="content-body">
-
-            {% if tipo == 'disc' %}
-            <!-- RESULTADOS DISC -->
-            <div class="row">
-                <div class="col-12 col-md-8">
-                    <div class="result-card">
-                        <div class="mb-3">
-                            <span class="perfil-badge" style="background:{{ perfil_dominante.color }};">{{ perfil_nombre }}</span>
-                        </div>
-                        <p style="font-size:14px;color:#6e6b7b;">{{ perfil_dominante.desc }}</p>
-
-                        <h6 style="font-weight:700;margin-top:20px;margin-bottom:12px;">Puntuaciones por dimensión</h6>
-                        {% for k, v in scores.items %}
-                        <div class="d-flex align-items-center mb-2">
-                            <div class="dim-label">
-                                {% if k == 'D' %}Dominancia{% elif k == 'I' %}Influencia{% elif k == 'S' %}Estabilidad{% else %}Cumplimiento{% endif %}
-                                <span style="font-size:11px;color:#b9b9c3;">({{ k }})</span>
-                            </div>
-                            <div class="flex-1 mx-2" style="flex:1;">
-                                <div class="bar-container">
-                                    <div class="bar-fill" style="width:{{ pct|get_item:k }}%;background:{{ perfiles|get_item:k|get_item:'color' }};"></div>
-                                </div>
-                            </div>
-                            <div class="dim-pct">{{ pct|get_item:k }}%</div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-                <div class="col-12 col-md-4">
-                    <div class="result-card">
-                        <h6 style="font-weight:700;margin-bottom:12px;"><i class="feather icon-check-circle" style="color:#28c76f;"></i> Fortalezas</h6>
-                        {% for f in perfil_dominante.fortalezas %}
-                        <div class="fortaleza-item">✓ {{ f }}</div>
-                        {% endfor %}
-                    </div>
-                    <div class="result-card">
-                        <h6 style="font-weight:700;margin-bottom:12px;"><i class="feather icon-trending-up" style="color:#ff9f43;"></i> Áreas de desarrollo</h6>
-                        {% for d in perfil_dominante.desarrollo %}
-                        <div class="fortaleza-item">→ {{ d }}</div>
-                        {% endfor %}
-                    </div>
-                    <div class="result-card">
-                        <h6 style="font-weight:700;margin-bottom:8px;"><i class="feather icon-briefcase" style="color:#7367f0;"></i> Puestos recomendados</h6>
-                        <p style="font-size:13px;color:#6e6b7b;margin:0;">{{ perfil_dominante.puestos }}</p>
-                    </div>
-                </div>
-            </div>
-
-            {% elif tipo == 'moss' %}
-            <!-- RESULTADOS MOSS -->
-            <div class="row justify-content-center">
-                <div class="col-12 col-md-6">
-                    <div class="result-card text-center">
-                        <div style="font-size:64px;font-weight:700;color:{{ color }};">{{ pct }}%</div>
-                        <div class="perfil-badge mb-3" style="background:{{ color }};">{{ nivel }}</div>
-                        <p style="font-size:14px;color:#6e6b7b;">{{ interpretacion }}</p>
-                        <div style="margin-top:16px;padding-top:16px;border-top:1px solid #f0f0f0;">
-                            {% if apto %}
-                            <span style="color:#28c76f;font-weight:700;font-size:15px;"><i class="feather icon-check-circle"></i> Apto para puestos de supervisión</span>
-                            {% else %}
-                            <span style="color:#ea5455;font-weight:700;font-size:15px;"><i class="feather icon-x-circle"></i> No recomendado para supervisión directa</span>
-                            {% endif %}
-                        </div>
-                        <div class="bar-container mt-3">
-                            <div class="bar-fill" style="width:{{ pct }}%;background:{{ color }};"></div>
-                        </div>
-                        <div style="font-size:12px;color:#b9b9c3;margin-top:4px;">Puntuación: {{ total }} / 90</div>
-                    </div>
-                </div>
-            </div>
-
-            {% elif tipo == 'raven' %}
-            <!-- RESULTADOS RAVEN -->
-            <div class="row justify-content-center">
-                <div class="col-12 col-md-6">
-                    <div class="result-card text-center">
-                        <div style="font-size:64px;font-weight:700;color:{{ color }};">{{ pct }}%</div>
-                        <div class="perfil-badge mb-3" style="background:{{ color }};">{{ nivel }}</div>
-                        <p style="font-size:14px;color:#6e6b7b;">{{ desc }}</p>
-                        <div class="bar-container mt-3">
-                            <div class="bar-fill" style="width:{{ pct }}%;background:{{ color }};"></div>
-                        </div>
-                        <div style="font-size:12px;color:#b9b9c3;margin-top:4px;">Correctas: {{ correctas }} / {{ total_items }}</div>
-                    </div>
-                </div>
-            </div>
-
-            {% elif tipo == 'zavic' %}
-            <!-- RESULTADOS ZAVIC -->
-            <div class="row">
-                <div class="col-12 col-md-8">
-                    <div class="result-card">
-                        <h6 style="font-weight:700;margin-bottom:16px;">Perfil de valores e intereses</h6>
-                        {% for k, v in scores.items %}
-                        <div class="d-flex align-items-center mb-2">
-                            <div class="dim-label">{{ escalas|get_item:k|get_item:'nombre' }}</div>
-                            <div class="flex-1 mx-2" style="flex:1;">
-                                <div class="bar-container">
-                                    <div class="bar-fill" style="width:{{ pct|get_item:k }}%;background:{{ escalas|get_item:k|get_item:'color' }};"></div>
-                                </div>
-                            </div>
-                            <div class="dim-pct">{{ pct|get_item:k }}%</div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-                <div class="col-12 col-md-4">
-                    {% if alerta_corrupcion %}
-                    <div class="alerta-box">
-                        <strong>⚠️ Atención:</strong> El perfil muestra tendencia a actuar en beneficio propio. Se recomienda evaluación adicional antes de asignar puestos con acceso a recursos.
-                    </div>
-                    {% else %}
-                    <div class="result-card" style="border-color:#28c76f;">
-                        <p style="color:#28c76f;font-weight:700;margin:0;"><i class="feather icon-check-circle"></i> Perfil de valores compatible con la organización.</p>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-            {% endif %}
-
-           <div class="row mt-3">
-    <div class="col-12">
-        <div class="result-card" id="perfil-narrativo-card">
-            <div class="mb-3">
-                <h6 style="font-weight:700;margin:0 0 12px 0;"><i class="feather icon-cpu" style="color:#7367f0;"></i> Perfil Narrativo con IA</h6>
-                <button id="btn-generar-perfil" class="btn btn-primary btn-sm" onclick="generarPerfil()">
-                  <i class="feather icon-zap"></i> Generar perfil
-                </button>
-            </div>
-            <div id="perfil-resultado" style="display:none;">
-                <div id="perfil-texto" style="font-size:14px;color:#6e6b7b;line-height:1.8;white-space:pre-wrap;"></div>
-                <button class="btn btn-outline-secondary btn-sm mt-3" onclick="copiarPerfil()">
-                    <i class="feather icon-copy"></i> Copiar texto
-                </button>
-            </div>
-            <div id="perfil-loading" style="display:none;text-align:center;padding:20px;">
-                <div class="spinner-border text-primary" role="status"></div>
-                <p style="margin-top:10px;color:#b9b9c3;font-size:13px;">Generando perfil narrativo...</p>
-            </div>
-        </div>
+      </div>
     </div>
+  </div>
+
+  <!-- COL LATERAL -->
+  <div class="pr-side-stack">
+
+    <!-- Fortalezas -->
+    <div class="pr-side-card">
+      <div class="pr-side-card-header">
+        <div class="pr-side-card-icon" style="background: #f0fdf4; color: #15803d;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <span class="pr-side-card-title">Fortalezas</span>
+      </div>
+      <div class="pr-side-card-body">
+        {% for f in perfil_dominante.fortalezas %}
+        <div class="pr-list-item">
+          <span class="pr-list-dot">✓</span>
+          <span>{{ f }}</span>
+        </div>
+        {% empty %}
+        <p style="font-size:12px;color:var(--text-muted);margin:6px 0 0;">Sin datos disponibles.</p>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Áreas de desarrollo -->
+    <div class="pr-side-card">
+      <div class="pr-side-card-header">
+        <div class="pr-side-card-icon" style="background: #fff7ed; color: #c2410c;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+        </div>
+        <span class="pr-side-card-title">Áreas de desarrollo</span>
+      </div>
+      <div class="pr-side-card-body">
+        {% for d in perfil_dominante.desarrollo %}
+        <div class="pr-list-item">
+          <span class="pr-list-dot">→</span>
+          <span>{{ d }}</span>
+        </div>
+        {% empty %}
+        <p style="font-size:12px;color:var(--text-muted);margin:6px 0 0;">Sin datos disponibles.</p>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Puestos recomendados -->
+    <div class="pr-side-card">
+      <div class="pr-side-card-header">
+        <div class="pr-side-card-icon" style="background: #ede9fe; color: #7c3aed;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
+        </div>
+        <span class="pr-side-card-title">Puestos recomendados</span>
+      </div>
+      <div class="pr-side-card-body">
+        <p style="font-size:12px; color:var(--text-primary); line-height:1.6; margin:4px 0 0;">{{ perfil_dominante.puestos }}</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     MOSS
+══════════════════════════════════════════════════════════════ -->
+{% elif tipo == 'moss' %}
+<div class="pr-grid-center">
+  <div class="card" style="border-top: 3px solid {{ color }};">
+    <div class="card-header">
+      <span class="card-title">Habilidades de supervisión</span>
+    </div>
+    <div class="card-body" style="text-align: center;">
+      <p class="pr-big-score" style="color: {{ color }};">{{ pct }}%</p>
+      <span class="pr-perfil-badge" style="background: {{ color }};">{{ nivel }}</span>
+      <p style="font-size:13px;color:var(--text-muted);line-height:1.6;margin-top:14px;">{{ interpretacion }}</p>
+      <div class="pr-score-bar-track">
+        <div class="pr-score-bar-fill" style="width: {{ pct }}%; background: {{ color }};"></div>
+      </div>
+      <p class="pr-score-note">Puntuación: {{ total }} / 90</p>
+      {% if apto %}
+      <div class="pr-apto-strip apto">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        Apto para puestos de supervisión
+      </div>
+      {% else %}
+      <div class="pr-apto-strip no-apto">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        No recomendado para supervisión directa
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     RAVEN
+══════════════════════════════════════════════════════════════ -->
+{% elif tipo == 'raven' %}
+<div class="pr-grid-center">
+  <div class="card" style="border-top: 3px solid {{ color }};">
+    <div class="card-header">
+      <span class="card-title">Capacidad intelectual</span>
+    </div>
+    <div class="card-body" style="text-align: center;">
+      <p class="pr-big-score" style="color: {{ color }};">{{ pct }}%</p>
+      <span class="pr-perfil-badge" style="background: {{ color }};">{{ nivel }}</span>
+      <p style="font-size:13px;color:var(--text-muted);line-height:1.6;margin-top:14px;">{{ desc }}</p>
+      <div class="pr-score-bar-track">
+        <div class="pr-score-bar-fill" style="width: {{ pct }}%; background: {{ color }};"></div>
+      </div>
+      <p class="pr-score-note">Respuestas correctas: {{ correctas }} / {{ total_items }}</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     ZAVIC
+══════════════════════════════════════════════════════════════ -->
+{% elif tipo == 'zavic' %}
+<div class="pr-grid-narrow">
+
+  <!-- Barras por escala -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Perfil de valores e intereses</span>
+    </div>
+    <div class="card-body">
+      <div class="zavic-dim-list">
+        {% for k, v in scores.items %}
+        <div class="disc-dim-row">
+          <div class="disc-dim-label" style="width: 160px;">
+            {{ escalas|get_item:k|get_item:'nombre' }}
+          </div>
+          <div class="disc-bar-track">
+            <div class="disc-bar-fill" style="width: {{ pct|get_item:k }}%; background: {{ escalas|get_item:k|get_item:'color' }};"></div>
+          </div>
+          <div class="disc-dim-pct">{{ pct|get_item:k }}%</div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Alerta / OK -->
+  <div>
+    {% if alerta_corrupcion %}
+    <div class="zavic-alerta">
+      <span class="zavic-alerta-icon">⚠️</span>
+      <div>
+        <strong>Atención:</strong> El perfil muestra tendencia a actuar en beneficio propio. Se recomienda evaluación adicional antes de asignar puestos con acceso a recursos.
+      </div>
+    </div>
+    {% else %}
+    <div class="zavic-ok">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      Perfil de valores compatible con la organización
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endif %}
+
+<!-- ── Perfil Narrativo IA ─────────────────────────────────────── -->
+<div class="pr-ai-card">
+  <div class="pr-ai-header">
+    <div class="pr-ai-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 9h6M9 13h4"/></svg>
+    </div>
+    <div>
+      <p class="pr-ai-title">Perfil Narrativo con IA</p>
+      <p class="pr-ai-subtitle">Análisis interpretativo generado automáticamente</p>
+    </div>
+    <div style="margin-left:auto;">
+      <button id="btn-generar-perfil" class="btn btn-sm" style="background:#7c3aed;color:#fff;border-color:#7c3aed;" onclick="generarPerfil()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        Generar perfil
+      </button>
+    </div>
+  </div>
+  <div class="pr-ai-body">
+    <div id="perfil-loading" style="display:none;">
+      <div class="pr-ai-loading">
+        <div class="pr-spinner"></div>
+        <span>Generando perfil narrativo&hellip;</span>
+      </div>
+    </div>
+    <div id="perfil-resultado" style="display:none;">
+      <p id="perfil-texto" class="pr-ai-text"></p>
+      <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);">
+        <button class="btn btn-outline btn-sm" onclick="copiarPerfil()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+          Copiar texto
+        </button>
+      </div>
+    </div>
+    <div id="perfil-placeholder" style="text-align:center;padding:24px 0;color:var(--text-muted);font-size:13px;">
+      Haz clic en <strong>Generar perfil</strong> para obtener un análisis narrativo con IA.
+    </div>
+  </div>
 </div>
 
 <script>
 function generarPerfil() {
-    document.getElementById('btn-generar-perfil').disabled = true;
-    document.getElementById('perfil-loading').style.display = 'block';
-    document.getElementById('perfil-resultado').style.display = 'none';
-    fetch('{% url "perfil_narrativo" session.id %}', {
-        method: 'POST',
-        headers: {'X-CSRFToken': '{{ csrf_token }}'},
-    })
-    .then(r => r.json())
-    .then(data => {
-        document.getElementById('perfil-loading').style.display = 'none';
-        if (data.perfil) {
-            document.getElementById('perfil-texto').textContent = data.perfil;
-            document.getElementById('perfil-resultado').style.display = 'block';
-        } else {
-            document.getElementById('perfil-texto').textContent = 'Error: ' + (data.error || 'desconocido');
-            document.getElementById('perfil-resultado').style.display = 'block';
-        }
-        document.getElementById('btn-generar-perfil').disabled = false;
-    })
-    .catch(() => {
-        document.getElementById('perfil-loading').style.display = 'none';
-        document.getElementById('btn-generar-perfil').disabled = false;
-        alert('Error de conexion');
-    });
+  document.getElementById('btn-generar-perfil').disabled = true;
+  document.getElementById('perfil-placeholder').style.display = 'none';
+  document.getElementById('perfil-loading').style.display = 'block';
+  document.getElementById('perfil-resultado').style.display = 'none';
+  fetch('{% url "perfil_narrativo" session.id %}', {
+    method: 'POST',
+    headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+  })
+  .then(r => r.json())
+  .then(data => {
+    document.getElementById('perfil-loading').style.display = 'none';
+    document.getElementById('perfil-texto').textContent = data.perfil || ('Error: ' + (data.error || 'desconocido'));
+    document.getElementById('perfil-resultado').style.display = 'block';
+    document.getElementById('btn-generar-perfil').disabled = false;
+  })
+  .catch(() => {
+    document.getElementById('perfil-loading').style.display = 'none';
+    document.getElementById('btn-generar-perfil').disabled = false;
+    document.getElementById('perfil-placeholder').style.display = 'block';
+    document.getElementById('perfil-placeholder').textContent = 'Error de conexión. Inténtalo de nuevo.';
+  });
 }
 function copiarPerfil() {
-    navigator.clipboard.writeText(document.getElementById('perfil-texto').textContent)
-        .then(() => alert('Texto copiado'));
+  navigator.clipboard.writeText(document.getElementById('perfil-texto').textContent)
+    .then(function() {
+      var btn = event.target.closest('button');
+      var orig = btn.innerHTML;
+      btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><polyline points="20 6 9 17 4 12"/></svg> ¡Copiado!';
+      setTimeout(function() { btn.innerHTML = orig; }, 2000);
+    });
 }
-</script> 
+</script>
 
-
-        </div>
-    </div>
-</div>
-
-<div class="sidenav-overlay"></div>
-<div class="drag-target"></div>
-<script src="{% static 'app-assets/vendors/js/vendors.min.js' %}"></script>
-<script src="{% static 'app-assets/js/core/app-menu.js' %}"></script>
-<script src="{% static 'app-assets/js/core/app.js' %}"></script>
-</body>
-</html>
+{% endblock %}
