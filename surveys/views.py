@@ -333,21 +333,20 @@ class SaveAnswers(generics.GenericAPIView):
 				code=data.get_code()
 			else:
 				code=data.employee.get_code()
-			if form in ('risksurveya','risksurveyb','traumasurvey'):
+			if form in ("risksurveya","risksurveyb","traumasurvey"):
 				try:
 					userapp=workplace.user.userapp
-					if userapp.nom035_creditos>0:
+					if workplace.es_demo:
+						return Response('Modo demo: adquiere un plan para registrar encuestas reales.', status=status.HTTP_403_FORBIDDEN)
+					elif userapp.nom035_creditos>0:
 						userapp.nom035_creditos-=1
-						userapp.save()
-					elif userapp.nom035_demo>0:
-						userapp.nom035_demo-=1
 						userapp.save()
 					else:
 						return Response('Sin creditos disponibles. Adquiere un plan.', status=status.HTTP_403_FORBIDDEN)
 				except Exception as e:
 					print(f'Error descontando credito NOM-035: {e}')
-			return Response({'status':"ok","employee_url":code,"next_form":next_form}, status=status.HTTP_201_CREATED)
-		print(serializer.errors)
+			return Response({"status":"ok","employee_url":code,"next_form":next_form}, status=status.HTTP_201_CREATED)
+
 		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class SaveCharts(APIView):
