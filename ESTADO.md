@@ -20,8 +20,10 @@
 - psico_resultado.html rediseñado correctamente extendiendo index.html ✅
 - NOM-035 dimension preview: promedio de todos los empleados ✅
 - DEBUG=False en Railway ✅
-- Nueva logica bloqueo encuestas: es_demo=True bloquea registro de encuestas reales ✅
-- Quitar nom035_demo del flujo de creditos — solo creditos reales permiten registrar ✅
+- Nueva logica bloqueo encuestas: es_demo=True bloquea registro encuestas reales ✅
+- Quitar nom035_demo del flujo de creditos ✅
+- Restriccion clima laboral: enlace publico solo con plan activo ✅
+- admin.py: nom035_creditos visible en UserAdmin ✅
 
 ## Estado actual (dashboard funcional)
 - NOM-035: 100% cuestionarios, Completado, dimensiones 4x2 visibles ✅
@@ -33,11 +35,9 @@
 - Dashboard carga correctamente ✅
 
 ## Pendientes
-1. Restriccion clima laboral — enlace publico solo con plan activo
-2. admin.py: nom035_creditos visible en UserAdmin
-3. Fix phone max_length a 15 caracteres
-4. Portafolio de evidencias automatico (pendiente revision norma)
-5. Pruebas finales: navegacion entre evaluaciones multiples
+1. Fix phone max_length a 15 caracteres
+2. Portafolio de evidencias automatico (pendiente revision norma)
+3. Pruebas finales: navegacion entre evaluaciones multiples
 
 ## Notas tecnicas
 - views.py: mezcla tabs/espacios es el principal riesgo — siempre py_compile antes de push
@@ -45,3 +45,4 @@
 - Migraciones: siempre manuales, ultima es 0032
 - nom035_demo: campo en Userapp que ya no se usa en flujo principal
 - Logica bloqueo: workplace.es_demo=True → 403 en registro de encuestas
+- clima_sin_plan.html: template para enlace publico sin plan activo
