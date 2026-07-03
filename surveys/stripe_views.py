@@ -192,6 +192,12 @@ class StripeWebhookView(View):
             userapp.save()
 
             logger.info(f"Plan activado: user={user_id}, plan={plan_key}")
+            try:
+                from django.core.management import call_command
+                call_command("borrar_datos_demo", int(user_id))
+                logger.info(f"Datos demo eliminados para user={user_id}")
+            except Exception as e:
+                logger.error(f"Error borrando datos demo: {e}")
 
         except Userapp.DoesNotExist:
             logger.error(f"Userapp no encontrado: user_id={user_id}")
