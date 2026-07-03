@@ -2789,11 +2789,11 @@ class ClimaResultadosView(LoginRequiredMixin, View):
         return render(request, 'clima_resultados.html', ctx)
 
 class BorrarDemoView(LoginRequiredMixin, View):
-	login_url = reverse_lazy('login')
-	def post(self, request):
-		try:
-			from django.core.management import call_command
-			call_command('borrar_datos_demo', request.user.id)
-			return JsonResponse({'status': 'ok', 'msg': 'Datos de prueba eliminados correctamente.'})
-		except Exception as e:
-			return JsonResponse({'status': 'error', 'msg': str(e)}, status=500)
+    login_url = reverse_lazy('login')
+    def post(self, request):
+        try:
+            from django.core.management import call_command
+            call_command('borrar_datos_demo', request.user.id)
+            return JsonResponse({'status': 'ok', 'msg': 'Datos de prueba eliminados correctamente.'})
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'msg': str(e)}, status=500)
