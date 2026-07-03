@@ -25,6 +25,8 @@
 - Restriccion clima laboral: enlace publico solo con plan activo ✅
 - admin.py: nom035_creditos visible en UserAdmin ✅
 - Fix phone max_length a 15 caracteres (migration 0033) ✅
+- Revision completa NOM-035-STPS-2018 (texto oficial DOF) para diseño Portafolio de Evidencias ✅
+- Definido alcance Portafolio de Evidencias: Fase A (auto), Fase C (carga manual), Fase B descartada ✅
 
 ## Estado actual (dashboard funcional)
 - NOM-035: 100% cuestionarios, Completado, dimensiones 4x2 visibles ✅
@@ -36,8 +38,9 @@
 - Dashboard carga correctamente ✅
 
 ## Pendientes
-1. Portafolio de evidencias automatico (pendiente revision norma de Jorge)
-2. Pruebas finales: navegacion entre evaluaciones multiples
+1. Portafolio de evidencias — Fase A: modelo PortafolioEvidencias + PortafolioStatusView (checklist) + GenerarPoliticaPDF + GenerarInformeResultadosPDF
+2. Portafolio de evidencias — Fase C (despues de A): espacios de carga manual para canalizaciones Guia I, examenes medicos, medidas de control, evidencia de difusion
+3. Pruebas finales: navegacion entre evaluaciones multiples
 
 ## Notas tecnicas
 - views.py: mezcla tabs/espacios es el principal riesgo — siempre py_compile antes de push
@@ -47,3 +50,8 @@
 - Logica bloqueo: workplace.es_demo=True → 403 en registro de encuestas
 - clima_sin_plan.html: template para enlace publico sin plan activo
 - Editor: Sublime Text — siempre editar Python con python -c por indices de linea
+- Portafolio Evidencias: NO usar boton unico "generar todo" — dashboard/checklist con
+  generacion individual por documento, para evitar implicar que es paquete "certificado"
+  ante autoridad (eso lo hacen Unidades de Verificacion, no la plataforma)
+- Portafolio Evidencias Fase A usa tablas oficiales de la norma para niveles de riesgo
+  (deterministico, sin IA generativa libre en conclusiones/recomendaciones)
