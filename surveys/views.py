@@ -2732,7 +2732,9 @@ class ClimaLaboralView(View):
     def get(self, request, access_code):
         wk = Workplace.objects.filter(access_code=access_code).last()
         if not wk:
-            return HttpResponse('Centro de trabajo no encontrado', status=404)
+            return HttpResponse("Centro de trabajo no encontrado", status=404)
+        if not getattr(wk.user.userapp, "stripe_plan_key", None) and not getattr(wk.user.userapp, "nom035_creditos", 0):
+            return render(request, "clima_sin_plan.html", {"workplace": wk})
         departments = Employee.objects.filter(workplace=wk).values_list('department', flat=True).distinct()
         ctx = {
             'workplace': wk,
@@ -2744,7 +2746,9 @@ class ClimaLaboralView(View):
     def post(self, request, access_code):
         wk = Workplace.objects.filter(access_code=access_code).last()
         if not wk:
-            return HttpResponse('Centro de trabajo no encontrado', status=404)
+            return HttpResponse("Centro de trabajo no encontrado", status=404)
+        if not getattr(wk.user.userapp, "stripe_plan_key", None) and not getattr(wk.user.userapp, "nom035_creditos", 0):
+            return HttpResponse("Sin plan activo", status=403)
         department = request.POST.get('department', '')
         data = {'workplace': wk, 'department': department}
         for i in range(1, 41):
