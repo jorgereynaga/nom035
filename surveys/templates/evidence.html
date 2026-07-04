@@ -234,9 +234,13 @@
       </div>
 
       <!-- Empty state -->
-      <div class="empty-state" v-else>
+        <div class="empty-state" v-if="!workplace">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
         Selecciona un centro de trabajo para ver sus evidencias
+      </div>
+        <div class="empty-state" v-else-if="!results.length">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
+        No hay resultados generados para este centro de trabajo
       </div>
 
     </div>
