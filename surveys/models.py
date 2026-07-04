@@ -995,3 +995,32 @@ class WorkEnvironmentSurvey(models.Model):
 
     def __str__(self):
         return f'Clima {self.workplace.name} - {self.department or "Sin area"} - {self.record_create.strftime("%d/%m/%Y")}'
+
+
+class PortafolioEvidencias(models.Model):
+	workplace=models.ForeignKey(Workplace,related_name="portafolio_evidencias",verbose_name='Centro de trabajo', on_delete=models.CASCADE)
+	periodo_evaluacion=models.CharField(u'Periodo de evaluación', max_length=20)
+	responsable_nombre=models.CharField(u'Nombre del responsable', max_length=200, blank=True)
+	responsable_puesto=models.CharField(u'Puesto del responsable', max_length=150, blank=True)
+	responsable_cedula=models.CharField(u'Cédula profesional', max_length=50, blank=True)
+	representante_legal_nombre=models.CharField(u'Representante legal', max_length=200, blank=True)
+	representante_legal_cargo=models.CharField(u'Cargo del representante legal', max_length=150, blank=True)
+	canal_quejas=models.CharField(u'Canal de quejas', max_length=200, blank=True)
+	responsable_quejas=models.CharField(u'Responsable de atención de quejas', max_length=200, blank=True)
+	correo_quejas=models.EmailField(u'Correo de quejas', blank=True)
+	tiempo_respuesta_quejas=models.CharField(u'Tiempo estimado de respuesta', max_length=100, blank=True)
+	version_politica=models.CharField(u'Versión de la política', max_length=10, default='1.0')
+	fecha_emision=models.DateField(u'Fecha de emisión', null=True, blank=True)
+	periodicidad_revision=models.CharField(u'Periodicidad de revisión', max_length=50, default='Anual')
+	fecha_proxima_revision=models.DateField(u'Próxima fecha de revisión', null=True, blank=True)
+	fecha_ultima_evaluacion=models.DateField(u'Fecha de última evaluación', null=True, blank=True)
+	record_create=models.DateTimeField(auto_now_add=True)
+	def save(self, *args, **kwargs):
+		if not self.fecha_emision:
+			from django.utils import timezone
+			self.fecha_emision = timezone.now().date()
+		if not self.fecha_proxima_revision:
+			self.fecha_proxima_revision = self.fecha_emision + timedelta(days=365)
+		super().save(*args, **kwargs)
+	def __str__(self):
+		return f"Portafolio {self.workplace.name} - {self.periodo_evaluacion}"
