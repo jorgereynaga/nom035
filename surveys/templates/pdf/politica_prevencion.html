@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Política de Prevención de Riesgos Psicosociales — {{ workplace.name }}</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: #f8f9fc; color: #1e293b; font-size: 13px; }
+    .page { max-width: 860px; margin: 24px auto; background: #fff; border-radius: 12px; box-shadow: 0 2px 16px rgba(0,0,0,0.08); overflow: hidden; }
+    .header { background: linear-gradient(135deg, #1e40af, #2563eb); color: #fff; padding: 28px 36px; }
+    .header h1 { font-size: 13px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; opacity: 0.85; margin-bottom: 4px; }
+    .header h2 { font-size: 18px; font-weight: 700; margin-bottom: 16px; }
+    .header-meta { display: flex; gap: 24px; flex-wrap: wrap; font-size: 12px; opacity: 0.9; }
+    .header-meta span { display: flex; align-items: center; gap: 6px; }
+    .section { padding: 24px 36px; border-bottom: 1px solid #e2e8f0; }
+    .section-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #64748b; margin-bottom: 14px; }
+    .section p { margin-bottom: 10px; line-height: 1.6; }
+    .profile-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 32px; }
+    .profile-item { display: flex; gap: 6px; font-size: 12px; padding: 4px 0; border-bottom: 1px solid #f1f5f9; }
+    .profile-label { color: #64748b; min-width: 140px; }
+    .profile-value { font-weight: 600; color: #1e293b; }
+    ul { margin-left: 20px; margin-bottom: 10px; }
+    li { margin-bottom: 6px; line-height: 1.5; }
+    .signature-block { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 24px; }
+    .signature-line { border-top: 1px solid #64748b; margin-top: 48px; padding-top: 6px; font-size: 11px; color: #64748b; }
+    @media print {
+      body { background: #fff; }
+      .page { box-shadow: none; margin: 0; max-width: 100%; }
+      .no-print { display: none; }
+    }
+  </style>
+</head>
+<body>
+{% if not print_mode %}
+<div class="no-print" style="padding:16px 36px;">
+  <button onclick="window.print()">Imprimir / Guardar como PDF</button>
+</div>
+{% endif %}
+<div class="page">
+  <div class="header">
+    <h1>Política de Prevención de Riesgos Psicosociales</h1>
+    <h2>{{ workplace.name }}</h2>
+    <div class="header-meta">
+      <span>Razón social: {{ workplace.name }}</span>
+      <span>Versión: {{ portafolio.version_politica }}</span>
+      <span>Emisión: {{ portafolio.fecha_emision|date:"d/m/Y" }}</span>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Datos del Centro de Trabajo</div>
+    <div class="profile-grid">
+      <div class="profile-item"><span class="profile-label">Razón social:</span><span class="profile-value">{{ workplace.name }}</span></div>
+      <div class="profile-item"><span class="profile-label">Domicilio:</span><span class="profile-value">{{ workplace.address }}</span></div>
+      <div class="profile-item"><span class="profile-label">Actividad principal:</span><span class="profile-value">{{ workplace.main_activity }}</span></div>
+      <div class="profile-item"><span class="profile-label">Número de trabajadores:</span><span class="profile-value">{{ workplace.employee_num }}</span></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">1. Declaración de la Política</div>
+    <p>En {{ workplace.name }}, centro de trabajo {{ workplace.name }}, reconocemos la importancia de prevenir los factores de riesgo psicosocial, prevenir la violencia laboral y promover un entorno organizacional favorable para todas las personas trabajadoras.</p>
+    <p>Por lo anterior, establecemos la presente Política de Prevención de Riesgos Psicosociales, con el propósito de contribuir a un ambiente laboral seguro, respetuoso, saludable y orientado al trabajo digno, conforme a los principios de la NOM-035-STPS-2018.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-title">2. Objetivo</div>
+    <ul>
+      <li>Prevenir los factores de riesgo psicosocial en el trabajo.</li>
+      <li>Prevenir actos de violencia laboral.</li>
+      <li>Promover un entorno organizacional favorable.</li>
+      <li>Difundir mecanismos seguros y confidenciales para la atención de quejas o denuncias.</li>
+      <li>Impulsar acciones de información, sensibilización, prevención y mejora continua.</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <div class="section-title">3. Alcance</div>
+    <p>La presente política aplica a todas las personas trabajadoras de {{ workplace.name }}, incluyendo personal directivo, mandos medios, supervisores, personal operativo, administrativo y cualquier persona que preste servicios dentro del centro de trabajo.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-title">4. Compromisos del Centro de Trabajo</div>
+    <p><strong>4.1 Prevención de factores de riesgo psicosocial.</strong> Nos comprometemos a identificar, analizar y prevenir los factores de riesgo psicosocial derivados de las condiciones del ambiente de trabajo, cargas de trabajo, falta de control, jornadas laborales, interferencia trabajo-familia, liderazgo negativo, relaciones negativas y violencia laboral.</p>
+    <p><strong>4.2 Prevención de violencia laboral.</strong> No se tolerarán actos de violencia laboral, incluyendo hostigamiento, acoso, malos tratos, humillaciones, intimidación o cualquier conducta que afecte la dignidad, integridad o salud de las personas trabajadoras.</p>
+    <p><strong>4.3 Promoción de entorno organizacional favorable.</strong> Se promoverá un entorno laboral basado en el respeto, la comunicación, la participación, la claridad de responsabilidades, la capacitación y el reconocimiento del desempeño.</p>
+    <p><strong>4.4 Confidencialidad y no represalias.</strong> Toda queja o denuncia será tratada con confidencialidad. Ninguna persona trabajadora será objeto de represalias por presentar una queja de buena fe.</p>
+    <p><strong>4.5 Participación de las personas trabajadoras.</strong> Las personas trabajadoras podrán participar en la identificación de factores de riesgo psicosocial y en las acciones de mejora del centro de trabajo.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-title">5. Mecanismo de Quejas y Denuncias</div>
+    <div class="profile-grid">
+      <div class="profile-item"><span class="profile-label">Canal de recepción:</span><span class="profile-value">{{ portafolio.canal_quejas }}</span></div>
+      <div class="profile-item"><span class="profile-label">Responsable de atención:</span><span class="profile-value">{{ portafolio.responsable_quejas }}</span></div>
+      <div class="profile-item"><span class="profile-label">Correo de contacto:</span><span class="profile-value">{{ portafolio.correo_quejas }}</span></div>
+      <div class="profile-item"><span class="profile-label">Tiempo de respuesta:</span><span class="profile-value">{{ portafolio.tiempo_respuesta_quejas }}</span></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">6. Revisión y Actualización</div>
+    <div class="profile-grid">
+      <div class="profile-item"><span class="profile-label">Periodicidad de revisión:</span><span class="profile-value">{{ portafolio.periodicidad_revision }}</span></div>
+      <div class="profile-item"><span class="profile-label">Próxima fecha de revisión:</span><span class="profile-value">{{ portafolio.fecha_proxima_revision|date:"d/m/Y" }}</span></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">7. Aprobación</div>
+    <p>La presente política entra en vigor a partir del día {{ portafolio.fecha_emision|date:"d/m/Y" }} y será aplicable en el centro de trabajo {{ workplace.name }}.</p>
+    <div class="signature-block">
+      <div>
+        <div class="signature-line">
+          {{ portafolio.representante_legal_nombre }}<br>
+          {{ portafolio.representante_legal_cargo }}
+        </div>
+      </div>
+      <div>
+        <div class="signature-line">
+          {{ portafolio.responsable_nombre }}<br>
+          {{ portafolio.responsable_puesto }}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

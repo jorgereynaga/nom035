@@ -3,6 +3,7 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse, JsonResponse
 from django.db.models import Q
 from django.views.generic import View
+from django.utils import timezone
 from django.contrib.auth import login, logout, authenticate
 from django.db import IntegrityError
 from django.contrib import messages
@@ -809,6 +810,45 @@ class WorkplaceFormView(LoginRequiredMixin,View):
 		ctx['workplaces_available']=request.user.userapp.workplaces_available
 
 		return render(request, 'workplaceform.html',ctx)
+class GenerarPoliticaView(LoginRequiredMixin,View):
+	login_url = reverse_lazy('login')
+	redirect_field_name = 'redirect_to'
+	def get(self, request, *args, **kwargs):
+		workplace_id = kwargs.get('workplace_id')
+		workplace = Workplace.objects.filter(id=workplace_id, user_id=request.user.id).first()
+		if not workplace:
+			return HttpResponseRedirect(reverse_lazy('workplaces'))
+		portafolio = PortafolioEvidencias.objects.filter(workplace=workplace).first()
+		if request.GET.get('print') == '1' and portafolio:
+			ctx = {'workplace': workplace, 'portafolio': portafolio, 'print_mode': True}
+			return render(request, 'pdf/politica_prevencion.html', ctx)
+		form = PoliticaPrevencionForm(initial={
+			'responsable_nombre': portafolio.responsable_nombre if portafolio else '',
+			'responsable_puesto': portafolio.responsable_puesto if portafolio else '',
+			'representante_legal_nombre': portafolio.representante_legal_nombre if portafolio else '',
+			'representante_legal_cargo': portafolio.representante_legal_cargo if portafolio else '',
+			'canal_quejas': portafolio.canal_quejas if portafolio else '',
+			'responsable_quejas': portafolio.responsable_quejas if portafolio else '',
+			'correo_quejas': portafolio.correo_quejas if portafolio else '',
+			'tiempo_respuesta_quejas': portafolio.tiempo_respuesta_quejas if portafolio else '',
+			'periodicidad_revision': portafolio.periodicidad_revision if portafolio else 'Anual',
+		})
+		ctx = {'workplace': workplace, 'form': form, 'portafolio': portafolio}
+		return render(request, 'politica_prevencion_form.html', ctx)
+	def post(self, request, *args, **kwargs):
+		workplace_id = kwargs.get('workplace_id')
+		workplace = Workplace.objects.filter(id=workplace_id, user_id=request.user.id).first()
+		if not workplace:
+			return HttpResponseRedirect(reverse_lazy('workplaces'))
+		form = PoliticaPrevencionForm(request.POST)
+		if form.is_valid():
+			portafolio, created = PortafolioEvidencias.objects.get_or_create(workplace=workplace, defaults={'periodo_evaluacion': str(timezone.now().year)})
+			for field in form.cleaned_data:
+				setattr(portafolio, field, form.cleaned_data[field])
+			portafolio.save()
+			return HttpResponseRedirect(reverse_lazy('generar_politica', kwargs={'workplace_id': workplace.id}) + '?print=1')
+		ctx = {'workplace': workplace, 'form': form}
+		return render(request, 'politica_prevencion_form.html', ctx)
 class TestView(LoginRequiredMixin,View):
 	login_url = reverse_lazy('login')
 	redirect_field_name = 'redirect_to'

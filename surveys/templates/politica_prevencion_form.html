@@ -1,0 +1,27 @@
+{% extends 'index.html' %}
+{% load static %}
+{% block dashboard %}
+<div class="section-card" style="max-width:720px;margin:20px auto;">
+  <div class="section-card-header">
+    <div class="section-card-title">Política de Prevención de Riesgos Psicosociales — {{ workplace.name }}</div>
+  </div>
+  <div class="section-card-body">
+    <form method="post">
+      {% csrf_token %}
+      {% for field in form %}
+      <div style="margin-bottom:16px;">
+        <label class="form-label">{{ field.label }}</label>
+        {{ field }}
+        {% if field.errors %}
+        <div style="color:#dc2626;font-size:12px;margin-top:4px;">{{ field.errors|striptags }}</div>
+        {% endif %}
+      </div>
+      {% endfor %}
+      <button type="submit" class="btn btn-primary">Generar Política</button>
+      {% if portafolio %}
+      <a href="?print=1" class="btn btn-outline-primary" style="margin-left:8px;">Ver / Imprimir última versión</a>
+      {% endif %}
+    </form>
+  </div>
+</div>
+{% endblock %}
