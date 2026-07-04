@@ -35,8 +35,8 @@ class Userapp(models.Model):
 	psico_plan_key = models.CharField(u'Plan psicometría activo', max_length=100, blank=True, default='')
 	psico_evaluaciones_disponibles = models.IntegerField(u'Evaluaciones psicométricas disponibles', default=0)
 	nom035_creditos = models.IntegerField(u'Créditos NOM-035 disponibles', default=0)
-	nom035_demo = models.IntegerField(u'Créditos demo NOM-035', default=1)
-	psico_demo = models.IntegerField(u'Créditos demo psicometría', default=1)
+	nom035_demo = models.IntegerField(u'Créditos demo NOM-035', default=0)
+	psico_demo = models.IntegerField(u'Créditos demo psicometría', default=0)
 	#cus_2fkJPFjQKABcmiZWz
 	#email
 	#username=correo
