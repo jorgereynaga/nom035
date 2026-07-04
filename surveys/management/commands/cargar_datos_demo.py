@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
-from surveys.models import Workplace, Employee, RiskSurveyA, RiskSurveyB, Candidate, WorkEnvironmentSurvey
+from surveys.models import Workplace, Employee, RiskSurveyA, RiskSurveyB, Candidate, WorkEnvironmentSurvey, PortafolioEvidencias
 import random, string
 
 
@@ -140,6 +140,20 @@ class Command(BaseCommand):
             es_demo=True,
         )
         self.stdout.write(f'Workplace demo creado: {wp.name}')
+        PortafolioEvidencias.objects.create(
+            workplace=wp,
+            periodo_evaluacion='2026',
+            responsable_nombre='Ana García López',
+            responsable_puesto='Coordinadora de Recursos Humanos',
+            representante_legal_nombre='Roberto Hernández Castillo',
+            representante_legal_cargo='Director General',
+            canal_quejas='Buzón físico en recepción y correo electrónico',
+            responsable_quejas='Ana García López',
+            correo_quejas='rh@empresademo.com',
+            tiempo_respuesta_quejas='5 días hábiles',
+            periodicidad_revision='Anual',
+        )
+        self.stdout.write('Portafolio de Evidencias demo creado')
 
         for i, emp_data in enumerate(EMPLEADOS_DEMO):
             emp = Employee.objects.create(
