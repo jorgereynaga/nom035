@@ -967,8 +967,12 @@ def get_portafolio_status(request):
 	convocados = empleados.count()
 	survey_type = workplace.survey_type()
 	respondieron = 0
+	debug_info = []
 	for emp in empleados:
 		survey = None
+		a_count = emp.surveyA.count()
+		a_eval = list(emp.surveyA.values_list('evaluation', flat=True))
+		debug_info.append({'nombre': emp.name, 'surveyA_total': a_count, 'surveyA_evaluations': a_eval})
 		if survey_type == 3:
 			survey = emp.surveyB.filter(evaluation=evaluation).last()
 		elif survey_type in (1, 2):
@@ -983,7 +987,7 @@ def get_portafolio_status(request):
 		'detalle': str(respondieron) + ' de ' + str(convocados) + ' (' + str(porcentaje) + '%)',
 		'url': '/cuestionarios_aplicados/' + str(workplace.id) + '/',
 	})
-	return JsonResponse({'items': items})
+	return JsonResponse({'items': items, 'debug': debug_info})
 class TestView(LoginRequiredMixin,View):
 	login_url = reverse_lazy('login')
 	redirect_field_name = 'redirect_to'
