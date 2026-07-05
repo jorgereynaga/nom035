@@ -932,6 +932,58 @@ class CuestionariosAplicadosView(LoginRequiredMixin,View):
 			'print_mode': True,
 		}
 		return render(request, 'pdf/cuestionarios_aplicados.html', ctx)
+def get_portafolio_status(request):
+	workplace_id = request.GET.get('workplace_id')
+	workplace = Workplace.objects.filter(id=workplace_id, user_id=request.user.id).first()
+	if not workplace:
+		return JsonResponse({'items': []})
+	portafolio = PortafolioEvidencias.objects.filter(workplace=workplace).first()
+	items = []
+	# 1. Politica de Prevencion
+	politica_completa = bool(portafolio and portafolio.responsable_nombre)
+	items.append({
+		'nombre': 'Politica de Prevencion',
+		'estado': 'completo' if politica_completa else 'pendiente',
+		'detalle': 'Version ' + portafolio.version_politica if politica_completa else 'No generada aun',
+		'url': '/generar_politica/' + str(workplace.id) + '/',
+	})
+	# 2. Informe de Resultados
+	from django.test import RequestFactory
+	factory = RequestFactory()
+	fake_request = factory.get('/get_chart_data/', {'workplace_id': str(workplace.id), 'evaluation': str(workplace.evaluation)})
+	fake_request.user = request.user
+	chart_response = get_chart_data(fake_request)
+	chart_data = json.loads(chart_response.content)
+	informe_completo = chart_data.get('status') == 'ok'
+	items.append({
+		'nombre': 'Informe de Resultados',
+		'estado': 'completo' if informe_completo else 'pendiente',
+		'detalle': 'Datos disponibles' if informe_completo else 'Sin respuestas suficientes',
+		'url': '/generar_informe_resultados/' + str(workplace.id) + '/',
+	})
+	# 3. Cuestionarios Aplicados
+	evaluation = workplace.evaluation
+	empleados = Employee.objects.filter(workplace=workplace)
+	convocados = empleados.count()
+	survey_type = workplace.survey_type()
+	respondieron = 0
+	for emp in empleados:
+		survey = None
+		if survey_type == 3:
+			survey = emp.surveyB.filter(evaluation=evaluation).last()
+		elif survey_type in (1, 2):
+			survey = emp.surveyA.filter(evaluation=evaluation).last()
+		if survey:
+			respondieron += 1
+	porcentaje = round((respondieron / convocados) * 100) if convocados else 0
+	cuestionarios_completo = respondieron > 0
+	items.append({
+		'nombre': 'Cuestionarios Aplicados',
+		'estado': 'completo' if cuestionarios_completo else 'pendiente',
+		'detalle': str(respondieron) + ' de ' + str(convocados) + ' (' + str(porcentaje) + '%)',
+		'url': '/cuestionarios_aplicados/' + str(workplace.id) + '/',
+	})
+	return JsonResponse({'items': items})
 class TestView(LoginRequiredMixin,View):
 	login_url = reverse_lazy('login')
 	redirect_field_name = 'redirect_to'
