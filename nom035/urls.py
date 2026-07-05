@@ -94,6 +94,7 @@ urlpatterns = [
     path('evidence/', EvidenceView.as_view(), name='evidence'),
     path('generar_politica/<int:workplace_id>/', GenerarPoliticaView.as_view(), name='generar_politica'),
     path('generar_informe_resultados/<int:workplace_id>/', GenerarInformeResultadosView.as_view(), name='generar_informe_resultados'),
+    path('cuestionarios_aplicados/<int:workplace_id>/', CuestionariosAplicadosView.as_view(), name='cuestionarios_aplicados'),
     path('files/tmp/<int:user_id>/<str:file_name>', download_file),
     path('files/charts/<int:workplace_id>/<str:evaluation>/<str:file_name>', download_file2),
     #re_path(r'^(?:663egpo6oxo1uuwg7y2hcttf3hqcga.html)?$', serve, kwargs={'path': '/663egpo6oxo1uuwg7y2hcttf3hqcga.html'}),

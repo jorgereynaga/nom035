@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Cuestionarios Aplicados NOM-035 — {{ workplace.name }}</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: #f8f9fc; color: #1e293b; font-size: 13px; }
+    .page { max-width: 860px; margin: 24px auto; background: #fff; border-radius: 12px; box-shadow: 0 2px 16px rgba(0,0,0,0.08); overflow: hidden; }
+    .header { background: linear-gradient(135deg, #1e40af, #2563eb); color: #fff; padding: 28px 36px; }
+    .header h1 { font-size: 13px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; opacity: 0.85; margin-bottom: 4px; }
+    .header h2 { font-size: 18px; font-weight: 700; margin-bottom: 16px; }
+    .header-meta { display: flex; gap: 24px; flex-wrap: wrap; font-size: 12px; opacity: 0.9; }
+    .section { padding: 24px 36px; border-bottom: 1px solid #e2e8f0; }
+    .section-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #64748b; margin-bottom: 14px; }
+    .section p { margin-bottom: 10px; line-height: 1.6; }
+    .profile-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 32px; }
+    .profile-item { display: flex; gap: 6px; font-size: 12px; padding: 4px 0; border-bottom: 1px solid #f1f5f9; }
+    .profile-label { color: #64748b; min-width: 180px; }
+    .profile-value { font-weight: 600; color: #1e293b; }
+    .risk-summary { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+    .risk-card { border-radius: 10px; padding: 20px; text-align: center; background: #f1f5f9; }
+    .risk-card .label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; color: #64748b; }
+    .risk-card .value { font-size: 26px; font-weight: 800; color: #1e293b; }
+    @media print {
+      body { background: #fff; }
+      .page { box-shadow: none; margin: 0; max-width: 100%; }
+      .no-print { display: none; }
+    }
+  </style>
+</head>
+<body>
+{% if not print_mode %}
+<div class="no-print" style="padding:16px 36px;">
+  <button onclick="window.print()">Imprimir / Guardar como PDF</button>
+</div>
+{% endif %}
+<div class="page">
+  <div class="header">
+    <h1>Cuestionarios Aplicados — NOM-035-STPS-2018</h1>
+    <h2>{{ workplace.name }}</h2>
+    <div class="header-meta">
+      <span>Evaluación: {{ evaluation }}</span>
+      <span>Guía de Referencia: {{ guia }}</span>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Datos del Centro de Trabajo</div>
+    <div class="profile-grid">
+      <div class="profile-item"><span class="profile-label">Razón social:</span><span class="profile-value">{{ workplace.name }}</span></div>
+      <div class="profile-item"><span class="profile-label">Domicilio:</span><span class="profile-value">{{ workplace.address }}</span></div>
+      <div class="profile-item"><span class="profile-label">Número de trabajadores:</span><span class="profile-value">{{ workplace.employee_num }}</span></div>
+      <div class="profile-item"><span class="profile-label">Método utilizado:</span><span class="profile-value">Guía de Referencia {{ guia }}</span></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Resumen de Aplicación</div>
+    <div class="risk-summary">
+      <div class="risk-card">
+        <div class="label">Convocados</div>
+        <div class="value">{{ convocados }}</div>
+      </div>
+      <div class="risk-card">
+        <div class="label">Respondieron</div>
+        <div class="value">{{ respondieron }}</div>
+      </div>
+      <div class="risk-card">
+        <div class="label">Participación</div>
+        <div class="value">{{ porcentaje }}%</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Fechas de Aplicación</div>
+    <div class="profile-grid">
+      <div class="profile-item"><span class="profile-label">Fecha de inicio:</span><span class="profile-value">{% if fecha_inicio %}{{ fecha_inicio|date:"d/m/Y H:i" }}{% else %}Sin registros{% endif %}</span></div>
+      <div class="profile-item"><span class="profile-label">Fecha de cierre:</span><span class="profile-value">{% if fecha_cierre %}{{ fecha_cierre|date:"d/m/Y H:i" }}{% else %}Sin registros{% endif %}</span></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Condiciones de Aplicación</div>
+    <p>El cuestionario fue aplicado de manera individual y confidencial a cada trabajador, garantizando la protección de la privacidad de los datos proporcionados. Las respuestas individuales se resguardan con acceso restringido, exclusivamente para fines de identificación y análisis de los factores de riesgo psicosocial conforme a la NOM-035-STPS-2018.</p>
+  </div>
+</div>
+</body>
+</html>

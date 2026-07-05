@@ -891,6 +891,47 @@ class GenerarInformeResultadosView(LoginRequiredMixin,View):
 			'print_mode': True,
 		}
 		return render(request, 'pdf/informe_resultados.html', ctx)
+class CuestionariosAplicadosView(LoginRequiredMixin,View):
+	login_url = reverse_lazy('login')
+	redirect_field_name = 'redirect_to'
+	def get(self, request, *args, **kwargs):
+		workplace_id = kwargs.get('workplace_id')
+		workplace = Workplace.objects.filter(id=workplace_id, user_id=request.user.id).first()
+		if not workplace:
+			return HttpResponseRedirect(reverse_lazy('workplaces'))
+		evaluation = workplace.evaluation
+		empleados = Employee.objects.filter(workplace=workplace)
+		convocados = empleados.count()
+		survey_type = workplace.survey_type()
+		fechas = []
+		respondieron = 0
+		for emp in empleados:
+			survey = None
+			if survey_type == 3:
+				survey = emp.surveyB.filter(evaluation=evaluation).last()
+			elif survey_type in (1, 2):
+				survey = emp.surveyA.filter(evaluation=evaluation).last()
+			if survey:
+				respondieron += 1
+				fechas.append(survey.record_create)
+		fecha_inicio = min(fechas) if fechas else None
+		fecha_cierre = max(fechas) if fechas else None
+		porcentaje = round((respondieron / convocados) * 100) if convocados else 0
+		guia = 'III' if survey_type == 3 else 'II'
+		portafolio = PortafolioEvidencias.objects.filter(workplace=workplace).first()
+		ctx = {
+			'workplace': workplace,
+			'portafolio': portafolio,
+			'evaluation': evaluation,
+			'convocados': convocados,
+			'respondieron': respondieron,
+			'porcentaje': porcentaje,
+			'fecha_inicio': fecha_inicio,
+			'fecha_cierre': fecha_cierre,
+			'guia': guia,
+			'print_mode': True,
+		}
+		return render(request, 'pdf/cuestionarios_aplicados.html', ctx)
 class TestView(LoginRequiredMixin,View):
 	login_url = reverse_lazy('login')
 	redirect_field_name = 'redirect_to'
