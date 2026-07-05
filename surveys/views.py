@@ -987,7 +987,7 @@ def get_portafolio_status(request):
 		'detalle': str(respondieron) + ' de ' + str(convocados) + ' (' + str(porcentaje) + '%)',
 		'url': '/cuestionarios_aplicados/' + str(workplace.id) + '/',
 	})
-	return JsonResponse({'items': items, 'debug': debug_info})
+	return JsonResponse({'items': items, 'debug': debug_info, 'workplace_evaluation': workplace.evaluation, 'survey_type': survey_type})
 class TestView(LoginRequiredMixin,View):
 	login_url = reverse_lazy('login')
 	redirect_field_name = 'redirect_to'
