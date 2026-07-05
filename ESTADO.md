@@ -63,3 +63,25 @@
 - evidence.html usa Vue.js (v-model="workplace", v-for, AJAX a get_results/get_workplaces)
 - Portafolio Evidencias: NO usar boton unico "generar todo" — dashboard/checklist con generacion individual por documento
 - imports en views.py son wildcard: from .models import * / from .forms import *. cargar_datos_demo.py usa import explicito
+
+## ACTUALIZACION 5 Jul 2026 (sesion 3) — Checklist de Portafolio de Evidencias
+
+### PortafolioStatusView implementado (checklist real) ✅
+- Decision de diseño: CONVIVE con las tarjetas existentes (checklist resumen arriba, tarjetas detalladas abajo) — no las reemplaza
+- Decision de alcance: checklist muestra SOLO los 3 documentos existentes de Fase A. Items de Fase C (canalizaciones, examenes medicos, etc.) NO se muestran hasta que esten construidos de verdad
+- Endpoint get_portafolio_status(request) en views.py: calcula estado real de los 3 documentos
+  - Politica: completo si portafolio.responsable_nombre existe, detalle muestra version_politica
+  - Informe de Resultados: completo si get_chart_data() devuelve status=ok (reutiliza RequestFactory, mismo patron que GenerarInformeResultadosView)
+  - Cuestionarios Aplicados: completo si respondieron>0, detalle muestra "X de Y (Z%)"
+- URL get_portafolio_status/ agregada
+- evidence.html (Vue): agregado portafolio_status:[] a data(), metodo get_portafolio_status() (mismo patron AJAX que get_results()), metodo combinado on_workplace_change() que dispara ambos AJAX al cambiar selector (reemplazo el @change="get_results" original)
+- HTML checklist: iconos ✓ verde (completo) / ⚠ ambar (pendiente), nombre + detalle + link "Ver" (target=_blank), insertado justo antes de las tarjetas existentes
+- PROBADO EN PRODUCCION 5 Jul: checklist funciona correctamente, refleja estado real (ej. Cuestionarios muestra "0 de 6 (0%)" cuando nadie ha respondido), confirmado por Jorge con captura de pantalla ✅
+
+### Nota sobre reporte de lentitud del 4 Jul
+- Confirmado por Jorge: la lentitud reportada el 4 Jul ya NO ocurre. Probablemente fue temporal/no relacionado al bug de get_chart_data. Se cierra como no reproducible, no se seguira investigando salvo que reaparezca
+
+## Notas tecnicas adicionales (sesion 3)
+- Truco de terminal: cuando un bloque python -c con caracteres especiales (!, comillas anidadas) falla en Git Bash con errores tipo "event not found" (por expansion de historial de bash), usar heredoc en su lugar: python3 << 'PYEOF' ... PYEOF — las comillas simples alrededor de PYEOF evitan que bash interprete cualquier caracter especial dentro del bloque
+- Patron para checklists/dashboards de estado: crear un endpoint AJAX que reutiliza la logica de calculo ya existente en las vistas de generacion (no duplicar), devolver JSON con lista de items {nombre, estado, detalle, url}, y consumir desde Vue con un metodo que se dispara junto a los metodos AJAX existentes en el mismo evento (@change combinado)
+- Patron de marcador para content.replace() en HTML con Django templates: verificar SIEMPRE con sed + cat -A antes de asumir el contenido exacto — lineas en blanco entre bloques HTML son faciles de pasar por alto y causan "0 ocurrencias" con marcadores que se ven identicos a simple vista
