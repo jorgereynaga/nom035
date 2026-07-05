@@ -23,17 +23,20 @@
     li { margin-bottom: 6px; line-height: 1.5; }
     .signature-block { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 24px; }
     .signature-line { border-top: 1px solid #64748b; margin-top: 48px; padding-top: 6px; font-size: 11px; color: #64748b; }
+    .print-bar { padding: 16px 36px; background: #f8f9fc; display: flex; justify-content: flex-end; gap: 10px; }
+    .btn-print { background: #2563eb; color: #fff; border: none; padding: 10px 24px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; }
+    .btn-print:hover { background: #1d4ed8; }
     @media print {
       body { background: #fff; }
       .page { box-shadow: none; margin: 0; max-width: 100%; }
-      .no-print { display: none; }
+      .print-bar { display: none; }
     }
   </style>
 </head>
 <body>
 {% if not print_mode %}
-<div class="no-print" style="padding:16px 36px;">
-  <button onclick="window.print()">Imprimir / Guardar como PDF</button>
+<div class="print-bar">
+  <button class="btn-print" onclick="window.print()">🖨️ Imprimir / Guardar PDF</button>
 </div>
 {% endif %}
 <div class="page">

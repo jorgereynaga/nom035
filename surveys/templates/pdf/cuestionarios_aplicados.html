@@ -22,17 +22,20 @@
     .risk-card { border-radius: 10px; padding: 20px; text-align: center; background: #f1f5f9; }
     .risk-card .label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; color: #64748b; }
     .risk-card .value { font-size: 26px; font-weight: 800; color: #1e293b; }
+    .print-bar { padding: 16px 36px; background: #f8f9fc; display: flex; justify-content: flex-end; gap: 10px; }
+    .btn-print { background: #2563eb; color: #fff; border: none; padding: 10px 24px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; }
+    .btn-print:hover { background: #1d4ed8; }
     @media print {
       body { background: #fff; }
       .page { box-shadow: none; margin: 0; max-width: 100%; }
-      .no-print { display: none; }
+      .print-bar { display: none; }
     }
   </style>
 </head>
 <body>
 {% if not print_mode %}
-<div class="no-print" style="padding:16px 36px;">
-  <button onclick="window.print()">Imprimir / Guardar como PDF</button>
+<div class="print-bar">
+  <button class="btn-print" onclick="window.print()">🖨️ Imprimir / Guardar PDF</button>
 </div>
 {% endif %}
 <div class="page">
