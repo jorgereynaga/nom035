@@ -4,6 +4,7 @@ from django.http import HttpResponse, JsonResponse
 from django.db.models import Q
 from django.views.generic import View
 from django.utils import timezone
+import json
 from django.contrib.auth import login, logout, authenticate
 from django.db import IntegrityError
 from django.contrib import messages
@@ -849,6 +850,47 @@ class GenerarPoliticaView(LoginRequiredMixin,View):
 			return HttpResponseRedirect(reverse_lazy('generar_politica', kwargs={'workplace_id': workplace.id}) + '?print=1')
 		ctx = {'workplace': workplace, 'form': form}
 		return render(request, 'politica_prevencion_form.html', ctx)
+class GenerarInformeResultadosView(LoginRequiredMixin,View):
+	login_url = reverse_lazy('login')
+	redirect_field_name = 'redirect_to'
+	def get(self, request, *args, **kwargs):
+		workplace_id = kwargs.get('workplace_id')
+		workplace = Workplace.objects.filter(id=workplace_id, user_id=request.user.id).first()
+		if not workplace:
+			return HttpResponseRedirect(reverse_lazy('workplaces'))
+		from django.test import RequestFactory
+		factory = RequestFactory()
+		fake_request = factory.get('/get_chart_data/', {'workplace_id': workplace_id, 'evaluation': workplace.evaluation})
+		fake_request.user = request.user
+		chart_response = get_chart_data(fake_request)
+		chart_data = json.loads(chart_response.content)
+		dimensiones_resultado = []
+		if chart_data.get('status') == 'ok':
+			dim_names = chart_data['dimensions']
+			total_dim = chart_data['total_dim']
+			niveles_texto = ['Nulo', 'Bajo', 'Medio', 'Alto', 'Muy alto']
+			conteos_por_dim = {}
+			for item in total_dim:
+				idx, nivel, val = item['value']
+				conteos_por_dim.setdefault(idx, {})[nivel] = val
+			for idx, nombre in enumerate(dim_names):
+				conteos = conteos_por_dim.get(idx, {})
+				if conteos:
+					nivel_predominante = max(conteos, key=conteos.get)
+				else:
+					nivel_predominante = 0
+				dimensiones_resultado.append({
+					'nombre': nombre.replace(chr(10), ' '),
+					'nivel': niveles_texto[nivel_predominante],
+				})
+		portafolio = PortafolioEvidencias.objects.filter(workplace=workplace).first()
+		ctx = {
+			'workplace': workplace,
+			'portafolio': portafolio,
+			'dimensiones_resultado': dimensiones_resultado,
+			'print_mode': True,
+		}
+		return render(request, 'pdf/informe_resultados.html', ctx)
 class TestView(LoginRequiredMixin,View):
 	login_url = reverse_lazy('login')
 	redirect_field_name = 'redirect_to'

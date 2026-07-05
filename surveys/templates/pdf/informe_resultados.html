@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Informe de Resultados NOM-035 — {{ workplace.name }}</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: #f8f9fc; color: #1e293b; font-size: 13px; }
+    .page { max-width: 860px; margin: 24px auto; background: #fff; border-radius: 12px; box-shadow: 0 2px 16px rgba(0,0,0,0.08); overflow: hidden; }
+    .header { background: linear-gradient(135deg, #1e40af, #2563eb); color: #fff; padding: 28px 36px; }
+    .header h1 { font-size: 13px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; opacity: 0.85; margin-bottom: 4px; }
+    .header h2 { font-size: 18px; font-weight: 700; margin-bottom: 16px; }
+    .header-meta { display: flex; gap: 24px; flex-wrap: wrap; font-size: 12px; opacity: 0.9; }
+    .section { padding: 24px 36px; border-bottom: 1px solid #e2e8f0; }
+    .section-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #64748b; margin-bottom: 14px; }
+    .section p { margin-bottom: 10px; line-height: 1.6; }
+    .profile-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 32px; }
+    .profile-item { display: flex; gap: 6px; font-size: 12px; padding: 4px 0; border-bottom: 1px solid #f1f5f9; }
+    .profile-label { color: #64748b; min-width: 140px; }
+    .profile-value { font-weight: 600; color: #1e293b; }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    thead tr { background: #f1f5f9; }
+    th { padding: 10px 12px; text-align: left; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: #64748b; }
+    td { padding: 10px 12px; border-bottom: 1px solid #f1f5f9; }
+    .nivel-badge { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; }
+    .nivel-nulo { background: #e0f2fe; color: #0369a1; }
+    .nivel-bajo { background: #dcfce7; color: #15803d; }
+    .nivel-medio { background: #fef9c3; color: #a16207; }
+    .nivel-alto { background: #ffedd5; color: #c2410c; }
+    .nivel-muy-alto { background: #fee2e2; color: #b91c1c; }
+    .signature-block { margin-top: 24px; }
+    .signature-line { border-top: 1px solid #64748b; margin-top: 48px; padding-top: 6px; font-size: 11px; color: #64748b; max-width: 300px; }
+    @media print {
+      body { background: #fff; }
+      .page { box-shadow: none; margin: 0; max-width: 100%; }
+      .no-print { display: none; }
+    }
+  </style>
+</head>
+<body>
+{% if not print_mode %}
+<div class="no-print" style="padding:16px 36px;">
+  <button onclick="window.print()">Imprimir / Guardar como PDF</button>
+</div>
+{% endif %}
+<div class="page">
+  <div class="header">
+    <h1>Informe de Resultados — Identificación y Análisis de Factores de Riesgo Psicosocial</h1>
+    <h2>{{ workplace.name }}</h2>
+    <div class="header-meta">
+      <span>Evaluación: {{ workplace.evaluation }}</span>
+      <span>Empleados: {{ workplace.employee_num }}</span>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Datos del Centro de Trabajo</div>
+    <div class="profile-grid">
+      <div class="profile-item"><span class="profile-label">Razón social:</span><span class="profile-value">{{ workplace.name }}</span></div>
+      <div class="profile-item"><span class="profile-label">Domicilio:</span><span class="profile-value">{{ workplace.address }}</span></div>
+      <div class="profile-item"><span class="profile-label">Actividad principal:</span><span class="profile-value">{{ workplace.main_activity }}</span></div>
+      <div class="profile-item"><span class="profile-label">Número de trabajadores:</span><span class="profile-value">{{ workplace.employee_num }}</span></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Objetivo</div>
+    <p>Identificar, analizar y evaluar los factores de riesgo psicosocial en el centro de trabajo, conforme a lo establecido en la NOM-035-STPS-2018, con el fin de prevenir su impacto en la salud de los trabajadores y promover un entorno organizacional favorable.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Principales Actividades Realizadas</div>
+    <p>{{ workplace.other_activities }}</p>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Método Utilizado</div>
+    <p>Cuestionario conforme a la Guía de Referencia {% if workplace.survey_type == 3 %}III{% else %}II{% endif %} de la NOM-035-STPS-2018, aplicado a la totalidad de los trabajadores del centro de trabajo.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Resultados Obtenidos</div>
+    {% if dimensiones_resultado %}
+    <table>
+      <thead>
+        <tr><th>Dimensión</th><th>Nivel de riesgo predominante</th></tr>
+      </thead>
+      <tbody>
+        {% for dim in dimensiones_resultado %}
+        <tr>
+          <td>{{ dim.nombre }}</td>
+          <td>
+            <span class="nivel-badge nivel-{{ dim.nivel|lower|cut:' ' }}">{{ dim.nivel }}</span>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p>No hay datos suficientes de evaluación para generar resultados. Verifique que existan cuestionarios aplicados en el centro de trabajo.</p>
+    {% endif %}
+  </div>
+
+  <div class="section">
+    <div class="section-title">Conclusiones</div>
+    <p>Los resultados presentados reflejan el nivel de riesgo psicosocial identificado en cada dimensión evaluada, con base en las respuestas de los trabajadores del centro de trabajo. Las dimensiones con nivel de riesgo Alto o Muy alto requieren atención prioritaria mediante un Programa de intervención, conforme al numeral 8.3 y 8.4 de la NOM-035-STPS-2018.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Recomendaciones y Acciones de Intervención</div>
+    <p>Se recomienda revisar la política de prevención de riesgos psicosociales, reforzar su aplicación y difusión, y desarrollar un Programa de intervención para las dimensiones con nivel de riesgo Medio, Alto o Muy alto, conforme a los niveles de acción establecidos en el numeral 8.5 de la NOM-035-STPS-2018.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Responsable de la Evaluación</div>
+    <div class="profile-grid">
+      <div class="profile-item"><span class="profile-label">Nombre:</span><span class="profile-value">{{ portafolio.responsable_nombre }}</span></div>
+      <div class="profile-item"><span class="profile-label">Puesto:</span><span class="profile-value">{{ portafolio.responsable_puesto }}</span></div>
+    </div>
+    <div class="signature-block">
+      <div class="signature-line">
+        {{ portafolio.responsable_nombre }}<br>
+        {{ portafolio.responsable_puesto }}
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
