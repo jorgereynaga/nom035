@@ -854,48 +854,43 @@ class GenerarInformeResultadosView(LoginRequiredMixin,View):
 	login_url = reverse_lazy('login')
 	redirect_field_name = 'redirect_to'
 	def get(self, request, *args, **kwargs):
-		import traceback
-		try:
-			workplace_id = kwargs.get('workplace_id')
-			workplace = Workplace.objects.filter(id=workplace_id, user_id=request.user.id).first()
-			if not workplace:
-				return HttpResponseRedirect(reverse_lazy('workplaces'))
-			from django.test import RequestFactory
-			factory = RequestFactory()
-			fake_request = factory.get('/get_chart_data/', {'workplace_id': str(workplace_id), 'evaluation': str(workplace.evaluation)})
-			fake_request.user = request.user
-			chart_response = get_chart_data(fake_request)
-			chart_data = json.loads(chart_response.content)
-			dimensiones_resultado = []
-			if chart_data.get('status') == 'ok':
-				dim_names = chart_data['dimensions']
-				total_dim = chart_data['total_dim']
-				niveles_texto = ['Nulo', 'Bajo', 'Medio', 'Alto', 'Muy alto']
-				conteos_por_dim = {}
-				for item in total_dim:
-					idx, nivel, val = item['value']
-					conteos_por_dim.setdefault(idx, {})[nivel] = val
-				for idx, nombre in enumerate(dim_names):
-					conteos = conteos_por_dim.get(idx, {})
-					if conteos:
-						nivel_predominante = max(conteos, key=conteos.get)
-					else:
-						nivel_predominante = 0
-					dimensiones_resultado.append({
-						'nombre': nombre.replace(chr(10), ' '),
-						'nivel': niveles_texto[nivel_predominante],
-					})
-			portafolio = PortafolioEvidencias.objects.filter(workplace=workplace).first()
-			ctx = {
-				'workplace': workplace,
-				'portafolio': portafolio,
-				'dimensiones_resultado': dimensiones_resultado,
-				'print_mode': True,
-			}
-			return render(request, 'pdf/informe_resultados.html', ctx)
-		except Exception as e:
-			tb = traceback.format_exc()
-			return HttpResponse('<pre>' + tb + '</pre>', status=500)
+		workplace_id = kwargs.get('workplace_id')
+		workplace = Workplace.objects.filter(id=workplace_id, user_id=request.user.id).first()
+		if not workplace:
+			return HttpResponseRedirect(reverse_lazy('workplaces'))
+		from django.test import RequestFactory
+		factory = RequestFactory()
+		fake_request = factory.get('/get_chart_data/', {'workplace_id': str(workplace_id), 'evaluation': str(workplace.evaluation)})
+		fake_request.user = request.user
+		chart_response = get_chart_data(fake_request)
+		chart_data = json.loads(chart_response.content)
+		dimensiones_resultado = []
+		if chart_data.get('status') == 'ok':
+			dim_names = chart_data['dimensions']
+			total_dim = chart_data['total_dim']
+			niveles_texto = ['Nulo', 'Bajo', 'Medio', 'Alto', 'Muy alto']
+			conteos_por_dim = {}
+			for item in total_dim:
+				idx, nivel, val = item['value']
+				conteos_por_dim.setdefault(idx, {})[nivel] = val
+			for idx, nombre in enumerate(dim_names):
+				conteos = conteos_por_dim.get(idx, {})
+				if conteos:
+					nivel_predominante = max(conteos, key=conteos.get)
+				else:
+					nivel_predominante = 0
+				dimensiones_resultado.append({
+					'nombre': nombre.replace(chr(10), ' '),
+					'nivel': niveles_texto[nivel_predominante],
+				})
+		portafolio = PortafolioEvidencias.objects.filter(workplace=workplace).first()
+		ctx = {
+			'workplace': workplace,
+			'portafolio': portafolio,
+			'dimensiones_resultado': dimensiones_resultado,
+			'print_mode': True,
+		}
+		return render(request, 'pdf/informe_resultados.html', ctx)
 class CuestionariosAplicadosView(LoginRequiredMixin,View):
 	login_url = reverse_lazy('login')
 	redirect_field_name = 'redirect_to'
@@ -1317,6 +1312,7 @@ def get_chart_data(request):
 	e_count=0
 	cat=[]
 	domains=[]
+	dimensions=[]
 	if not employees:
 		status="no_data"
 		return JsonResponse({"status":status,'count':e_count,'data':data,'total_level':data3,'total_cat':data4,'data2':data2,'total_dim':data6,'data5':data5,'employees':employee_names,'cat':cat,'dimensions':dimensions,'domains':domains})
