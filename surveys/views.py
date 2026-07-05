@@ -860,7 +860,7 @@ class GenerarInformeResultadosView(LoginRequiredMixin,View):
 			return HttpResponseRedirect(reverse_lazy('workplaces'))
 		from django.test import RequestFactory
 		factory = RequestFactory()
-		fake_request = factory.get('/get_chart_data/', {'workplace_id': workplace_id, 'evaluation': workplace.evaluation})
+		fake_request = factory.get('/get_chart_data/', {'workplace_id': str(workplace_id), 'evaluation': str(workplace.evaluation)})
 		fake_request.user = request.user
 		chart_response = get_chart_data(fake_request)
 		chart_data = json.loads(chart_response.content)
