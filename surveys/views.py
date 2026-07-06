@@ -223,6 +223,7 @@ class Index(LoginRequiredMixin,View):
 		userapp=request.user.userapp
 		ctx['psico_disponibles']=getattr(userapp,'psico_evaluaciones_disponibles',0) + getattr(userapp,'psico_demo',0)
 		ctx['nom035_demo']=getattr(userapp,'nom035_demo',0)
+		ctx['tiene_datos_demo']=Workplace.objects.filter(user=request.user, es_demo=True).exists()
 		ctx['psico_demo']=getattr(userapp,'psico_demo',0)
 		ctx['nom035_disponibles']=getattr(userapp,'nom035_creditos',0) + getattr(userapp,'nom035_demo',0)
 		plan_key=getattr(userapp,'stripe_plan_key','')
