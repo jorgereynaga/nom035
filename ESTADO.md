@@ -120,3 +120,37 @@
 - borrar_datos_demo (management command) hace DELETE completo del Workplace demo y relacionados — no existe un comando para "resetear evaluacion sin borrar todo". Si en el futuro se necesita resetear sin perder el workplace, habria que crear un comando nuevo
 - Distincion importante confirmada: userapp.nom035_demo/psico_demo = creditos gratis (cuantas evaluaciones puede aplicar sin plan). Workplace.es_demo=True = si el CENTRO DE TRABAJO es de datos ficticios/demo. Son conceptos relacionados pero independientes — no asumir que uno implica el otro al escribir logica de UI condicional
 - EndEvaluation (POST via boton en workplace_detail.html, no automatico): incrementa evaluation+1 y pone paid=False, lo que fuerza al usuario a re-confirmar plan/creditos para la siguiente evaluacion. Logico dado el modelo de negocio (planes con vigencia 1 año, credito=evaluacion). Ahora bloqueado para es_demo=True
+
+## ACTUALIZACION 5 Jul 2026 (sesion 5) — Demo nace finalizado + fix de mensaje falso en EndEvaluation
+
+### BUG RESUELTO: EndEvaluation bloqueado en demo creaba trampa de UX ✅
+- Tras bloquear EndEvaluation para es_demo=True (sesion 4), el frontend (workplace_detail.html) seguia mostrando toastr.success falso porque el JS no revisaba data.status antes de asumir exito — la Response de Django devuelve status HTTP 200 incluso cuando el backend rechaza logicamente la operacion (status:'error' en el JSON, no un status code HTTP de error)
+- FIX: agregado if (data.status === 'error') en el callback success del AJAX de end_evaluation — ahora muestra toastr.error con el mensaje real del backend y NO recarga la pagina si fallo
+- Esto revelo una trampa de UX real: el demo pedia "finalizar evaluacion" para ver resultados, pero bloqueabamos finalizar por ser demo — el prospecto se quedaba sin poder ver resultados nunca
+
+### FIX DE PRODUCTO: workplace demo nace ya finalizado ✅
+- cargar_datos_demo.py: Workplace demo ahora se crea con paid=False y evaluation=2 explicito (antes: paid=True, evaluation=1 por default)
+- Esto usa la misma convencion que ya tiene el sistema para evaluaciones reales finalizadas (paid=False + evaluation>1 → boton "Ver resultados" apunta a evaluation-1)
+- Efecto: el prospecto ve resultados INMEDIATAMENTE al entrar al workplace demo, sin necesitar finalizar nada (que ademas esta bloqueado para demos)
+- PROBADO Y CONFIRMADO por Jorge con usuario nuevo: funciona correctamente
+
+### Contexto tecnico importante descubierto en esta sesion sobre el flujo de evaluaciones (aportado por Jorge, de una sesion anterior de arreglo de este mismo flujo)
+Tabla de estados del sistema de evaluaciones NOM-035:
+| Estado | paid | evaluation | Ver resultados | DataTable empleados |
+|---|---|---|---|---|
+| Activa (1ra) | True | 1 | Bloqueado ("debes finalizar") | evaluation=1 |
+| Finalizada (1ra) | False | 2 | /workplace_result/{id}/1/ | evaluation=1 |
+| Activa (2da) | True | 2 | Bloqueado | evaluation=2 |
+| Finalizada (2da) | False | 3 | /workplace_result/{id}/2/ | evaluation=2 |
+
+Puntos donde esta logica ya estaba implementada ANTES de esta sesion (confirmado, no se toco):
+- workplace_detail.html: botones condicionales {% if not paid and evaluation > 1 %} / {% elif paid %} / {% else %}, DataTable ajax con {% if not paid %}{{evaluation|add:"-1"}}{% else %}{{evaluation}}{% endif %}
+- WorkplaceResultView: redirect por wk.paid comentado (permite ver resultados de evaluaciones ya finalizadas)
+- Index (dashboard): eval_to_check = item.evaluation if item.paid else max(1, item.evaluation - 1)
+- AJAX end_evaluation ya usaba {{workplace_id}} correcto (no {{workplaceid}}) y url con slash inicial correcto, con setTimeout(location.reload(), 1500)
+
+Estos fixes fueron aplicados en una sesion PREVIA no documentada en este ESTADO.md (Jorge trajo el contexto completo por escrito). Quedan confirmados como YA APLICADOS Y FUNCIONANDO, no se repitieron.
+
+## Notas tecnicas adicionales (sesion 5)
+- IMPORTANTE: Django Response/JsonResponse con status='error' en el body JSON puede seguir devolviendo HTTP 200 — cualquier callback de AJAX success() en el frontend DEBE revisar data.status explicitamente, no asumir que success() = operacion exitosa. Este patron aplica a CUALQUIER endpoint que devuelva {'status':'error', ...} sin usar status=4xx/5xx en el Response
+- Patron de "evaluacion finalizada" para datos demo: si se necesita que un demo muestre resultados sin friccion desde el primer momento, crear el Workplace con paid=False y evaluation=N+1 donde N es la evaluacion real donde viven los datos de respuesta (evaluation=2 con datos en evaluation=1, replicando el patron real de "evaluacion recien finalizada")
