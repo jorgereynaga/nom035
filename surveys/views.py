@@ -859,9 +859,10 @@ class GenerarInformeResultadosView(LoginRequiredMixin,View):
 		workplace = Workplace.objects.filter(id=workplace_id, user_id=request.user.id).first()
 		if not workplace:
 			return HttpResponseRedirect(reverse_lazy('workplaces'))
+		eval_to_check = workplace.evaluation if workplace.paid else max(1, workplace.evaluation - 1)
 		from django.test import RequestFactory
 		factory = RequestFactory()
-		fake_request = factory.get('/get_chart_data/', {'workplace_id': str(workplace_id), 'evaluation': str(workplace.evaluation)})
+		fake_request = factory.get('/get_chart_data/', {'workplace_id': str(workplace_id), 'evaluation': str(eval_to_check)})
 		fake_request.user = request.user
 		chart_response = get_chart_data(fake_request)
 		chart_data = json.loads(chart_response.content)
@@ -900,7 +901,7 @@ class CuestionariosAplicadosView(LoginRequiredMixin,View):
 		workplace = Workplace.objects.filter(id=workplace_id, user_id=request.user.id).first()
 		if not workplace:
 			return HttpResponseRedirect(reverse_lazy('workplaces'))
-		evaluation = workplace.evaluation
+		evaluation = workplace.evaluation if workplace.paid else max(1, workplace.evaluation - 1)
 		empleados = Employee.objects.filter(workplace=workplace)
 		convocados = empleados.count()
 		survey_type = workplace.survey_type()
@@ -939,6 +940,7 @@ def get_portafolio_status(request):
 	if not workplace:
 		return JsonResponse({'items': []})
 	portafolio = PortafolioEvidencias.objects.filter(workplace=workplace).first()
+	eval_to_check = workplace.evaluation if workplace.paid else max(1, workplace.evaluation - 1)
 	items = []
 	# 1. Politica de Prevencion
 	politica_completa = bool(portafolio and portafolio.responsable_nombre)
@@ -951,7 +953,7 @@ def get_portafolio_status(request):
 	# 2. Informe de Resultados
 	from django.test import RequestFactory
 	factory = RequestFactory()
-	fake_request = factory.get('/get_chart_data/', {'workplace_id': str(workplace.id), 'evaluation': str(workplace.evaluation)})
+	fake_request = factory.get('/get_chart_data/', {'workplace_id': str(workplace.id), 'evaluation': str(eval_to_check)})
 	fake_request.user = request.user
 	chart_response = get_chart_data(fake_request)
 	chart_data = json.loads(chart_response.content)
@@ -963,7 +965,7 @@ def get_portafolio_status(request):
 		'url': '/generar_informe_resultados/' + str(workplace.id) + '/',
 	})
 	# 3. Cuestionarios Aplicados
-	evaluation = workplace.evaluation
+	evaluation = eval_to_check
 	empleados = Employee.objects.filter(workplace=workplace)
 	convocados = empleados.count()
 	survey_type = workplace.survey_type()
