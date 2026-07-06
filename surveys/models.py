@@ -1024,3 +1024,19 @@ class PortafolioEvidencias(models.Model):
 		super().save(*args, **kwargs)
 	def __str__(self):
 		return f"Portafolio {self.workplace.name} - {self.periodo_evaluacion}"
+
+
+class EvidenciaFaseC(models.Model):
+	TIPO_CHOICES = (
+		('canalizacion', 'Canalizacion Guia I (traumas severos)'),
+		('examen_medico', 'Examen medico/evaluacion psicologica'),
+		('medida_control', 'Medida de control/Programa de intervencion'),
+		('difusion', 'Evidencia de difusion de la politica'),
+	)
+	workplace=models.ForeignKey(Workplace,related_name="evidencias_fase_c",verbose_name='Centro de trabajo', on_delete=models.CASCADE)
+	tipo=models.CharField(u'Tipo de evidencia', max_length=30, choices=TIPO_CHOICES)
+	archivo=models.FileField(u'Archivo', upload_to='evidencias_fase_c/%Y/%m/')
+	notas=models.TextField(u'Notas', blank=True)
+	fecha_carga=models.DateTimeField(auto_now_add=True)
+	def __str__(self):
+		return f"{self.get_tipo_display()} - {self.workplace.name}"
