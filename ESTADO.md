@@ -154,3 +154,24 @@ Estos fixes fueron aplicados en una sesion PREVIA no documentada en este ESTADO.
 ## Notas tecnicas adicionales (sesion 5)
 - IMPORTANTE: Django Response/JsonResponse con status='error' en el body JSON puede seguir devolviendo HTTP 200 — cualquier callback de AJAX success() en el frontend DEBE revisar data.status explicitamente, no asumir que success() = operacion exitosa. Este patron aplica a CUALQUIER endpoint que devuelva {'status':'error', ...} sin usar status=4xx/5xx en el Response
 - Patron de "evaluacion finalizada" para datos demo: si se necesita que un demo muestre resultados sin friccion desde el primer momento, crear el Workplace con paid=False y evaluation=N+1 donde N es la evaluacion real donde viven los datos de respuesta (evaluation=2 con datos en evaluation=1, replicando el patron real de "evaluacion recien finalizada")
+
+## ACTUALIZACION 5 Jul 2026 (sesion 6) — Fix critico: eval_to_check faltaba en Portafolio de Evidencias
+
+### BUG CRITICO RESUELTO: Portafolio de Evidencias no usaba eval_to_check ✅
+- Tras el fix de sesion 5 (workplace demo nace con paid=False, evaluation=2), el dashboard normal (Index) y workplace_detail.html YA mostraban resultados correctamente porque ya usaban la logica eval_to_check = workplace.evaluation if workplace.paid else max(1, workplace.evaluation - 1)
+- Pero las 3 vistas del Portafolio de Evidencias (construidas en sesiones anteriores, ANTES de que el demo naciera con paid=False) seguian usando workplace.evaluation directo — nunca se les aplico esta logica porque cuando se construyeron, el demo siempre nacia sincronizado (paid=True, evaluation=1, sin desfase)
+- Esto causaba que Informe de Resultados y Cuestionarios Aplicados mostraran "pendiente"/"0 de 6" en TODO usuario nuevo creado despues del fix de sesion 5, aunque los datos demo estuvieran completos — confirmado con workplace_id=15 y con un usuario adicional creado despues
+- FIX aplicado en las 3 vistas (surveys/views.py):
+  - get_portafolio_status: eval_to_check agregado despues de portafolio=..., usado en factory.get() del Informe y en evaluation= de Cuestionarios
+  - GenerarInformeResultadosView: eval_to_check agregado despues del if not workplace, usado en factory.get()
+  - CuestionariosAplicadosView: evaluation = workplace.evaluation if workplace.paid else max(1, workplace.evaluation - 1) (mismo patron, una sola linea)
+- PROBADO Y CONFIRMADO por Jorge: workplace 15 y un usuario nuevo adicional, ambos muestran los 3 documentos completos con datos reales ✅
+- LECCION IMPORTANTE: cualquier vista NUEVA que se construya en el futuro y necesite buscar respuestas de encuestas por evaluation, DEBE usar eval_to_check (paid/evaluation-1), NUNCA workplace.evaluation directo — este es el patron correcto establecido en Index (dashboard) desde antes, que se le olvido replicar a las vistas del Portafolio cuando se construyeron
+
+### Limpieza de UI en evidence.html ✅
+- Eliminado el empty-state redundante "No hay resultados generados para este centro de trabajo" (ligado a la lista vieja de ResultFiles/results.length) — quedaba huerfano y confuso ahora que el checklist fusionado (portafolio_status) ya muestra su propio estado. Solo queda el empty-state "Selecciona un centro de trabajo para ver sus evidencias"
+
+## Pendientes activos de esta sesion (continuar en la siguiente)
+1. Fase C del Portafolio: agregar al checklist espacios de carga manual para: Canalizaciones Guia I (acontecimientos traumaticos severos), Examenes medicos/evaluaciones psicologicas, Medidas de control/Programa de intervencion, Evidencia de difusion de la politica. Estos NO se generan automaticamente, la empresa los debe cargar como archivo
+2. Mensajes claros en los 3 documentos de Fase A cuando no hay datos: en vez de solo decir "pendiente"/"sin respuestas suficientes", agregar texto explicito tipo "Este documento se actualizara automaticamente cuando se completen las evaluaciones/cuestionarios correspondientes" — para que el usuario entienda que no es un error, es un estado transitorio esperado
+3. Tema pendiente de sesion anterior, no resuelto aun: candidatos (psicometria) sin evaluaciones contestadas no pueden generar reporte unificado — hay que poner esas evaluaciones demo de esos 2 usuarios candidatos como resueltas
