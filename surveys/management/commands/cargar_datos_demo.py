@@ -135,7 +135,8 @@ class Command(BaseCommand):
             address_state='Jalisco',
             address_postal_code='44100',
             employee_num=6,
-            paid=True,
+            paid=False,
+            evaluation=2,
             access_code=gen_code(),
             es_demo=True,
         )
