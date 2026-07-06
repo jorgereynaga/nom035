@@ -482,6 +482,11 @@ $(function(){
       data: {'workplace_id': "{{workplace_id}}"},
       dataType: 'json',
       success: function(data){
+              if (data.status === 'error'){
+                      toastr.error(data.error || 'No fue posible finalizar la evaluacion.', 'Error');
+                      $("#confirmModal").removeClass("active");
+                      return;
+              }
               toastr.success("Se ha cerrado la evaluación","ok");
               $("#confirmModal").removeClass("active");
               setTimeout(function(){ location.reload(); }, 1500);
