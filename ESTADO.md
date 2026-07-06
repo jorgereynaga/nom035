@@ -85,3 +85,38 @@
 - Truco de terminal: cuando un bloque python -c con caracteres especiales (!, comillas anidadas) falla en Git Bash con errores tipo "event not found" (por expansion de historial de bash), usar heredoc en su lugar: python3 << 'PYEOF' ... PYEOF — las comillas simples alrededor de PYEOF evitan que bash interprete cualquier caracter especial dentro del bloque
 - Patron para checklists/dashboards de estado: crear un endpoint AJAX que reutiliza la logica de calculo ya existente en las vistas de generacion (no duplicar), devolver JSON con lista de items {nombre, estado, detalle, url}, y consumir desde Vue con un metodo que se dispara junto a los metodos AJAX existentes en el mismo evento (@change combinado)
 - Patron de marcador para content.replace() en HTML con Django templates: verificar SIEMPRE con sed + cat -A antes de asumir el contenido exacto — lineas en blanco entre bloques HTML son faciles de pasar por alto y causan "0 ocurrencias" con marcadores que se ven identicos a simple vista
+
+## ACTUALIZACION 5 Jul 2026 (sesion 4) — Fusion de checklist + bugs de evaluacion/demo resueltos
+
+### Fusion del checklist con las tarjetas ✅
+- Se elimino la duplicacion visual: checklist con estado (✓/⚠) + tarjetas separadas → ahora es UNA sola lista generada dinamicamente desde portafolio_status
+- v-for="item in portafolio_status" reemplaza las 3 tarjetas hardcodeadas de evidence.html
+- Cada fila muestra: icono ✓ verde (completo) o ⚠ ambar (pendiente) + nombre + detalle de estado + boton "Abrir" unico
+- PROBADO Y CONFIRMADO por Jorge: vista limpia, sin duplicacion
+
+### BUG CRITICO RESUELTO: EndEvaluation no bloqueaba workplaces demo ✅
+- Investigacion completa de flujo de evaluaciones (planes NOM-035: 50/100/ilimitadas evaluaciones, vigencia 1 año, 1 evaluacion = 1 credito):
+  - EndEvaluation (views.py ~2485, endpoint /api/end_evaluation/) incrementa workplace.evaluation+1 y pone paid=False — es una accion MANUAL disparada por boton "Finalizar/Avanzar evaluacion" en workplace_detail.html, NO automatica
+  - El workplace demo (id=13 en pruebas) fue avanzado a evaluacion=2 en algun momento (probablemente prueba anterior), pero las respuestas demo (RiskSurveyA) solo existen con evaluation=1 — causaba que Informe de Resultados y Cuestionarios Aplicados marcaran "pendiente" en el checklist aunque los datos demo SI existian y estaban completos
+  - Esto confirmo que get_portafolio_status/GenerarInformeResultadosView/CuestionariosAplicadosView estaban funcionando CORRECTAMENTE (reflejando el estado real de evaluation actual), el problema era el ESTADO DE DATOS del workplace demo, no la logica
+- FIX aplicado: EndEvaluation ahora verifica `if workplace.es_demo: return Response({'status':'error', ...})` ANTES de incrementar evaluation — bloquea que se pueda avanzar evaluacion en centros de trabajo demo
+- Workplace demo roto (id=13) fue borrado por Jorge usando el boton "Borrar datos de prueba" existente (borra el Workplace completo, no solo resetea evaluation — confirmado revisando borrar_datos_demo.py management command)
+
+### BUG RESUELTO: boton "Borrar datos de prueba" no desaparecia al no haber datos demo ✅
+- Causa: el boton en index.html dependia de `{% if nom035_demo %}` que lee userapp.nom035_demo (campo de CREDITOS, cambiado a default=0 ayer pero usuarios existentes conservan su valor viejo=1) — esto es una variable de creditos, NO de existencia real de datos demo
+- FIX: se agrego ctx['tiene_datos_demo'] = Workplace.objects.filter(user=request.user, es_demo=True).exists() en views.py (dashboard principal, linea ~225), calculado a partir de existencia REAL de workplace demo, no de creditos
+- index.html actualizado: {% if nom035_demo %} → {% if tiene_datos_demo %} en el boton "Borrar datos de prueba"
+- ctx['nom035_demo'] (el original) se dejo intacto porque se sigue usando para el calculo de creditos disponibles (nom035_disponibles) en otro punto del dashboard — no se toco esa logica
+- PROBADO: tras borrar el workplace demo roto, pendiente confirmar en produccion que el boton ya no aparece (Jorge iba a verificar)
+
+### Pendiente para verificar en la siguiente sesion
+1. Confirmar que boton "Borrar datos de prueba" ya no aparece tras el fix + borrado del workplace roto
+2. Considerar tambien ocultar/deshabilitar el boton "Finalizar/Avanzar evaluacion" en el FRONTEND (workplace_detail.html) cuando workplace.es_demo=True — hoy solo se bloqueo en backend (el usuario veria el boton pero recibiria error al hacer click). Bloqueo de backend es lo critico y ya esta resuelto; ocultar en frontend es mejora de UX, no urgente
+3. Crear un usuario de prueba NUEVO para validar de punta a punta: registro → datos demo cargados en evaluacion 1 → checklist del Portafolio muestra los 3 documentos completos desde el primer momento → intentar avanzar evaluacion en ese demo debe fallar con el mensaje de error nuevo
+
+## Notas tecnicas adicionales (sesion 4)
+- IMPORTANTE: cuando bash entra en estado raro (prompt cambia a '>' esperando cierre de comilla/parentesis), usar Ctrl+C o escribir tres backticks para forzar abort y recuperar el prompt limpio antes de seguir
+- Patron para diagnosticar sin logs de Railway en tiempo real: agregar campos de debug temporales a un JsonResponse existente (mas simple que try/except con traceback completo si el problema es de datos, no de excepcion) — ej. agregar 'debug': [...], 'workplace_evaluation': x, 'survey_type': y al return, ver el resultado accediendo al endpoint GET directo en el navegador, y LIMPIAR el debug inmediatamente despues de diagnosticar (nunca dejarlo en produccion)
+- borrar_datos_demo (management command) hace DELETE completo del Workplace demo y relacionados — no existe un comando para "resetear evaluacion sin borrar todo". Si en el futuro se necesita resetear sin perder el workplace, habria que crear un comando nuevo
+- Distincion importante confirmada: userapp.nom035_demo/psico_demo = creditos gratis (cuantas evaluaciones puede aplicar sin plan). Workplace.es_demo=True = si el CENTRO DE TRABAJO es de datos ficticios/demo. Son conceptos relacionados pero independientes — no asumir que uno implica el otro al escribir logica de UI condicional
+- EndEvaluation (POST via boton en workplace_detail.html, no automatico): incrementa evaluation+1 y pone paid=False, lo que fuerza al usuario a re-confirmar plan/creditos para la siguiente evaluacion. Logico dado el modelo de negocio (planes con vigencia 1 año, credito=evaluacion). Ahora bloqueado para es_demo=True
