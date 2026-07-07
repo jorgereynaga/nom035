@@ -302,3 +302,34 @@ Para "Resultados adicionales" por empleado: confirmar que debia mostrar antes de
 2. Boton "Descargar" explicito ademas de "Ver archivo" en evidencias de Fase C (opcional)
 3. Limite de NUMERO de archivos por tipo/workplace en Fase C (hoy solo hay limite de tamano individual)
 4. Los 3 bugs de workplace_result descritos arriba (nuevo, sesion 8)
+
+## ACTUALIZACION 7 Jul 2026 (sesion 9) — Fixes en workplace_results.html
+
+### BUG RESUELTO: Paginacion sin estilo en "Resultados por empleado" ✅
+- Comparando /workplaces/18/ (Empleados del centro, paginacion bien estilizada) vs /workplace_result/18/1/ (Resultados por empleado, paginacion como lista con bullets sin estilo)
+- Causa: workplace_results.html tenia el CSS base de .dataTables_paginate .paginate_button pero le faltaban 3 reglas que SI tenia workplace_detail.html:
+  - .dataTables_wrapper .dataTables_paginate { list-style: none !important; padding-left: 0 !important; }
+  - .dataTables_wrapper .dataTables_paginate span { list-style: none !important; }
+  - .dataTables_wrapper ul, .dataTables_wrapper li { list-style: none !important; padding-left: 0 !important; }
+- FIX: se agregaron las 3 reglas faltantes en workplace_results.html, en el mismo orden/lugar que workplace_detail.html
+- PROBADO Y CONFIRMADO por Jorge ✅
+
+### BUG RESUELTO: Boton "Descargar resultados" no funcionaba ✅
+- El boton (header de workplace_results.html) llamaba a /api/save_chart/ (SaveCharts view) que a su vez usa pdf_reports_task.delay(...) — la MISMA tarea Celery con WeasyPrint que sabemos esta permanentemente rota en Railway
+- Jorge confirmo: como el Informe de Resultados del Portafolio de Evidencias ya cubre esta necesidad (sin depender de WeasyPrint), se decidio ELIMINAR el boton en vez de arreglarlo
+- FIX: se elimino el bloque <div class="results-actions"><button class="results">Descargar resultados</button></div> del template, y su handler JS huerfano $(".results").click(function(){...}) que llamaba a /api/save_chart/
+- NOTA: SaveCharts (views.py:355) y la ruta /api/save_chart/ siguen existiendo en el codigo/urls.py, solo se quito el boton/handler que lo disparaba desde este template. No se borro la vista backend (podria estar en uso desde otro lugar, no se investigo)
+- PROBADO Y CONFIRMADO por Jorge ✅
+
+### MEJORA: Boton "Resultados adicionales" por empleado ✅
+- Los botones existian y SI funcionaban (abren /reporte_html/{fileid}/{evaluation}/, mismo patron HTML imprimible que ya funciona), pero eran badges pequeños con SOLO icono, sin texto, dificiles de entender. Ademas tenian un typo: "Descargar resutados"
+- Jorge eligio: un boton por tipo con texto claro (no un boton generico, no solo iconos con tooltip)
+- FIX en employees_dt (views.py ~1225-1238): reemplazado el HTML de badges-solo-icono por <button> con texto: "Ver trauma" (para Guia I) y "Ver riesgo psicosocial" (para Guia II/III), corregido el typo "resutados"→"resultados"
+- El campo `traumado` sigue llamandose asi en el codigo (variable interna), no fue necesario renombrarlo
+- PROBADO Y CONFIRMADO por Jorge: "quedo perfecto" ✅
+
+## Pendientes para la siguiente sesion
+1. Mensajes claros de "se actualizara automaticamente" en los 3 documentos de Fase A del Portafolio cuando esten en estado pendiente (arrastrado de sesiones anteriores)
+2. Mejorar la vista del selector "Centro de trabajo" en el Portafolio de Evidencias (evidence.html) — Jorge senalo que se ve muy simple/sin estilo (screenshot muestra solo un select basico sin la lista de opciones visible, se ve vacio/poco pulido). PENDIENTE DE INICIAR esta sesion
+3. Boton "Descargar" explicito ademas de "Ver archivo" en evidencias de Fase C (opcional, no solicitado aun)
+4. Limite de NUMERO de archivos por tipo/workplace en Fase C (hoy solo hay limite de tamano individual de 10MB)
