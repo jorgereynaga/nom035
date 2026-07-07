@@ -1014,6 +1014,46 @@ def get_portafolio_status(request):
 		'detalle': str(respondieron) + ' de ' + str(convocados) + ' (' + str(porcentaje) + '%)',
 		'url': '/cuestionarios_aplicados/' + str(workplace.id) + '/',
 	})
+	# 4. Canalizacion Guia I (siempre aplica)
+	canalizacion_evidencias = EvidenciaFaseC.objects.filter(workplace=workplace, tipo='canalizacion').exists()
+	items.append({
+		'nombre': 'Canalizaciones Guia I',
+		'estado': 'completo' if canalizacion_evidencias else 'pendiente',
+		'detalle': 'Evidencia cargada' if canalizacion_evidencias else 'Carga la evidencia de canalizacion de trabajadores con acontecimientos traumaticos severos',
+		'url': '/subir_evidencia_fase_c/' + str(workplace.id) + '/canalizacion/',
+	})
+	# 5. Evidencia de difusion (siempre aplica)
+	difusion_evidencias = EvidenciaFaseC.objects.filter(workplace=workplace, tipo='difusion').exists()
+	items.append({
+		'nombre': 'Evidencia de Difusion',
+		'estado': 'completo' if difusion_evidencias else 'pendiente',
+		'detalle': 'Evidencia cargada' if difusion_evidencias else 'Carga evidencia de difusion de la politica (fotos, correos, capacitaciones)',
+		'url': '/subir_evidencia_fase_c/' + str(workplace.id) + '/difusion/',
+	})
+	# 6 y 7. Solo si el diagnostico muestra nivel Medio/Alto/Muy alto en alguna dimension
+	niveles_riesgo = ['Nulo', 'Bajo']
+	requiere_intervencion = False
+	if chart_data.get('status') == 'ok':
+		for item in chart_data.get('total_dim', []):
+			idx, nivel, val = item['value']
+			if nivel >= 2 and val > 0:
+				requiere_intervencion = True
+				break
+	if requiere_intervencion:
+		examen_evidencias = EvidenciaFaseC.objects.filter(workplace=workplace, tipo='examen_medico').exists()
+		items.append({
+			'nombre': 'Examenes Medicos/Evaluaciones Psicologicas',
+			'estado': 'completo' if examen_evidencias else 'pendiente',
+			'detalle': 'Evidencia cargada' if examen_evidencias else 'El diagnostico sugiere practicar examenes medicos, carga la evidencia',
+			'url': '/subir_evidencia_fase_c/' + str(workplace.id) + '/examen_medico/',
+		})
+		medida_evidencias = EvidenciaFaseC.objects.filter(workplace=workplace, tipo='medida_control').exists()
+		items.append({
+			'nombre': 'Medidas de Control/Programa de Intervencion',
+			'estado': 'completo' if medida_evidencias else 'pendiente',
+			'detalle': 'Evidencia cargada' if medida_evidencias else 'El diagnostico requiere un Programa de intervencion, carga la evidencia',
+			'url': '/subir_evidencia_fase_c/' + str(workplace.id) + '/medida_control/',
+		})
 	return JsonResponse({'items': items})
 class TestView(LoginRequiredMixin,View):
 	login_url = reverse_lazy('login')
