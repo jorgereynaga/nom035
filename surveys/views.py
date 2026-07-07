@@ -1227,16 +1227,9 @@ def employees_dt(request,workplace_id,t,evaluation):
 				survey =item.survey3.filter(evaluation=evaluation).last()
 				if survey:
 					if survey.r1_p1==0:
-						traumado=f"<div class='badge badge-pill badge-glow badge-danger ttip' data-toggle='tooltip' \
-							data-original-title='Persona identificada con indicios de haber sufrido algún trauma severo'>\
-							<i class='feather icon-alert-triangle'></i></div>\
-							<div class='badge badge-pill badge-glow badge-default get_file ttip' data-toggle='tooltip' \
-							data-original-title='Descargar resutados de la encuesta de eventos traumáticos' \
-							data-temp='muestra_chart' data-fileid='{item.id}'><i class='feather icon-download'></i></div>"
+						traumado=f"<div class='badge badge-pill badge-glow badge-danger ttip' data-toggle='tooltip' data-original-title='Persona identificada con indicios de haber sufrido algun trauma severo'><i class='feather icon-alert-triangle'></i></div> <button class='btn btn-sm btn-outline-secondary get_file' data-temp='muestra_chart' data-fileid='{item.id}' style='font-size:11px;padding:2px 8px;'><i class='feather icon-download'></i> Ver trauma</button>"
 			if hasattr(item,"surveyA") or hasattr(item,"surveyB"):
-				traumado=f"{traumado} <div class='badge badge-pill badge-glow badge-success get_file ttip' data-toggle='tooltip' \
-					data-original-title='Descargar resutados de la encuesta de riesgo psicosocial' \
-					data-temp='riesgo_psicosocial' data-fileid='{item.id}'><i class='feather icon-download'></i></div>"
+				traumado=f"{traumado} <button class='btn btn-sm btn-outline-primary get_file' data-temp='riesgo_psicosocial' data-fileid='{item.id}' style='font-size:11px;padding:2px 8px;'><i class='feather icon-download'></i> Ver riesgo psicosocial</button>"
 			arr.append({
 				"name":item.name,
 				"status":f"<div class='badge badge-pill badge-glow badge-{item.get_status(evaluation=evaluation)}</div>",
