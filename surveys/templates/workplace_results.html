@@ -244,12 +244,6 @@ table.dataTable tbody tr:last-child td { border-bottom: none !important; }
       <h2 class="results-title">{{name}}</h2>
       <p class="results-subtitle">{{address}} &nbsp;·&nbsp; {{main_activity}}</p>
     </div>
-    <div class="results-actions">
-      <button class="btn btn-primary btn-sm results">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        Descargar resultados
-      </button>
-    </div>
   </div>
 
   <!-- Evaluation nav -->
@@ -648,38 +642,6 @@ table.dataTable tbody tr:last-child td { border-bottom: none !important; }
         $("#list tbody").on("click",'.get_file',function(){
             var url = "/reporte_html/"+$(this).attr("data-fileid")+"/{{evaluation}}/";
             window.open(url, '_blank');
-        });
-        $(".results").click(function(){
-            toastr.success('Generando archivo, espera un momento...',"ok")
-            $.ajax({
-                url: "/api/save_chart/",
-                method: 'POST',
-                contentType :"application/json",
-                dataType: 'json',
-                data:JSON.stringify({
-                    "chart1":myChart.getDataURL({pixelRatio: 2,backgroundColor: '#fff'}),
-                    "chart2":myChart2.getDataURL({pixelRatio: 2,backgroundColor: '#fff'}),
-                    "chart3":myChart3.getDataURL({pixelRatio: 2,backgroundColor: '#fff'}),
-                    "chart4":myChart4.getDataURL({pixelRatio: 2,backgroundColor: '#fff'}),
-                    "chart5":myChart5.getDataURL({pixelRatio: 2,backgroundColor: '#ff5'}),
-                    "chart6":myChart6.getDataURL({pixelRatio: 2,backgroundColor: '#ff6'}),
-                    "wp":"{{workplace_id}}",
-                    "ev":"{{evaluation}}",
-                }),
-                success: function(data){
-                    toastr.success('<p>Archivo generado.</p><a target="_blank" href="'+data.pdf+'" class="btn btn-success">Descargar archivo</a>',"ok",{
-                        "closeButton": true,"positionClass": "toast-top-center","showDuration": "0","hideDuration": "0","timeOut": "0","extendedTimeOut": "0",})
-                },
-                error:function (xhr, ajaxOptions, thrownError){
-                    if (xhr.status!=400) {
-                        toastr.success('Ha ocurrido un error: '+xhr.responseText,"Error");
-                    }else{
-                        toastr.success('Ha ocurrido un error',"Error");
-                    }
-                    console.log(xhr.status)
-                    console.log(xhr.responseText)
-                }       
-            })
         });
 
     });
