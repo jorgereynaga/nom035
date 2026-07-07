@@ -613,8 +613,6 @@ table.dataTable tbody tr:last-child td { border-bottom: none !important; }
         $('[data-toggle="tooltip"]').tooltip();
         var table=$("#list").DataTable({
             "lengthMenu": [[5,10,25,50,100], [5,10,25,50,100]],
-            "pagingType": "simple_numbers",
-            "dom": '<"top"lf>rt<"bottom"ip><"clear">',
             "ajax": '/employees_dt/{{workplace_id}}/1/{{evaluation}}/',
             "serverSide":true,
             "columns": [
