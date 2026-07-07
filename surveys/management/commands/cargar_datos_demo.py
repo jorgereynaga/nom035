@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
-from surveys.models import Workplace, Employee, RiskSurveyA, RiskSurveyB, Candidate, WorkEnvironmentSurvey, PortafolioEvidencias
+from surveys.models import Workplace, Employee, RiskSurveyA, RiskSurveyB, Candidate, WorkEnvironmentSurvey, PortafolioEvidencias, TestResult
 import random, string
 
 
@@ -228,11 +228,35 @@ class Command(BaseCommand):
                 instrumento = instrumentos[i]
                 token = uuid.uuid4().hex
                 expira_en = timezone.now() + timedelta(days=365)
-                TestSession.objects.create(
+                sesion = TestSession.objects.create(
                     candidate=cand,
                     instrumento=instrumento,
                     token=token,
                     expira_en=expira_en,
+                    status='completada',
+                    fecha_inicio=timezone.now(),
+                    fecha_completado=timezone.now(),
+                )
+                if instrumento.tipo == 'disc':
+                    scores_demo = {'D': 20, 'I': 15, 'S': 10, 'C': 8}
+                    interpretacion_demo = 'Perfil orientado a resultados, con enfoque directo y decidido.'
+                elif instrumento.tipo == 'moss':
+                    scores_demo = {'total': 68}
+                    interpretacion_demo = 'Nivel de habilidades de supervision alto.'
+                elif instrumento.tipo == 'raven':
+                    scores_demo = {'porcentaje': 75}
+                    interpretacion_demo = 'Capacidad de razonamiento en nivel superior.'
+                elif instrumento.tipo == 'zavic':
+                    scores_demo = {'M': 40, 'L': 30, 'I': 20, 'C': 10}
+                    interpretacion_demo = 'Predominancia de valores morales sobre legales.'
+                else:
+                    scores_demo = {}
+                    interpretacion_demo = ''
+                TestResult.objects.create(
+                    session=sesion,
+                    scores=scores_demo,
+                    interpretacion=interpretacion_demo,
+                    perfil_narrativo='Perfil de ejemplo generado para fines de demostracion de la plataforma.',
                 )
                 self.stdout.write(f'  Sesion psicometrica demo: {cand.nombre} -> {instrumento.nombre}')
         self.stdout.write(self.style.SUCCESS('Datos demo cargados correctamente'))
