@@ -95,6 +95,7 @@ urlpatterns = [
     path('generar_politica/<int:workplace_id>/', GenerarPoliticaView.as_view(), name='generar_politica'),
     path('generar_informe_resultados/<int:workplace_id>/', GenerarInformeResultadosView.as_view(), name='generar_informe_resultados'),
     path('cuestionarios_aplicados/<int:workplace_id>/', CuestionariosAplicadosView.as_view(), name='cuestionarios_aplicados'),
+    path('subir_evidencia_fase_c/<int:workplace_id>/<str:tipo>/', SubirEvidenciaFaseCView.as_view(), name='subir_evidencia_fase_c'),
     path('get_portafolio_status/', get_portafolio_status, name='get_portafolio_status'),
     path('files/tmp/<int:user_id>/<str:file_name>', download_file),
     path('files/charts/<int:workplace_id>/<str:evaluation>/<str:file_name>', download_file2),

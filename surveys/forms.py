@@ -39,3 +39,17 @@ class PoliticaPrevencionForm(forms.Form):
     tiempo_respuesta_quejas = forms.CharField(label='Tiempo estimado de respuesta', max_length=100, widget=forms.TextInput(attrs=_cls))
     periodicidad_revision = forms.CharField(label='Periodicidad de revisión', max_length=50, initial='Anual', widget=forms.TextInput(attrs=_cls))
 
+
+class EvidenciaFaseCForm(forms.Form):
+    _cls = {'class': 'form-control'}
+    archivo = forms.FileField(label='Archivo', widget=forms.ClearableFileInput(attrs=_cls))
+    notas = forms.CharField(label='Notas', required=False, widget=forms.Textarea(attrs=_cls))
+    def clean_archivo(self):
+        archivo = self.cleaned_data.get('archivo')
+        if archivo:
+            if archivo.size > 10 * 1024 * 1024:
+                raise forms.ValidationError('El archivo no debe superar 10 MB.')
+            ext = archivo.name.split('.')[-1].lower()
+            if ext not in ('pdf', 'jpg', 'jpeg', 'png'):
+                raise forms.ValidationError('Solo se permiten archivos PDF, JPG o PNG.')
+        return archivo

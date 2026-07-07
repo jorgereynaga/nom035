@@ -934,6 +934,34 @@ class CuestionariosAplicadosView(LoginRequiredMixin,View):
 			'print_mode': True,
 		}
 		return render(request, 'pdf/cuestionarios_aplicados.html', ctx)
+class SubirEvidenciaFaseCView(LoginRequiredMixin,View):
+	login_url = reverse_lazy('login')
+	redirect_field_name = 'redirect_to'
+	def get(self, request, *args, **kwargs):
+		workplace_id = kwargs.get('workplace_id')
+		tipo = kwargs.get('tipo')
+		workplace = Workplace.objects.filter(id=workplace_id, user_id=request.user.id).first()
+		if not workplace:
+			return HttpResponseRedirect(reverse_lazy('workplaces'))
+		form = EvidenciaFaseCForm()
+		evidencias = EvidenciaFaseC.objects.filter(workplace=workplace, tipo=tipo).order_by('-fecha_carga')
+		tipo_display = dict(EvidenciaFaseC.TIPO_CHOICES).get(tipo, tipo)
+		ctx = {'workplace': workplace, 'form': form, 'evidencias': evidencias, 'tipo': tipo, 'tipo_display': tipo_display}
+		return render(request, 'evidencia_fase_c_form.html', ctx)
+	def post(self, request, *args, **kwargs):
+		workplace_id = kwargs.get('workplace_id')
+		tipo = kwargs.get('tipo')
+		workplace = Workplace.objects.filter(id=workplace_id, user_id=request.user.id).first()
+		if not workplace:
+			return HttpResponseRedirect(reverse_lazy('workplaces'))
+		form = EvidenciaFaseCForm(request.POST, request.FILES)
+		if form.is_valid():
+			EvidenciaFaseC.objects.create(workplace=workplace, tipo=tipo, archivo=form.cleaned_data['archivo'], notas=form.cleaned_data['notas'])
+			return HttpResponseRedirect(reverse_lazy('subir_evidencia_fase_c', kwargs={'workplace_id': workplace.id, 'tipo': tipo}))
+		evidencias = EvidenciaFaseC.objects.filter(workplace=workplace, tipo=tipo).order_by('-fecha_carga')
+		tipo_display = dict(EvidenciaFaseC.TIPO_CHOICES).get(tipo, tipo)
+		ctx = {'workplace': workplace, 'form': form, 'evidencias': evidencias, 'tipo': tipo, 'tipo_display': tipo_display}
+		return render(request, 'evidencia_fase_c_form.html', ctx)
 def get_portafolio_status(request):
 	workplace_id = request.GET.get('workplace_id')
 	workplace = Workplace.objects.filter(id=workplace_id, user_id=request.user.id).first()
