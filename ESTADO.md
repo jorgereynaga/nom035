@@ -274,3 +274,31 @@ Estos fixes fueron aplicados en una sesion PREVIA no documentada en este ESTADO.
 2. Considerar boton "Descargar" explicito ademas de "Ver archivo" en evidencias de Fase C (opcional)
 3. Revisar limite de NUMERO de archivos por tipo/workplace en Fase C (hoy solo hay limite de tamano individual de 10MB, no de cantidad)
 4. Jorge menciono que encontro "otros detalles" adicionales en esta sesion — pendiente de detallar
+
+## PENDIENTE SIN RESOLVER — sesion 8 (cortada, continuar en la siguiente)
+
+### Bugs reportados por Jorge en workplace_result (aun sin diagnosticar a fondo)
+Ubicacion: https://nom035-production.up.railway.app/workplace_result/18/1/
+Template: surveys/templates/workplace_results.html
+
+1. **Paginacion incorrecta en resultados vs detalle**: en /workplaces/18/ (detalle del centro, lista de empleados) la paginacion funciona bien. En /workplace_result/18/1/ (ver resultados) la paginacion "ya no es correcta, y falla" — Jorge no especifico el error exacto, falta reproducir/ver el comportamiento real
+2. **Boton "Descargar resultados" no funciona**: linea 250 de workplace_results.html. No descarga nada y muestra "un mensaje muy feo" (no se capturo el mensaje exacto). Opciones propuestas por Jorge: (a) quitar el boton porque los resultados ya estan en el Portafolio de Evidencias, o (b) hacer que si descargue un PDF con esos resultados
+3. **Boton "Resultados adicionales" por empleado no funciona**: tabla de "Resultados por empleado", columna "Resultados adicionales" (linea 340). Boton feo, no descarga nada, no esta claro que deberia mostrar. Jorge no recuerda la funcion original — evaluar si se quita o se corrige
+
+### Siguiente paso al retomar
+Se iba a revisar:
+```bash
+sed -n '240,260p' surveys/templates/workplace_results.html
+sed -n '335,360p' surveys/templates/workplace_results.html
+```
+para ver el codigo exacto de ambos botones (que endpoint/funcion JS intentan llamar) antes de decidir el fix — Jorge corto la sesion antes de correr estos comandos.
+
+### Decision pendiente de tomar con Jorge
+Para el boton "Descargar resultados": ¿eliminar (ya que Informe de Resultados del Portafolio de Evidencias cubre esta necesidad) o arreglar para que genere PDF real?
+Para "Resultados adicionales" por empleado: confirmar que debia mostrar antes de decidir si se quita o se repara.
+
+## Pendientes acumulados (no resueltos aun, de sesiones anteriores)
+1. Mensajes claros de "se actualizara automaticamente" en los 3 documentos de Fase A del Portafolio cuando esten en estado pendiente
+2. Boton "Descargar" explicito ademas de "Ver archivo" en evidencias de Fase C (opcional)
+3. Limite de NUMERO de archivos por tipo/workplace en Fase C (hoy solo hay limite de tamano individual)
+4. Los 3 bugs de workplace_result descritos arriba (nuevo, sesion 8)
