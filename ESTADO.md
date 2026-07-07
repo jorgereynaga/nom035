@@ -210,3 +210,35 @@ Estos fixes fueron aplicados en una sesion PREVIA no documentada en este ESTADO.
 2. Candidatos (psicometria) sin evaluaciones contestadas no pueden generar reporte unificado — poner evaluaciones demo de esos 2 usuarios candidatos como resueltas (pendiente de sesiones anteriores, no resuelto aun)
 3. Considerar agregar boton "Descargar" (ademas de "Ver archivo") en evidencia_fase_c_form.html si los usuarios lo piden
 4. Revisar si se necesita un limite de NUMERO de archivos por tipo/workplace (hoy no hay limite de cantidad, solo de tamano individual)
+
+## ACTUALIZACION 7 Jul 2026 (sesion 8) — Reporte unificado psicometria + branding NormaIA
+
+### BUG RESUELTO: candidatos demo sin evaluaciones contestadas ✅
+- Problema: ReporteUnificadoView (surveys/psico_views.py:400) requiere TestSession con status='completada' + su TestResult asociado (via session.result). Los candidatos demo (Pedro Alvarado, Sofia Ramirez) se creaban con TestSession pero sin status explicito (quedaba en default 'pendiente') y SIN TestResult — por eso el reporte unificado mostraba "sin datos" (psico_reporte_sin_datos.html)
+- FIX en cargar_datos_demo.py:
+  - TestSession ahora se crea con status='completada', fecha_inicio y fecha_completado explicitos
+  - Se agrega creacion de TestResult con scores coherentes segun PsychoInstrument.tipo:
+    - disc: {'D':20,'I':15,'S':10,'C':8} (formato requerido por ReporteUnificadoView: max ~28 por letra)
+    - moss: {'total':68} (formato: /90)
+    - raven: {'porcentaje':75} (formato: 0-100)
+    - zavic: {'M':40,'L':30,'I':20,'C':10} (formato: valores relativos, se normalizan a %)
+  - Se agrego import de TestResult en cargar_datos_demo.py (import explicito, no wildcard)
+- IMPORTANTE: este fix solo aplica a usuarios NUEVOS registrados despues del deploy — candidatos demo de usuarios ya existentes (creados antes de este fix) seguiran sin TestResult, no se corrigen retroactivamente
+- PROBADO Y CONFIRMADO por Jorge con usuario nuevo: reporte unificado de Sofia Ramirez se genera correctamente con perfil DISC completo ✅
+
+### Limpieza de branding: IHES → NormaIA ✅
+- psico_reporte.html (reporte unificado psicometria): quitado header "IHES <span>NOM-035</span>" + "Plataforma de Evaluacion Psicometrica" (dejado vacio, consistente con reportes NOM-035 sin logo). Footer cambiado de "Reporte generado por IHES NOM-035" a "Reporte generado por NormaIA"
+- Copyright actualizado de "IHES S.C." (o variantes: "IHES SA. de CV.", "Instituto Hispanoamericano de Estudios Superiores S.C.") a "NormaIA 2027" en 5 templates:
+  - index.html (dashboard principal)
+  - psico_candidatos.html
+  - password_recover.html
+  - survey.html (2 ocurrencias, ambas actualizadas)
+  - valid_email.html
+- NO se toco index_backup_original.html (decision explicita de Jorge: es un respaldo viejo sin usar)
+- landing.html YA decia "NormaIA" correctamente, no requirio cambio
+
+## Pendientes activos para continuar
+1. Mensajes claros de "se actualizara automaticamente" en los 3 documentos de Fase A del Portafolio (Politica/Informe/Cuestionarios) cuando esten en estado pendiente — mejora de copy, no bloqueante, pendiente desde sesion 6
+2. Considerar boton "Descargar" explicito ademas de "Ver archivo" en evidencias de Fase C (opcional)
+3. Revisar limite de NUMERO de archivos por tipo/workplace en Fase C (hoy solo hay limite de tamano individual de 10MB, no de cantidad)
+4. Jorge menciono que encontro "otros detalles" adicionales en esta sesion — pendiente de detallar
