@@ -413,12 +413,14 @@ window.onload = function () {
     computed: {},
     mounted: function () {
       this.$nextTick(function () {
-        $(document).ready(function(){
-          $(".select2").select2({
-            dropdownAutoWidth: true,
-            width: '100%'
+        setTimeout(function(){
+          $(document).ready(function(){
+            $(".select2").select2({
+              dropdownAutoWidth: true,
+              width: '100%'
+            });
           });
-        });
+        }, 50);
         $(function(){
           $("#app").css('display','block');
           {% if user.is_superuser %}
