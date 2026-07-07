@@ -175,3 +175,38 @@ Estos fixes fueron aplicados en una sesion PREVIA no documentada en este ESTADO.
 1. Fase C del Portafolio: agregar al checklist espacios de carga manual para: Canalizaciones Guia I (acontecimientos traumaticos severos), Examenes medicos/evaluaciones psicologicas, Medidas de control/Programa de intervencion, Evidencia de difusion de la politica. Estos NO se generan automaticamente, la empresa los debe cargar como archivo
 2. Mensajes claros en los 3 documentos de Fase A cuando no hay datos: en vez de solo decir "pendiente"/"sin respuestas suficientes", agregar texto explicito tipo "Este documento se actualizara automaticamente cuando se completen las evaluaciones/cuestionarios correspondientes" — para que el usuario entienda que no es un error, es un estado transitorio esperado
 3. Tema pendiente de sesion anterior, no resuelto aun: candidatos (psicometria) sin evaluaciones contestadas no pueden generar reporte unificado — hay que poner esas evaluaciones demo de esos 2 usuarios candidatos como resueltas
+
+## ACTUALIZACION 6 Jul 2026 (sesion 7) — Fase C completa: carga manual de evidencias
+
+### FASE C IMPLEMENTADA ✅
+- Modelo generico EvidenciaFaseC (surveys/models.py, migration 0036): workplace FK, tipo (choices: canalizacion/examen_medico/medida_control/difusion), archivo (FileField), notas, fecha_carga
+- Form EvidenciaFaseCForm (surveys/forms.py) con validacion:
+  - Limite de tamano: 10 MB por archivo (decision de negocio para controlar costos de hosting)
+  - Tipos permitidos: solo PDF, JPG, PNG (clean_archivo() valida size y extension)
+- Vista SubirEvidenciaFaseCView (surveys/views.py): GET muestra form + lista de evidencias ya cargadas de ese tipo, POST guarda y redirige (permite subir multiples archivos del mismo tipo, ej. varias canalizaciones)
+- URL subir_evidencia_fase_c/<workplace_id>/<tipo>/ (tipo es parametro string: canalizacion/examen_medico/medida_control/difusion)
+- Template evidencia_fase_c_form.html: estilo NormaIA consistente (.form-group/.form-control/.section-card), muestra lista de archivos ya subidos con link "Ver archivo" y fecha, formulario de carga debajo
+- get_portafolio_status actualizado: agrega 2-4 items de Fase C al checklist con VISIBILIDAD CONDICIONAL:
+  - Canalizaciones Guia I: SIEMPRE visible (numeral 5.5 de la norma aplica a todos los centros)
+  - Evidencia de Difusion: SIEMPRE visible (numeral 5.7 aplica a todos los centros)
+  - Examenes Medicos/Evaluaciones Psicologicas: SOLO visible si el diagnostico (chart_data.total_dim) muestra nivel Medio(2)/Alto(3)/Muy alto(4) en alguna dimension — logica: itera total_dim buscando algun item con nivel>=2 y val>0
+  - Medidas de Control/Programa de Intervencion: mismo criterio que examenes medicos
+- PROBADO Y CONFIRMADO por Jorge en produccion: checklist muestra correctamente 5-7 items segun corresponda ✅
+
+### Decisiones de producto tomadas en esta sesion
+- Modelo GENERICO (EvidenciaFaseC con campo tipo) en vez de 4 modelos separados — mas simple de mantener, permite multiples archivos por tipo
+- Carga = archivo real + notas (no solo checkbox de "completado")
+- Limite de archivo 10MB, solo PDF/JPG/PNG — decision explicita de Jorge para controlar costos de storage en Railway
+- Items de Fase C con visibilidad condicional (no todos siempre visibles) — mas fiel a lo que exige la norma segun el diagnostico real de cada centro de trabajo
+
+## Con esto Portafolio de Evidencias queda COMPLETO end-to-end:
+- Fase A (3 documentos automaticos): Politica, Informe de Resultados, Cuestionarios Aplicados — generados por la plataforma, usan eval_to_check correctamente
+- Fase C (2-4 items de carga manual): Canalizaciones, Difusion siempre + Examenes/Medidas condicionales segun diagnostico
+- Checklist unico fusionado en evidence.html, con estado ✓/⚠, detalle, y boton "Abrir"/link de accion por item
+- Todos los bugs de sincronizacion de evaluacion (eval_to_check) resueltos en las 3 vistas de Fase A
+
+## Pendientes para la siguiente sesion
+1. Mensajes claros de "se actualizara automaticamente" en los 3 documentos de Fase A cuando esten en estado pendiente (mejora de copy, no bloqueante — quedo pendiente de sesiones anteriores)
+2. Candidatos (psicometria) sin evaluaciones contestadas no pueden generar reporte unificado — poner evaluaciones demo de esos 2 usuarios candidatos como resueltas (pendiente de sesiones anteriores, no resuelto aun)
+3. Considerar agregar boton "Descargar" (ademas de "Ver archivo") en evidencia_fase_c_form.html si los usuarios lo piden
+4. Revisar si se necesita un limite de NUMERO de archivos por tipo/workplace (hoy no hay limite de cantidad, solo de tamano individual)
