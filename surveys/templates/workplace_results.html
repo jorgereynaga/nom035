@@ -610,7 +610,7 @@ table.dataTable tbody tr:last-child td { border-bottom: none !important; }
         }
         loadChart();
         $("#dept_id").change(function(){ loadChart(); });
-        $('[data-toggle="tooltip"]').tooltip();
+        if (typeof $.fn.tooltip === 'function') { $('[data-toggle="tooltip"]').tooltip(); }
         var table=$("#list").DataTable({
             "lengthMenu": [[5,10,25,50,100], [5,10,25,50,100]],
             "ajax": '/employees_dt/{{workplace_id}}/1/{{evaluation}}/',
@@ -636,9 +636,15 @@ table.dataTable tbody tr:last-child td { border-bottom: none !important; }
                     "sLast": "Último"
                 },
                 "sSearch": "Búsqueda"
+            },
+            "initComplete": function() {
+                var api = this.api();
+                $('.dataTables_length select').on('change', function() {
+                    api.page.len(parseInt($(this).val())).draw();
+                });
             }
         });
-        $('#list').on('draw.dt', function () {$('[data-toggle="tooltip"]').tooltip();});
+        $('#list').on('draw.dt', function () { if (typeof $.fn.tooltip === 'function') { $('[data-toggle="tooltip"]').tooltip(); } });
         $("#list_filter").addClass('pull-right').css("margin-right:16px;");
         $("#list tbody").on("click",'.get_file',function(){
             var url = "/reporte_html/"+$(this).attr("data-fileid")+"/{{evaluation}}/";
