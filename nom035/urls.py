@@ -25,6 +25,7 @@ from surveys.psico_views import (
     CandidateListView, CandidateCreateView, CandidateDetailView,
     AssignTestView, TestSessionView, TestCompleteView, TestResultView,
     GenerarPerfilNarrativoView, ReporteUnificadoView,
+    InstrumentosCatalogoView,
 )
 
 
