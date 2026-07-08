@@ -83,3 +83,17 @@
 - Sistema de diseño NormaIA: .form-group, .form-label, .form-control, .section-card, .btn/.btn-primary/.btn-outline-primary, var(--bg-base), var(--border), var(--text-primary/secondary), var(--radius-md/lg), var(--shadow-sm)
 - Templates psico_*.html son STANDALONE (su propio <html>, sidebar y CSS hardcodeados) — NO extienden index.html, no hay {% include %}
 - imports en views.py son wildcard; cargar_datos_demo.py usa import explicito, hay que agregar cada modelo nuevo a la lista manualmente
+
+### Instrumento Competencias Laborales — COMPLETADO Y CARGADO EN PRODUCCION ✅ (sesión 10, parte 3, cierre)
+- 40 reactivos cargados exitosamente en Railway via `python manage.py cargar_competencias` (confirmado: "Competencias Laborales cargado: 40 reactivos creados.")
+- BUG encontrado y resuelto durante la carga: al pegar el JSON generado por ChatGPT dentro del placeholder `reactivos = [ ... ]`, quedo un corchete duplicado (`reactivos = [ [` ... `] ]`) porque el JSON ya traia su propio `[` inicial y `]` final. Esto hacia que `reactivos` fuera una lista con una sola lista adentro en vez de una lista de 40 diccionarios, causando `TypeError: list indices must be integers or slices, not str` al intentar `r['numero']`
+- LECCION para el proximo instrumento (Perfil Comercial): al pegar un array JSON completo dentro de una variable Python ya declarada como `= [`, el JSON debe pegarse SIN sus propios corchetes envolventes, o si se pega completo, la variable debe declararse solo como `reactivos = ` (sin el `[` extra) dejando que el propio JSON aporte el corchete
+- El instrumento ya aparece disponible en /psico/instrumentos/ para asignar a candidatos
+- Instrumento ya visible en el catalogo, listo para asignarse a candidatos reales
+
+## Pendiente inmediato actualizado
+1. Generar JSON del segundo instrumento: Perfil Comercial y Servicio al Cliente (mismo prompt/patron que Competencias Laborales, aplicando la leccion del corchete duplicado)
+2. Crear surveys/management/commands/cargar_comercial.py siguiendo el mismo molde
+3. Extender _calcular_scores en psico_views.py con elif tipo == 'comercial' (logica identica a competencias, cambia solo el nombre del tipo)
+4. Cargar los 40 reactivos en produccion
+5. Pendiente menor sin resolver: warning de Railway sobre migracion no reflejada (choices nuevos en PsychoInstrument.TIPOS) — confirmar si requiere migracion manual o se puede ignorar de forma segura
