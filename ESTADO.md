@@ -333,3 +333,47 @@ Para "Resultados adicionales" por empleado: confirmar que debia mostrar antes de
 2. Mejorar la vista del selector "Centro de trabajo" en el Portafolio de Evidencias (evidence.html) — Jorge senalo que se ve muy simple/sin estilo (screenshot muestra solo un select basico sin la lista de opciones visible, se ve vacio/poco pulido). PENDIENTE DE INICIAR esta sesion
 3. Boton "Descargar" explicito ademas de "Ver archivo" en evidencias de Fase C (opcional, no solicitado aun)
 4. Limite de NUMERO de archivos por tipo/workplace en Fase C (hoy solo hay limite de tamano individual de 10MB)
+
+## PENDIENTE SIN TERMINAR — sesion 9 (parte 2, cortada, continuar en la siguiente)
+
+### En proceso: Catalogo de Instrumentos Psicometricos (nueva vista "Evaluaciones")
+
+**Contexto de la decision:**
+- El link "Evaluaciones" del sidebar apuntaba a la MISMA url que "Candidatos" ({% url 'candidatos' %} duplicado) — no servia para nada, confirmado por Jorge
+- Se evaluaron 2 opciones: (A) catalogo de instrumentos con asignacion directa, (B) mini-dashboard de evaluaciones ya aplicadas
+- Se eligio la OPCION A: catalogo de instrumentos psicometricos activos, con boton "Asignar a candidato" en cada tarjeta
+
+**Instrumentos nuevos aprobados por Jorge (para agregar despues, la definicion del contenido/reactivos vino de una sesion con ChatGPT):**
+1. Competencias Laborales — 8 dimensiones x 5 reactivos = 40 items, Likert 5 puntos (Comunicacion, Trabajo en equipo, Responsabilidad, Organizacion, Solucion de problemas, Adaptabilidad, Orientacion a resultados, Aprendizaje)
+2. Perfil Comercial y Servicio al Cliente — mismo formato 8x5=40 items (Orientacion al cliente, Comunicacion comercial, Persuasion etica, Manejo de objeciones, Seguimiento y cierre, Tolerancia al rechazo, Solucion de problemas del cliente, Orientacion a metas)
+- Observaciones de Claude sobre la propuesta de ChatGPT: cuidado con item PC_RECH_03 (carga valorativa fuerte, se acerca a rasgo de personalidad no competencia objetiva); los codigos de reactivo (CL_COM_01, PC_CLI_01) deben verificarse contra el patron real de PsychoItem/TestResponse antes de que ChatGPT genere el JSON final; la calificacion es suma simple sin ponderacion (aceptable para MVP)
+- AUN NO SE HA CONSTRUIDO EL JSON DE REACTIVOS NI SE HAN CARGADO A PsychoItem — eso es el siguiente paso grande, pendiente
+
+**Avance tecnico de esta sesion (Catalogo de Instrumentos):**
+1. ✅ PsychoInstrument.TIPOS actualizado en models.py: agregados ('competencias', 'Competencias Laborales') y ('comercial', 'Perfil Comercial y Servicio al Cliente')
+2. ✅ Vista InstrumentosCatalogoView creada en surveys/psico_views.py (al final del archivo): lista PsychoInstrument activos + Candidate del usuario, renderiza psico_instrumentos.html
+3. ✅ URL agregada: path('psico/instrumentos/', InstrumentosCatalogoView.as_view(), name='instrumentos_catalogo') en nom035/urls.py, linea 119
+4. ✅ Template psico_instrumentos.html creado (copia de psico_candidato_detalle.html, 559 lineas) — sidebar/topbar reutilizados tal cual, contenido central YA reemplazado con tarjetas de instrumentos (bloque "Instrumentos Psicometricos" con boton "Asignar a candidato" por tarjeta, funcion JS abrirModalAsignar(instId, instNombre) ya referenciada en el boton)
+5. ⚠️ PENDIENTE INCOMPLETO: el MODAL de asignacion (al final del archivo, lineas ~415-490) TODAVIA tiene el codigo VIEJO de psico_candidato_detalle.html sin adaptar:
+   - Linea 424: `<p class="modal-desc">Selecciona el instrumento a aplicar a candidate.nombre</p>` — candidate NO EXISTE en este contexto, hay que cambiar a un <strong id="nombre_instrumento_modal"> vacio que se llena por JS
+   - Linea 428: `<select id="sel_instrumento">` con opciones de TODOS los instrumentos — hay que CAMBIAR a `<select id="sel_candidato">` con opciones de candidatos (el instrumento ya viene fijo del boton de la tarjeta, no se vuelve a elegir en el modal)
+   - Linea 463-471: el JS del boton btnAsignar usa `document.getElementById('sel_instrumento').value` y `{% url 'asignar_test' candidate.id %}` (candidate.id no existe aqui) — hay que reemplazar por: usar una variable JS `instrumento_actual_id` seteada por `abrirModalAsignar()`, leer `sel_candidato` para el id del candidato, y armar la URL dinamicamente como `"/psico/asignar/" + candidate_id + "/"` en vez de usar {% url %} con valor fijo
+6. NO SE HA HECHO COMMIT DE NADA DE ESTO TODAVIA (models.py, psico_views.py, urls.py, psico_instrumentos.html) — sigue solo en el filesystem local de Jorge, no en git ni desplegado
+
+### Intentos fallidos de edicion (leccion aprendida)
+- Se intento reemplazar el bloque del modal con content.replace() de bloques largos (heredoc python3 << 'PYEOF') pero las ocurrencias no coincidieron (probablemente diferencias de espacios/comillas) — el intento aborto correctamente SIN escribir nada (safety check de content.count()==1 funciono bien), asi que el archivo esta intacto pero sin el fix aplicado
+- Se decidio cambiar de estrategia a edicion por INDICE DE LINEA con sed para confirmar rangos exactos antes de reemplazar — este es el enfoque mas confiable para este archivo, continuar asi en la siguiente sesion
+
+### Siguiente paso exacto al retomar
+```bash
+sed -n '424,434p' surveys/templates/psico_instrumentos.html
+```
+para confirmar el rango completo del bloque modal-desc + form-group + select + su cierre </div>, y de ahi reemplazar por indice de linea (readlines() + lines[inicio:fin] = nuevo_bloque) los 3 puntos pendientes: (a) texto del modal-desc, (b) select de candidato en vez de instrumento, (c) JS del boton btnAsignar con la nueva logica de abrirModalAsignar + URL dinamica.
+
+Despues de eso: py_compile no aplica a HTML pero SI verificar con grep/sed que no haya tags sin cerrar, luego commit de los 4 archivos juntos (models.py, psico_views.py, urls.py, psico_instrumentos.html), deploy, y probar /psico/instrumentos/ en el navegador.
+
+## Pendientes acumulados (arrastrados de sesiones previas, aun no resueltos)
+1. Mensajes claros de "se actualizara automaticamente" en los 3 documentos de Fase A del Portafolio cuando esten en estado pendiente
+2. Boton "Descargar" explicito ademas de "Ver archivo" en evidencias de Fase C (opcional)
+3. Limite de NUMERO de archivos por tipo/workplace en Fase C (hoy solo hay limite de tamano individual de 10MB)
+4. Construir el JSON de reactivos para Competencias Laborales y Perfil Comercial (una vez el catalogo este terminado), cargarlos a PsychoInstrument/PsychoItem, y verificar que ReporteUnificadoView / GenerarPerfilNarrativoView sepan interpretar estos 2 tipos nuevos (hoy solo manejan disc/moss/raven/zavic en la logica de scores)
