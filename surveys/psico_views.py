@@ -240,6 +240,20 @@ class TestCompleteView(View):
                 for escala, puntos in distribucion.items():
                     scores[escala] = scores.get(escala, 0) + puntos
             return scores
+            
+        elif tipo == 'competencias':
+                    scores = {}
+                    for r in responses:
+                        valor = r.respuesta.get('valor')
+                        opciones = r.item.opciones
+                        dimension = None
+                        for op in opciones:
+                            if op.get('valor') == valor:
+                                dimension = op.get('dimension')
+                                break
+                        if dimension:
+                            scores[dimension] = scores.get(dimension, 0) + valor
+                    return scores
 
         return {}
 
