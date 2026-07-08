@@ -1,0 +1,509 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
+  <title>Instrumentos Psicometricos — NormaIA</title>
+  <link rel="shortcut icon" type="image/x-icon" href="{% static 'app-assets/images/ico/favicon.ico' %}">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@700;800&display=swap" rel="stylesheet">
+  <style>
+  /* ── Reset & tokens ───────────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --primary:        #2563eb;
+    --primary-dark:   #1d4ed8;
+    --primary-light:  #eff6ff;
+    --sidebar-bg:     #0f172a;
+    --sidebar-text:   #94a3b8;
+    --sidebar-width:  240px;
+    --topbar-h:       60px;
+    --bg-base:        #ffffff;
+    --bg-surface:     #f8f9fc;
+    --border:         #e2e8f0;
+    --text-primary:   #0f172a;
+    --text-secondary: #475569;
+    --text-muted:     #94a3b8;
+    --success:        #16a34a;
+    --success-bg:     #dcfce7;
+    --warning-bg:     #fef9c3;
+    --warning-text:   #854d0e;
+    --info-bg:        #dbeafe;
+    --info-text:      #1e40af;
+    --danger:         #dc2626;
+    --danger-bg:      #fee2e2;
+    --danger-text:    #991b1b;
+    --radius-sm:      6px;
+    --radius-md:      10px;
+    --radius-lg:      14px;
+    --shadow-sm:      0 1px 3px rgba(15,23,42,.06), 0 1px 2px rgba(15,23,42,.04);
+    --shadow-md:      0 4px 16px rgba(15,23,42,.1);
+  }
+  html, body { height: 100%; font-family: 'Inter', sans-serif; background: var(--bg-surface); color: var(--text-primary); font-size: 14px; }
+
+  /* ── Layout ──────────────────────────────────────────────── */
+  .layout { display: flex; min-height: 100vh; }
+
+  /* ── Sidebar ─────────────────────────────────────────────── */
+  .sidebar {
+    width: var(--sidebar-width); flex-shrink: 0;
+    background: var(--sidebar-bg);
+    position: fixed; left: 0; top: 0; bottom: 0; z-index: 100;
+    display: flex; flex-direction: column;
+    overflow-y: auto; overflow-x: hidden;
+  }
+  .sidebar-brand {
+    display: flex; align-items: center; gap: 10px;
+    padding: 18px 20px 16px;
+    border-bottom: 1px solid rgba(255,255,255,.07);
+    text-decoration: none; flex-shrink: 0;
+  }
+  .sidebar-brand img { width: 34px; height: 34px; object-fit: contain; }
+  .sidebar-brand-name { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; font-weight: 800; color: #fff; line-height: 1.1; }
+  .sidebar-brand-sub { font-size: 10px; color: var(--sidebar-text); }
+  .sidebar-section { padding: 20px 14px 6px; }
+  .sidebar-section-label { font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: rgba(148,163,184,.55); padding: 0 8px; margin-bottom: 4px; }
+  .sidebar-link {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 10px; border-radius: var(--radius-sm);
+    color: var(--sidebar-text); font-size: 13px; font-weight: 500;
+    text-decoration: none; transition: background .15s, color .15s; margin-bottom: 1px;
+    border-left: 3px solid transparent;
+  }
+  .sidebar-link svg { width: 15px; height: 15px; flex-shrink: 0; }
+  .sidebar-link:hover { background: rgba(255,255,255,.07); color: #fff; }
+  .sidebar-link.active { background: rgba(37,99,235,.25); color: #fff; font-weight: 600; border-left-color: var(--primary); }
+
+  /* ── Main ────────────────────────────────────────────────── */
+  .main { margin-left: var(--sidebar-width); flex: 1; display: flex; flex-direction: column; min-width: 0; }
+
+  /* ── Topbar ──────────────────────────────────────────────── */
+  .topbar {
+    height: var(--topbar-h); background: var(--bg-base);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: flex-end;
+    padding: 0 24px; gap: 14px;
+    position: sticky; top: 0; z-index: 90;
+    box-shadow: var(--shadow-sm);
+  }
+  .topbar-dropdown { position: relative; }
+  .topbar-user { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+  .topbar-user img { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; border: 2px solid var(--border); }
+  .topbar-user-name { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+  .topbar-user-role { font-size: 11px; color: var(--text-muted); text-align: right; }
+  .topbar-dropdown-menu {
+    display: none; position: absolute; right: 0; top: calc(100% + 8px);
+    background: var(--bg-base); border: 1px solid var(--border);
+    border-radius: var(--radius-md); box-shadow: var(--shadow-md);
+    min-width: 190px; overflow: hidden; z-index: 200;
+  }
+  .topbar-dropdown:hover .topbar-dropdown-menu { display: block; }
+  .topbar-dropdown-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 16px; font-size: 13px; color: var(--text-secondary);
+    text-decoration: none; transition: background .15s;
+  }
+  .topbar-dropdown-item svg { width: 14px; height: 14px; }
+  .topbar-dropdown-item:hover { background: var(--bg-surface); color: var(--text-primary); }
+  .topbar-dropdown-divider { border-top: 1px solid var(--border); }
+
+  /* ── Page content ────────────────────────────────────────── */
+  .page-content { flex: 1; padding: 28px; }
+
+  /* ── Breadcrumb ──────────────────────────────────────────── */
+  .breadcrumb-link {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 12px; color: var(--text-muted); text-decoration: none;
+    margin-bottom: 10px; transition: color .15s;
+  }
+  .breadcrumb-link:hover { color: var(--primary); }
+  .breadcrumb-link svg { width: 13px; height: 13px; }
+
+  /* ── Page header ─────────────────────────────────────────── */
+  .page-header {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    flex-wrap: wrap; gap: 14px; margin-bottom: 24px;
+  }
+  .page-header h1 {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 20px; font-weight: 800;
+    color: var(--text-primary); margin-bottom: 3px;
+  }
+  .page-header-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 10px; }
+
+  /* ── Report button ───────────────────────────────────────── */
+  .btn-report {
+    display: inline-flex; align-items: center; gap: 7px;
+    background: var(--primary); color: #fff;
+    padding: 8px 16px; border-radius: var(--radius-md);
+    font-size: 13px; font-weight: 600; text-decoration: none;
+    transition: background .15s;
+  }
+  .btn-report:hover { background: var(--primary-dark); }
+  .btn-report svg { width: 14px; height: 14px; }
+
+  /* ── Buttons ─────────────────────────────────────────────── */
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 18px; font-size: 13px; font-weight: 600; font-family: 'Inter', sans-serif; border-radius: var(--radius-md); border: 1px solid transparent; cursor: pointer; transition: background .15s; text-decoration: none; white-space: nowrap; }
+  .btn svg { width: 14px; height: 14px; }
+  .btn-primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+  .btn-primary:hover { background: var(--primary-dark); }
+  .btn-primary:disabled { opacity: .6; cursor: not-allowed; }
+  .btn-outline { background: transparent; color: var(--primary); border-color: #bfdbfe; }
+  .btn-outline:hover { background: var(--primary-light); }
+  .btn-sm { padding: 6px 12px; font-size: 12px; }
+  .btn-block { width: 100%; justify-content: center; }
+
+  /* ── Content grid ────────────────────────────────────────── */
+  .content-grid {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    gap: 20px;
+    align-items: start;
+  }
+
+  /* ── Info cards (sidebar column) ─────────────────────────── */
+  .info-card {
+    background: var(--bg-base);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 14px 18px;
+    margin-bottom: 10px;
+    box-shadow: var(--shadow-sm);
+  }
+  .info-card-label { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; }
+  .info-card-value { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+
+  /* ── Sessions panel ──────────────────────────────────────── */
+  .panel-card {
+    background: var(--bg-base);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+  }
+  .panel-card-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .panel-card-title {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 14px; font-weight: 800; color: var(--text-primary);
+  }
+  .panel-card-body { padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+
+  /* ── Session row ─────────────────────────────────────────── */
+  .session-row {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 14px 18px;
+    background: var(--bg-base);
+    transition: box-shadow .15s;
+  }
+  .session-row:hover { box-shadow: var(--shadow-sm); }
+  .session-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 4px; }
+  .session-name { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+  .session-meta { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+  /* ── Badges ──────────────────────────────────────────────── */
+  .badge { display: inline-block; border-radius: 20px; padding: 3px 11px; font-size: 11px; font-weight: 600; white-space: nowrap; }
+  .badge-pendiente   { background: var(--warning-bg); color: var(--warning-text); }
+  .badge-completada  { background: var(--success-bg); color: var(--success); }
+  .badge-proceso     { background: var(--info-bg);    color: var(--info-text); }
+  .badge-en_proceso  { background: var(--info-bg);    color: var(--info-text); }
+  .badge-expirada    { background: var(--danger-bg);  color: var(--danger-text); }
+
+  /* ── Link box ────────────────────────────────────────────── */
+  .link-box {
+    background: var(--primary-light);
+    border: 1px solid #bfdbfe;
+    border-radius: var(--radius-sm);
+    padding: 9px 14px;
+    font-size: 12px; color: var(--primary);
+    word-break: break-all; font-family: monospace;
+    margin-top: 10px;
+  }
+
+  /* ── Completed note ──────────────────────────────────────── */
+  .completed-note {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 12px; color: var(--success); margin-top: 10px; flex-wrap: wrap;
+  }
+  .completed-note svg { width: 13px; height: 13px; }
+
+  /* ── Empty state ─────────────────────────────────────────── */
+  .empty-state { text-align: center; padding: 36px 20px; }
+  .empty-state svg { width: 40px; height: 40px; color: #cbd5e1; display: block; margin: 0 auto 10px; }
+  .empty-state p { font-size: 13px; color: var(--text-muted); }
+
+  /* ── Form control ────────────────────────────────────────── */
+  .form-group { margin-bottom: 14px; }
+  .form-label { display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 5px; }
+  .form-control {
+    width: 100%; padding: 9px 12px;
+    font-size: 13px; font-family: 'Inter', sans-serif;
+    color: var(--text-primary); background: var(--bg-base);
+    border: 1px solid var(--border); border-radius: var(--radius-md);
+    outline: none; transition: border-color .2s, box-shadow .2s;
+    appearance: none;
+  }
+  .form-control:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
+
+  /* ── Modal ───────────────────────────────────────────────── */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(15,23,42,.5); z-index: 500;
+    align-items: center; justify-content: center; padding: 20px;
+  }
+  .modal-overlay.activo { display: flex; }
+  .modal-box {
+    background: var(--bg-base); border-radius: var(--radius-lg);
+    width: 100%; max-width: 460px;
+    box-shadow: 0 20px 60px rgba(15,23,42,.25);
+    animation: modal-in .18s ease;
+  }
+  @keyframes modal-in { from { opacity:0; transform:translateY(-10px); } to { opacity:1; transform:translateY(0); } }
+  .modal-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 22px; border-bottom: 1px solid var(--border);
+  }
+  .modal-title { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 15px; font-weight: 800; color: var(--text-primary); }
+  .modal-close {
+    width: 30px; height: 30px; border-radius: var(--radius-sm);
+    border: 1px solid var(--border); background: transparent;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    color: var(--text-muted); transition: background .15s;
+  }
+  .modal-close:hover { background: var(--bg-surface); }
+  .modal-close svg { width: 14px; height: 14px; }
+  .modal-body { padding: 20px 22px; }
+  .modal-desc { font-size: 13px; color: var(--text-secondary); margin-bottom: 16px; }
+  .modal-footer { padding: 16px 22px; border-top: 1px solid var(--border); }
+
+  @media (max-width: 900px) {
+    .content-grid { grid-template-columns: 1fr; }
+    .sidebar { transform: translateX(-100%); }
+    .main { margin-left: 0; }
+    .page-content { padding: 20px 16px; }
+  }
+  </style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- ── Sidebar ─────────────────────────────────────────── -->
+  <aside class="sidebar">
+    <a class="sidebar-brand" href="{% url 'index' %}">
+      <img src="{% static 'app-assets/images/logo/logo.png' %}" alt="NormaIA">
+      <div>
+        <div class="sidebar-brand-name">NormaIA</div>
+        <div class="sidebar-brand-sub">NOM-035 &amp; Psicometría</div>
+      </div>
+    </a>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Principal</div>
+      <a href="{% url 'index' %}" class="sidebar-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Dashboard
+      </a>
+      <a href="{% url 'workplaces' %}" class="sidebar-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
+        Centros de Trabajo
+      </a>
+      <a href="{% url 'workplaceform' %}" class="sidebar-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+        Añadir un Centro
+      </a>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">NOM-035</div>
+      <a href="{% url 'evidence' %}" class="sidebar-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        Portafolio de evidencias
+      </a>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Psicometría</div>
+      <a href="#" class="sidebar-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+        Evaluaciones
+      </a>
+      <a href="{% url 'candidatos' %}" class="sidebar-link active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+        Candidatos
+      </a>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Cuenta</div>
+      <a href="{% url 'stripe_planes' %}" class="sidebar-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+        Mi plan
+      </a>
+      <a href="{% url 'edit_profile' %}" class="sidebar-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        Configuración
+      </a>
+    </div>
+  </aside>
+
+  <!-- ── Main ─────────────────────────────────────────────── -->
+  <div class="main">
+
+    <!-- Topbar -->
+    <header class="topbar">
+      <div class="topbar-dropdown">
+        <div class="topbar-user">
+          <div style="text-align:right;">
+            <p class="topbar-user-name">{{request.user.username}}</p>
+            <p class="topbar-user-role">Empresa</p>
+          </div>
+          <img src="{% static 'app-assets/images/portrait/small/avatar-s-1.png' %}" alt="avatar">
+        </div>
+        <div class="topbar-dropdown-menu">
+          <a href="{% url 'edit_profile' %}" class="topbar-dropdown-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            Editar mis datos
+          </a>
+          <div class="topbar-dropdown-divider"></div>
+          <a href="{% url 'logout' %}" class="topbar-dropdown-item" style="color:var(--danger)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            Cerrar sesión
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <!-- Page content -->
+    <main class="page-content">
+
+      <div class="page-header">
+        <div>
+          <h1>Instrumentos Psicometricos</h1>
+          <p class="page-header-sub">Catalogo de pruebas disponibles para asignar a candidatos</p>
+        </div>
+      </div>
+
+      <div class="content-grid" style="grid-template-columns: 1fr; display:block;">
+        {% for inst in instrumentos %}
+        <div class="panel-card" style="margin-bottom:16px;">
+          <div class="panel-card-header">
+            <p class="panel-card-title">{{ inst.nombre }}</p>
+            <span class="badge" style="background:var(--primary-light);color:var(--primary);font-size:11px;padding:4px 10px;border-radius:999px;">{{ inst.tiempo_limite }} min</span>
+          </div>
+          <div class="panel-card-body">
+            <p style="font-size:13px;color:var(--text-secondary);margin-bottom:14px;">{{ inst.descripcion|default:"Instrumento de evaluacion laboral." }}</p>
+            <button class="btn btn-primary btn-sm" onclick="abrirModalAsignar({{ inst.id }}, '{{ inst.nombre|escapejs }}')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+              Asignar a candidato
+            </button>
+          </div>
+        </div>
+        {% empty %}
+        <div class="empty-state">
+          <p>No hay instrumentos activos por el momento.</p>
+        </div>
+        {% endfor %}
+      </div>
+    </main>
+  </div><!-- /.main -->
+</div><!-- /.layout -->
+
+<!-- ── Modal asignar prueba ─────────────────────────────── -->
+<div class="modal-overlay" id="modalAsignar">
+  <div class="modal-box">
+    <div class="modal-header">
+      <p class="modal-title">Asignar prueba</p>
+      <button class="modal-close" onclick="document.getElementById('modalAsignar').classList.remove('activo')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p class="modal-desc">Selecciona el candidato para aplicar <strong id="nombre_instrumento_modal"></strong>.</p>
+
+        <div class="form-group">
+          <label class="form-label">Candidato</label>
+          <select class="form-control" id="sel_candidato">
+            <option value="">— Selecciona —</option>
+            {% for cand in candidatos %}
+            <option value="{{ cand.id }}">{{ cand.nombre }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+      <div id="resultado_link" style="display:none;">
+        <div class="link-box" id="nuevo_link"></div>
+        <div style="margin-top:8px;">
+          <button class="btn btn-outline btn-sm" onclick="copiarLink('nuevo_link')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            Copiar link
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary btn-block" id="btnAsignar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+        Generar link
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+function copiarLink(id) {
+    var texto = document.getElementById(id).innerText;
+    navigator.clipboard.writeText(texto).then(function() {
+        alert('Link copiado al portapapeles');
+    });
+}
+var instrumento_actual_id = null;
+
+function abrirModalAsignar(instId, instNombre) {
+    instrumento_actual_id = instId;
+    document.getElementById('nombre_instrumento_modal').innerText = instNombre;
+    document.getElementById('sel_candidato').value = '';
+    document.getElementById('resultado_link').style.display = 'none';
+    document.getElementById('nuevo_link').innerText = '';
+    var btn = document.getElementById('btnAsignar');
+    btn.disabled = false;
+    btn.innerHTML = 'Generar link';
+    document.getElementById('modalAsignar').classList.add('activo');
+}
+
+document.getElementById('btnAsignar').addEventListener('click', function() {
+    var candidate_id = document.getElementById('sel_candidato').value;
+    if (!candidate_id) { alert('Selecciona un candidato'); return; }
+    if (!instrumento_actual_id) { alert('Selecciona un instrumento'); return; }
+
+    this.disabled = true;
+    this.innerHTML = 'Generando...';
+    var self = this;
+
+    fetch("/psico/asignar/" + candidate_id + "/", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: new URLSearchParams({ instrumento_id: instrumento_actual_id })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.status === 'ok') {
+            document.getElementById('nuevo_link').innerText = data.test_url;
+            document.getElementById('resultado_link').style.display = 'block';
+            self.innerHTML = '✓ Link generado';
+            setTimeout(function() { window.location.reload(); }, 2000);
+        } else {
+            alert(data.error || 'Error al asignar');
+            self.disabled = false;
+            self.innerHTML = 'Generar link';
+        }
+    });
+});
+</script>
+</body>
+</html>

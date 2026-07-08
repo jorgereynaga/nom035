@@ -430,6 +430,8 @@ class PsychoInstrument(models.Model):
 		('zavic', 'Valores e Intereses (Zavic)'),
 		('raven', 'Razonamiento (Raven)'),
 		('moss', 'Supervisión (Moss)'),
+		('competencias', 'Competencias Laborales'),
+		('comercial', 'Perfil Comercial y Servicio al Cliente'),
 	)
 	nombre = models.CharField(u'Nombre', max_length=100)
 	tipo = models.CharField(u'Tipo', max_length=20, choices=TIPOS)

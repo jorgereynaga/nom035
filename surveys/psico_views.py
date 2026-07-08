@@ -488,3 +488,16 @@ class ReporteUnificadoView(LoginRequiredMixin, View):
             'fecha': __import__('datetime').date.today(),
         }
         return render(request, 'psico_reporte.html', ctx)
+
+
+class InstrumentosCatalogoView(LoginRequiredMixin, View):
+    login_url = reverse_lazy('login')
+    def get(self, request):
+        instrumentos = PsychoInstrument.objects.filter(activo=True).order_by('nombre')
+        candidatos = Candidate.objects.filter(user=request.user).order_by('-record_create')
+        ctx = {
+            'instrumentos': instrumentos,
+            'candidatos': candidatos,
+            'name': request.user.userapp.name,
+        }
+        return render(request, 'psico_instrumentos.html', ctx)

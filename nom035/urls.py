@@ -116,6 +116,7 @@ urlpatterns = [
     path('psico/candidatos/', CandidateListView.as_view(), name='candidatos'),
     path('psico/candidatos/nuevo/', CandidateCreateView.as_view(), name='candidato_nuevo'),
     path('psico/candidatos/<int:candidate_id>/', CandidateDetailView.as_view(), name='candidato_detalle'),
+    path('psico/instrumentos/', InstrumentosCatalogoView.as_view(), name='instrumentos_catalogo'),
     path('psico/asignar/<int:candidate_id>/', AssignTestView.as_view(), name='asignar_test'),
     path('psico/test/<str:token>/', TestSessionView.as_view(), name='test_session'),
     path('psico/test/<str:token>/completar/', TestCompleteView.as_view(), name='test_completar'),
