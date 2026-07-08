@@ -22,7 +22,7 @@ class Command(BaseCommand):
                                 self.stdout.write(self.style.WARNING('El instrumento Competencias Laborales ya esta cargado, omitiendo.'))
                                 return
 
-                reactivos = [ [
+                reactivos = [
 {
 "numero": 1,
 "descripcion": "Explico mis ideas de forma clara para que otras personas comprendan lo que necesito comunicar.",
@@ -1264,7 +1264,6 @@ class Command(BaseCommand):
 ]
 }
 ]
- ]
 
                 for r in reactivos:
                         PsychoItem.objects.create(
