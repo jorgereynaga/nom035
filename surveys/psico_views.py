@@ -255,6 +255,20 @@ class TestCompleteView(View):
                             scores[dimension] = scores.get(dimension, 0) + valor
                     return scores
 
+        elif tipo == 'comercial':
+                    scores = {}
+                    for r in responses:
+                        valor = r.respuesta.get('valor')
+                        opciones = r.item.opciones
+                        dimension = None
+                        for op in opciones:
+                            if op.get('valor') == valor:
+                                dimension = op.get('dimension')
+                                break
+                        if dimension:
+                            scores[dimension] = scores.get(dimension, 0) + valor
+                    return scores
+
         return {}
 
 class TestResultView(LoginRequiredMixin, View):
