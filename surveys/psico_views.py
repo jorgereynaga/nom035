@@ -242,32 +242,30 @@ class TestCompleteView(View):
             return scores
             
         elif tipo == 'competencias':
-                    scores = {}
-                    for r in responses:
-                        valor = r.respuesta.get('valor')
-                        opciones = r.item.opciones
-                        dimension = None
-                        for op in opciones:
-                            if op.get('valor') == valor:
-                                dimension = op.get('dimension')
-                                break
-                        if dimension:
-                            scores[dimension] = scores.get(dimension, 0) + valor
-                    return scores
+            scores = {}
+            for r in responses:
+                letra = r.respuesta
+                opciones = r.item.opciones
+                for op in opciones:
+                    if op.get('letra') == letra:
+                        dimension = op.get('dimension')
+                        peso = op.get('peso', 0)
+                        scores[dimension] = scores.get(dimension, 0) + peso
+                        break
+            return scores
 
         elif tipo == 'comercial':
-                    scores = {}
-                    for r in responses:
-                        valor = r.respuesta.get('valor')
-                        opciones = r.item.opciones
-                        dimension = None
-                        for op in opciones:
-                            if op.get('valor') == valor:
-                                dimension = op.get('dimension')
-                                break
-                        if dimension:
-                            scores[dimension] = scores.get(dimension, 0) + valor
-                    return scores
+            scores = {}
+            for r in responses:
+                letra = r.respuesta
+                opciones = r.item.opciones
+                for op in opciones:
+                    if op.get('letra') == letra:
+                        dimension = op.get('dimension')
+                        peso = op.get('peso', 0)
+                        scores[dimension] = scores.get(dimension, 0) + peso
+                        break
+            return scores
 
         return {}
 
