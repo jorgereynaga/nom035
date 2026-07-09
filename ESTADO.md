@@ -97,3 +97,20 @@
 3. Extender _calcular_scores en psico_views.py con elif tipo == 'comercial' (logica identica a competencias, cambia solo el nombre del tipo)
 4. Cargar los 40 reactivos en produccion
 5. Pendiente menor sin resolver: warning de Railway sobre migracion no reflejada (choices nuevos en PsychoInstrument.TIPOS) — confirmar si requiere migracion manual o se puede ignorar de forma segura
+
+### Instrumento Perfil Comercial y Servicio al Cliente — COMPLETADO Y CARGADO EN PRODUCCION ✅ (sesión 10, parte 4, cierre)
+- 40 reactivos cargados exitosamente en Railway via `python manage.py cargar_comercial` (confirmado: "Perfil Comercial cargado: 40 reactivos creados.")
+- surveys/management/commands/cargar_comercial.py creado siguiendo el patron corregido (JSON pegado sin corchete duplicado, leccion aplicada de la sesion anterior)
+- _calcular_scores (surveys/psico_views.py) extendido con bloque elif tipo == 'comercial': misma logica que competencias (suma simple por dimension via r.respuesta.get('valor') + lookup en r.item.opciones)
+- Ambos instrumentos (Competencias Laborales y Perfil Comercial) ya visibles en /psico/instrumentos/, listos para asignarse a candidatos reales
+
+## AMBOS INSTRUMENTOS NUEVOS: COMPLETADOS DE PRINCIPIO A FIN ✅
+1. PsychoInstrument.TIPOS con 'competencias' y 'comercial' ✅
+2. 80 reactivos totales (40+40) cargados en produccion ✅
+3. _calcular_scores extendido para ambos tipos (suma simple por dimension) ✅
+4. Catalogo /psico/instrumentos/ mostrando ambos instrumentos con boton "Asignar a candidato" ✅
+
+## Pendiente inmediato actualizado
+1. PENDIENTE GRANDE SIN RESOLVER: ReporteUnificadoView y GenerarPerfilNarrativoView (surveys/psico_views.py) aun NO saben interpretar los scores de tipo 'competencias'/'comercial' para generar el reporte narrativo del candidato — solo _calcular_scores fue extendido, falta revisar y extender la logica de interpretacion/narrativa en esas 2 vistas para que el reporte unificado muestre resultados coherentes de estos 2 instrumentos nuevos (hoy solo interpretan disc/moss/raven/zavic)
+2. Probar en navegador end-to-end: asignar Competencias Laborales o Perfil Comercial a un candidato real, completarlo, y verificar que el reporte unificado no falle o muestre datos vacios/incorrectos para estos tipos
+3. Pendiente menor sin resolver: warning de Railway sobre migracion no reflejada (choices nuevos en PsychoInstrument.TIPOS) — confirmar si requiere migracion manual o se puede ignorar de forma segura
