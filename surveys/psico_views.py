@@ -396,6 +396,10 @@ class GenerarPerfilNarrativoView(LoginRequiredMixin, View):
             alerta = scores.get('C', 0) > scores.get('M', 0)
             alerta_txt = 'IMPORTANTE: El indice de Corrupcion supera al de Moral.' if alerta else ''
             prompt = f"Eres un psicologo organizacional experto en evaluaciones de personal para empresas mexicanas. Genera un perfil narrativo profesional para Recursos Humanos sobre el candidato {candidato} que aplica al puesto de {puesto}. Test Zavic: {detalle}. {alerta_txt} Escribe 2 parrafos: 1) Perfil de valores e integridad, 2) Compatibilidad con la cultura organizacional. Tono profesional, objetivo, tercera persona."
+        elif tipo in ('competencias', 'comercial'):
+            nombre_inst = 'Competencias Laborales' if tipo == 'competencias' else 'Perfil Comercial y Servicio al Cliente'
+            detalle = ', '.join([f"{k}: {v}/25" for k, v in scores.items()])
+            prompt = f"Eres un psicologo organizacional experto en evaluaciones de personal para empresas mexicanas. Genera un perfil narrativo profesional para Recursos Humanos sobre el candidato {candidato} que aplica al puesto de {puesto}. Resultados de {nombre_inst} (escala 0-25 por dimension): {detalle}. Escribe 3 parrafos: 1) Perfil general de competencias, 2) Fortalezas destacadas, 3) Areas de desarrollo y recomendacion. Tono profesional, objetivo, tercera persona. Sin numeros ni porcentajes."
         else:
             return JsonResponse({'error': 'Instrumento no soportado'}, status=400)
         api_key = os.environ.get('ANTHROPIC_API_KEY', '')
@@ -505,6 +509,10 @@ class ReporteUnificadoView(LoginRequiredMixin, View):
                     data['pct'] = pct
                     data['escalas'] = escalas
                     data['alerta_corrupcion'] = scores.get('C', 0) > scores.get('M', 0)
+                elif tipo in ('competencias', 'comercial'):
+                    max_por_dimension = 25
+                    pct = {k: round((v / max_por_dimension) * 100) for k, v in scores.items()}
+                    data['pct'] = pct
                 resultados.append(data)
             except Exception:
                 pass

@@ -118,6 +118,14 @@
         {% else %}
         <div class="ok-box">✓ Perfil de valores compatible con la organización.</div>
         {% endif %}
+        {% elif r.tipo == 'competencias' or r.tipo == 'comercial' %}
+        {% for k, v in r.scores.items %}
+        <div class="dim-row">
+            <div class="dim-label">{{ k }}</div>
+            <div class="bar-container"><div class="bar-fill" style="width:{{ r.pct|get_item:k }}%;background:#7367f0;"></div></div>
+            <div class="dim-pct">{{ r.pct|get_item:k }}%</div>
+        </div>
+        {% endfor %}
         {% endif %}
 
         {% if r.perfil_narrativo %}
