@@ -135,3 +135,29 @@ Screenshot de Jorge mostrando el problema: pantalla "GRUPO 1 DE 30" con 4 opcion
 
 ### Nota importante de alcance
 Este bug es de PRIORIDAD ALTA porque bloquea el uso funcional de 4 instrumentos completos (2 nuevos que acabamos de construir + 2 antiguos ya en produccion). Ningun candidato puede completar actualmente Competencias Laborales, Perfil Comercial, Zavic ni Moss. DISC y Raven no fueron mencionados como afectados por Jorge, asumir que siguen funcionando hasta confirmar lo contrario.
+
+### BUG RESUELTO — instrumentos Competencias Laborales y Perfil Comercial no permitian avanzar (sesión 10, parte 7)
+CAUSA RAIZ encontrada: el template psico_test.html (toma de test por el candidato) tiene 2 formatos de renderizado segun instrumento.tipo:
+- disc/zavic: botones Mas/Menos por dimension
+- CUALQUIER OTRO TIPO (else): formato "multiple choice", que espera que cada opcion tenga los campos `letra` (A/B/C/D/E) y `valor` (texto visible). El JS usa `letra` como el valor que se guarda al seleccionar y se envia al backend
+
+Nuestro JSON original de Competencias/Comercial usaba `texto`+`valor`(numerico 1-5)+`dimension` — SIN `letra`. Esto causaba:
+- Opciones se mostraban casi vacias (sin texto, solo el numero 1-5 crudo)
+- El JS nunca marcaba la respuesta como valida (`letra` undefined) -> boton "Siguiente" nunca se habilitaba -> test bloqueado en la primera pregunta
+
+FIX aplicado:
+1. Transformadas las `opciones` de ambos JSON (cargar_competencias.py, cargar_comercial.py) al formato: `{"letra": "A", "valor": "Totalmente en desacuerdo", "dimension": "Comunicación", "peso": 1}` — letra+valor para compatibilidad con el template existente, peso conserva el numero 1-5 para scoring (renombrado de "valor" a "peso" para no chocar con el campo que ahora es el texto visible)
+2. _calcular_scores (dentro de TestCompleteView, surveys/psico_views.py) corregido: el frontend envia `r.respuesta` como la LETRA seleccionada (string plano, no diccionario) — la logica ahora busca en `item.opciones` la opcion cuya `letra` coincide, y de ahi toma `peso` y `dimension` para sumar el score
+3. Los 40+40 reactivos viejos (con estructura incompatible) fueron BORRADOS de PsychoItem en produccion y recargados desde cero con `python manage.py cargar_competencias` y `cargar_comercial` — confirmado: 40 reactivos creados en ambos, esta vez con el formato correcto
+4. Deploy confirmado exitoso en Railway
+
+IMPORTANTE: cualquier TestSession de pruebas anteriores con estos 2 instrumentos (creadas ANTES de este fix) quedo con referencias a PsychoItem que ya no existen (fueron borrados y recreados con nuevos IDs). Si Jorge prueba de nuevo, debe generar un link NUEVO desde /psico/instrumentos/, no reusar links de pruebas anteriores.
+
+### Bugs preexistentes identificados pero NO resueltos aun (fuera de alcance de esta sesion, vienen de otro chat)
+- **Zavic**: el template linea 123 agrupa zavic con la logica de DISC (`if instrumento.tipo == 'disc' or instrumento.tipo == 'zavic'`), usando botones Mas/Menos por dimension. Esto es conceptualmente incorrecto para Zavic, que deberia usar logica de "distribuir 5 puntos entre 4 opciones" (su propio tipo='distribute'), no una seleccion binaria de opuestos. Root cause identificada, fix NO aplicado aun.
+- **Moss**: sus opciones usan campos `texto`+`puntos` (sin `letra` ni `valor`), incompatibles con el template igual que le pasaba a Competencias/Comercial antes del fix de hoy. Mismo tipo de problema, mismo tipo de solucion necesaria (agregar letra+valor, renombrar puntos a peso o similar, y verificar que _calcular_scores para moss lea el campo correcto). Root cause identificada, fix NO aplicado aun.
+
+## Pendiente inmediato actualizado
+1. Probar en navegador con un candidato REAL (link nuevo) que Competencias Laborales y Perfil Comercial ahora si permiten completar el test de principio a fin y generan reporte correcto
+2. Decidir si se arregla Zavic y Moss en esta sesion o se deja para otra — ambos ya tienen causa raiz identificada arriba, listos para atacar cuando Jorge lo indique
+3. Pendiente menor sin resolver: warning de Railway sobre migracion no reflejada (choices nuevos en PsychoInstrument.TIPOS)
