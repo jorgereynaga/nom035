@@ -114,3 +114,24 @@
 1. PENDIENTE GRANDE SIN RESOLVER: ReporteUnificadoView y GenerarPerfilNarrativoView (surveys/psico_views.py) aun NO saben interpretar los scores de tipo 'competencias'/'comercial' para generar el reporte narrativo del candidato — solo _calcular_scores fue extendido, falta revisar y extender la logica de interpretacion/narrativa en esas 2 vistas para que el reporte unificado muestre resultados coherentes de estos 2 instrumentos nuevos (hoy solo interpretan disc/moss/raven/zavic)
 2. Probar en navegador end-to-end: asignar Competencias Laborales o Perfil Comercial a un candidato real, completarlo, y verificar que el reporte unificado no falle o muestre datos vacios/incorrectos para estos tipos
 3. Pendiente menor sin resolver: warning de Railway sobre migracion no reflejada (choices nuevos en PsychoInstrument.TIPOS) — confirmar si requiere migracion manual o se puede ignorar de forma segura
+
+## BUG URGENTE DETECTADO — pruebas end-to-end de instrumentos psicometricos (sesión 10, parte 6)
+Jorge probo en produccion enviando links reales de cada instrumento a candidatos y encontro 4 problemas al TOMAR el test (no en el reporte, sino en la pantalla donde el candidato responde):
+
+1. **Competencias Laborales**: no avanza de la primera pregunta. Permite seleccionar una opcion pero el boton/flujo para pasar a la siguiente pregunta no funciona.
+2. **Perfil Comercial y Servicio al Cliente**: mismo problema, no avanza de la primera pregunta.
+3. **Zavic**: no permite avanzar Y ademas permite seleccionar "mas" y "menos" en el mismo concepto (esto suena a que esta usando por error la logica de seleccion tipo DISC en vez de la logica de distribucion de puntos que le corresponde a Zavic). **ACLARACION DE JORGE: este bug ya existia desde ANTES de esta sesion, viene de otro chat/sesion anterior, no lo causamos hoy.**
+4. **Moss (Supervision y Liderazgo)**: no muestra las opciones de respuesta en absoluto y no avanza. **ACLARACION DE JORGE: tambien preexistente de otra sesion, no relacionado con el trabajo de hoy.**
+
+Screenshot de Jorge mostrando el problema: pantalla "GRUPO 1 DE 30" con 4 opciones tipo radio button, pero el texto de cada opcion aparece vacio (solo se ve un punto "."), y la opcion seleccionada (radio azul) no avanza a la siguiente pregunta.
+
+### Investigacion en curso (sin resolver aun)
+- Confirmado: el texto "GRUPO X DE Y" NO esta hardcodeado en ningun template HTML — se genera dinamicamente via JavaScript, probablemente leyendo item.opciones desde un endpoint JSON
+- TestSessionView (surveys/psico_views.py, linea 124) es la vista publica que sirve el test al candidato sin login. Se identificaron los primeros renders (expirada/completada) pero AUN FALTA ver el resto del metodo get() para identificar que template usa cuando el test esta en_proceso/pendiente, y de ahi ubicar el JS que renderiza las preguntas dinamicamente
+- HIPOTESIS DE TRABAJO (sin confirmar): el JS/template que renderiza preguntas durante el test tiene un switch o logica condicional basada en item.tipo (disc_group/distribute/multiple) que:
+  - No sabe manejar tipo='multiple' correctamente para instrumentos NUEVOS (Competencias/Comercial) -> podria estar relacionado a la estructura de opciones que usamos (cada opcion con texto/valor/dimension) si el JS espera otro campo especifico
+  - Tiene un bug independiente y preexistente con tipo='distribute' (Zavic) y con el instrumento Moss (que probablemente es tipo='multiple' tambien pero con estructura de opciones distinta a las de competencias/comercial)
+- PROXIMO PASO EXACTO PARA RETOMAR: correr `sed -n '124,156p' surveys/psico_views.py` para ver el resto de TestSessionView y encontrar el nombre del template que renderiza la toma del test, luego buscar el archivo JS asociado (probablemente embebido en ese mismo template o en un archivo .js separado) para entender la logica de renderizado de opciones por tipo de item
+
+### Nota importante de alcance
+Este bug es de PRIORIDAD ALTA porque bloquea el uso funcional de 4 instrumentos completos (2 nuevos que acabamos de construir + 2 antiguos ya en produccion). Ningun candidato puede completar actualmente Competencias Laborales, Perfil Comercial, Zavic ni Moss. DISC y Raven no fueron mencionados como afectados por Jorge, asumir que siguen funcionando hasta confirmar lo contrario.
