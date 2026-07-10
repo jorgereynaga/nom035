@@ -6,7 +6,7 @@ from django.views import View
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
 from django.http import JsonResponse
-from .models import Candidate, TestSession, PsychoInstrument, TestResponse, TestResult, PsychoItem
+from .models import Candidate, TestSession, PsychoInstrument, TestResponse, TestResult, PsychoItem, Workplace
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 import json
@@ -22,6 +22,7 @@ class CandidateListView(LoginRequiredMixin, View):
             'candidates': candidates,
             'instrumentos': instrumentos,
             'name': request.user.userapp.name,
+            'workplaces': Workplace.objects.filter(user=request.user),
         }
         return render(request, 'psico_candidatos.html', ctx)
 
@@ -536,5 +537,6 @@ class InstrumentosCatalogoView(LoginRequiredMixin, View):
             'instrumentos': instrumentos,
             'candidatos': candidatos,
             'name': request.user.userapp.name,
+            'workplaces': Workplace.objects.filter(user=request.user),
         }
         return render(request, 'psico_instrumentos.html', ctx)
