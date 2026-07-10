@@ -3029,6 +3029,7 @@ class ClimaResultadosView(LoginRequiredMixin, View):
             'total': total,
             'dimensiones': dimensiones,
             'access_url': request.build_absolute_uri(f'/clima/{wk.access_code}/'),
+            'workplaces': Workplace.objects.filter(user=request.user),
         }
         return render(request, 'clima_resultados.html', ctx)
 

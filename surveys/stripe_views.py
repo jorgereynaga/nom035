@@ -9,7 +9,7 @@ from django.shortcuts import redirect
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.models import User
-from .models import Userapp
+from .models import Userapp, Workplace
 from .stripe_plans import PLANS, PRICE_ID_TO_PLAN
 
 logger = logging.getLogger(__name__)
@@ -31,6 +31,7 @@ class StripePlansView(LoginRequiredMixin, View):
         return render(request, 'stripe_planes.html', {
             'planes': PLANS,
             'plan_activo': plan_activo,
+            'workplaces': Workplace.objects.filter(user=request.user),
         })
 
 # ─────────────────────────────────────────────────────────────
