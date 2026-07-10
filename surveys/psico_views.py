@@ -227,8 +227,8 @@ class TestCompleteView(View):
             correctas = 0
             total = responses.count()
             for r in responses:
-                respuesta = r.respuesta
-                if respuesta.get('seleccion') == r.item.respuesta_correcta:
+                letra = r.respuesta
+                if letra == r.item.respuesta_correcta:
                     correctas += 1
             return {
                 'correctas': correctas,
