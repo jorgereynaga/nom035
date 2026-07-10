@@ -198,3 +198,30 @@ PENDIENTE: confirmar visualmente tras el deploy que Evaluaciones y Candidatos ya
 2. Rediseno de la vista Evaluaciones (psico_instrumentos.html) con tarjetas — prompt para Replit pendiente de escribir
 3. Pendiente menor sin resolver: warning de Railway sobre migracion no reflejada (choices nuevos en PsychoInstrument.TIPOS)
 4. Pendiente menor sin resolver: `page=(start/length)+1` en employees_dt usa division float en vez de entera
+
+## Rediseño visual con Replit — en progreso (sesión 10, parte 14)
+Jorge decidio usar Replit para rediseñar (SOLO visual, sin tocar funcionalidad) varias vistas clave. Flujo de trabajo establecido:
+1. Claude escribe un prompt de diseño para Replit, especificando: ruta exacta del archivo en el repo publico de GitHub, que elementos funcionales NO se deben tocar (ids, v-model, {% url %}, JS, modales), libertad total de creatividad visual dentro de la identidad de marca (color primario #4f46e5, sidebar oscuro #0f172a, tipografia Inter/Plus Jakarta Sans)
+2. Jorge pega el prompt en Replit, descarga el archivo resultante a su carpeta de Descargas
+3. Claude revisa el archivo completo via view tool antes de integrarlo: verifica balanceo de tags Django ({% if %}/{% endif %}, {% for %}/{% endfor %}, {% block %}/{% endblock %}) y presencia de todos los elementos funcionales criticos (ids, v-model, endpoints)
+4. Se hace backup del archivo original (ej. `evidence_backup_pre_replit.html`) antes de sobreescribir
+5. Jorge copia el archivo con `cp` desde su carpeta de Descargas al repo, se verifica, se hace commit y push
+
+### Vista 1: Catalogo de Instrumentos (psico_instrumentos.html) — COMPLETADO Y CONFIRMADO ✅
+Rediseño con tarjetas: hero con gradiente de marca, contador de instrumentos disponibles, tarjetas con color de acento distinto por tipo de instrumento (disc, raven, moss, zavic, competencias, comercial) + fallback generico, cada tarjeta con icono, tag, tiempo estimado, descripcion y boton "Asignar a candidato". Sidebar (incluye workplaces loop y Clima Laboral que habiamos arreglado antes) y modal de asignacion preservados intactos. Confirmado funcionando en produccion por Jorge via screenshot.
+
+### Vista 2: Portafolio de Evidencias (evidence.html) — COMPLETADO Y CONFIRMADO ✅ (con 1 ajuste menor)
+Rediseño: banner de cumplimiento NOM-035 con gradiente, checklist transformado en tarjetas con badge circular de estado (✓ verde/⚠ ambar), borde lateral de color segun estado, pill "Completo"/"Pendiente". Seccion de resultados separada visualmente. TODA la logica Vue.js preservada intacta: `new Vue({...})`, data (workplace, results, portafolio_status), methods (on_workplace_change, get_portafolio_status, get_results), v-model, v-for, v-if, v-select2, ids del modal (modal_evidence, evidence_form, add_evidence, evidence_btn, users, workplace, result_type, image), todos los {% url %} de Django.
+- NOTA: el archivo SI usa `{% extends 'index.html' %}` (mi prompt original decia erroneamente que era standalone como los psico_*.html — Replit trabajo correctamente sobre el archivo real del repo, ignorando esa imprecision mia)
+- AJUSTE POST-DEPLOY: el selector de centro de trabajo (select2) se veia "plano y feo" segun Jorge — mejorado con mas altura (46px vs 38px), sombra sutil, tipografia mas marcada (font-weight 600), ancho contenido a 420px en vez de 100%. Solo cambio de CSS, cero logica tocada.
+- Confirmado funcionando en produccion por Jorge via screenshot.
+
+## PENDIENTE: 2 vistas mas por rediseñar con el mismo flujo
+1. Clima Laboral (clima_resultados.html) — prompt aun no escrito, siguiente en la fila
+2. Vista de empresa (probablemente workplace_detail.html o similar, la vista de /workplaces/<id>/ que muestra info del centro + tabla de empleados) — prompt aun no escrito
+
+## Pendiente inmediato actualizado
+1. Escribir prompt para Replit: Clima Laboral (clima_resultados.html)
+2. Escribir prompt para Replit: Vista de empresa (confirmar archivo exacto primero)
+3. Pendiente menor sin resolver: warning de Railway sobre migracion no reflejada (choices nuevos en PsychoInstrument.TIPOS)
+4. Pendiente menor sin resolver: `page=(start/length)+1` en employees_dt usa division float en vez de entera
