@@ -44,6 +44,13 @@
         .btn-menos.activo { background: #dc2626; border-color: #dc2626; color: #fff; }
         .btn-mas:hover:not(.activo) { border-color: #4f46e5; color: #4f46e5; }
         .btn-menos:hover:not(.activo) { border-color: #dc2626; color: #dc2626; }
+        .zavic-total { font-size: 12px; font-weight: 600; color: #4f46e5; margin-bottom: 12px; text-align: right; }
+        .zavic-total.completo { color: #16a34a; }
+        .zavic-contador-wrap { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+        .btn-zavic-mas, .btn-zavic-menos { width: 28px; height: 28px; border-radius: 50%; border: 2px solid #e2e8f0; background: #fff; font-size: 16px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .15s; font-family: 'Inter', sans-serif; color: #4f46e5; }
+        .btn-zavic-mas:hover, .btn-zavic-menos:hover { border-color: #4f46e5; background: #eef2ff; }
+        .btn-zavic-mas:disabled, .btn-zavic-menos:disabled { opacity: .3; cursor: not-allowed; }
+        .zavic-contador { font-size: 14px; font-weight: 700; color: #1e293b; min-width: 16px; text-align: center; }
 
         /* Multiple choice (Raven, Moss, Zavic) */
         .pregunta-texto { font-size: 15px; font-weight: 600; color: #0f172a; margin-bottom: 16px; line-height: 1.5; }
@@ -120,8 +127,8 @@
     <div class="grupo-card" id="grupo-{{ forloop.counter }}" style="{% if not forloop.first %}display:none;{% endif %}">
         <div class="grupo-titulo">Grupo {{ item.numero }} de {{ items|length }}</div>
 
-        {% if instrumento.tipo == 'disc' or instrumento.tipo == 'zavic' %}
-        {# Formato DISC / ZAVIC: botones Más / Menos #}
+        {% if instrumento.tipo == 'disc' %}
+        {# Formato DISC: botones Más / Menos #}
         {% for op in item.opciones %}
         <div class="opcion-row">
             <div class="opcion-texto">{{ op.texto }}</div>
@@ -143,9 +150,22 @@
             </div>
         </div>
         {% endfor %}
+        {% elif instrumento.tipo == 'zavic' %}
+        {# Formato ZAVIC: distribuir 5 puntos entre 4 opciones #}
+        <div class="zavic-total" data-grupo="{{ item.id }}">Puntos asignados: <span id="zavic-suma-{{ item.id }}">0</span> / 5</div>
+        {% for op in item.opciones %}
+        <div class="opcion-row">
+            <div class="opcion-texto">{{ op.texto }}</div>
+            <div class="zavic-contador-wrap">
+                <button class="btn-zavic-menos" data-grupo="{{ item.id }}" onclick="zavicDecrementar({{ item.id }}, '{{ op.escala }}')">−</button>
+                <span class="zavic-contador" id="zavic-count-{{ item.id }}-{{ op.escala }}">0</span>
+                <button class="btn-zavic-mas" data-grupo="{{ item.id }}" onclick="zavicIncrementar({{ item.id }}, '{{ op.escala }}')">+</button>
+            </div>
+        </div>
+        {% endfor %}
 
         {% else %}
-        {# Formato multiple choice: Raven, Moss #}
+        {# Formato multiple choice: Raven, Moss, Competencias, Comercial #}
         <div class="pregunta-texto">{{ item.texto }}</div>
         {% for op in item.opciones %}
         <div class="opcion-multiple" id="op-{{ item.id }}-{{ op.letra }}" onclick="seleccionarMultiple({{ item.id }}, '{{ op.letra }}', this)">
@@ -207,17 +227,54 @@ function seleccionarMultiple(itemId, letra, el) {
     document.getElementById('alertaError').style.display = 'none';
 }
 
+/* ── ZAVIC: distribuir puntos ────────────────────────────── */
+function zavicIncrementar(itemId, escala) {
+    if (!respuestas[itemId]) respuestas[itemId] = { item_id: itemId, distribucion: {} };
+    var dist = respuestas[itemId].distribucion;
+    var suma = Object.values(dist).reduce(function(a, b) { return a + b; }, 0);
+    if (suma >= 5) return;
+    dist[escala] = (dist[escala] || 0) + 1;
+    document.getElementById('zavic-count-' + itemId + '-' + escala).innerText = dist[escala];
+    var nuevaSuma = suma + 1;
+    document.getElementById('zavic-suma-' + itemId).innerText = nuevaSuma;
+    var totalDiv = document.querySelector('.zavic-total[data-grupo="' + itemId + '"]');
+    if (totalDiv) totalDiv.classList.toggle('completo', nuevaSuma === 5);
+    actualizarContador();
+    document.getElementById('alertaError').style.display = 'none';
+}
+
+function zavicDecrementar(itemId, escala) {
+    if (!respuestas[itemId] || !respuestas[itemId].distribucion[escala]) return;
+    var dist = respuestas[itemId].distribucion;
+    dist[escala] -= 1;
+    if (dist[escala] <= 0) delete dist[escala];
+    document.getElementById('zavic-count-' + itemId + '-' + escala).innerText = dist[escala] || 0;
+    var suma = Object.values(dist).reduce(function(a, b) { return a + b; }, 0);
+    document.getElementById('zavic-suma-' + itemId).innerText = suma;
+    var totalDiv = document.querySelector('.zavic-total[data-grupo="' + itemId + '"]');
+    if (totalDiv) totalDiv.classList.toggle('completo', suma === 5);
+    actualizarContador();
+}
+
 /* ── Validación ──────────────────────────────────────────── */
 function grupoCompleto(grupoNum) {
     var grupo = document.getElementById('grupo-' + grupoNum);
     if (!grupo) return false;
 
-    if (tipoInstrumento === 'disc' || tipoInstrumento === 'zavic') {
+    if (tipoInstrumento === 'disc') {
         var btnMas = grupo.querySelector('.btn-mas');
         if (!btnMas) return false;
         var itemId = parseInt(btnMas.dataset.grupo);
         var r = respuestas[itemId];
         return r && r.mas && r.menos && r.mas !== r.menos;
+    } else if (tipoInstrumento === 'zavic') {
+        var totalDiv = grupo.querySelector('.zavic-total');
+        if (!totalDiv) return false;
+        var itemIdZ = parseInt(totalDiv.dataset.grupo);
+        var rz = respuestas[itemIdZ];
+        if (!rz || !rz.distribucion) return false;
+        var sumaZ = Object.values(rz.distribucion).reduce(function(a, b) { return a + b; }, 0);
+        return sumaZ === 5;
     } else {
         var opcion = grupo.querySelector('.opcion-multiple');
         if (!opcion) return false;
@@ -279,9 +336,13 @@ function enviar() {
     btn.innerHTML = 'Enviando...';
 
     var respuestasArray;
-    if (tipoInstrumento === 'disc' || tipoInstrumento === 'zavic') {
+    if (tipoInstrumento === 'disc') {
         respuestasArray = Object.values(respuestas).map(function(r) {
             return { item_id: r.item_id, respuesta: { mas: r.mas, menos: r.menos } };
+        });
+    } else if (tipoInstrumento === 'zavic') {
+        respuestasArray = Object.values(respuestas).map(function(r) {
+            return { item_id: r.item_id, respuesta: { distribucion: r.distribucion } };
         });
     } else {
         respuestasArray = Object.values(respuestas).map(function(r) {
