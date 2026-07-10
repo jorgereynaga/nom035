@@ -162,3 +162,16 @@ Jorge confirmo: evaluacion completada exitosamente tras el fix.
 
 ## Pendiente inmediato actualizado (unico pendiente activo)
 1. Pendiente menor sin resolver: warning de Railway sobre migracion no reflejada (choices nuevos 'competencias'/'comercial' en PsychoInstrument.TIPOS) — confirmar si requiere migracion manual con python manage.py makemigrations o se puede ignorar de forma segura (es un CharField con choices, no deberia cambiar la columna de BD)
+
+## NUEVOS HALLAZGOS — pruebas continuas de Jorge (sesión 10, parte 11)
+Jorge sigue probando la plataforma y encontro 4 pendientes nuevos, sin investigar aun:
+
+1. **BUG: paginacion rota en "Ver resultados"** — URL de ejemplo: https://nom035-production.up.railway.app/workplace_result/19/1/. NOTA IMPORTANTE: esto ya se habia arreglado en la sesion 9 (fix de tooltip condicional en DataTables, documentado arriba). Posible regresion, o un problema distinto de paginacion esta vez. Requiere investigacion desde cero para no asumir que es el mismo bug.
+
+2. **BUG: menu lateral incompleto en "Clima Laboral" y "Mi plan"** — comparado con el resto de las paginas (Dashboard, Portafolio de evidencias, Evaluaciones, Candidatos, Configuracion), el sidebar en estas 2 vistas no muestra todos los links esperados. Recordar: los templates NO usan {% include %} para el sidebar, cada uno lo trae hardcodeado completo — es probable que estos 2 templates especificos tengan una version vieja/incompleta del sidebar sin actualizar cuando se agregaron nuevos links (ej. cuando se agrego "Evaluaciones").
+
+3. **Cambio simple de texto**: en el sidebar, renombrar el link "Mi plan" a "Planes" (cambio cosmetico, bajo riesgo).
+
+4. **Rediseño de la vista Evaluaciones** (catalogo de instrumentos, psico_instrumentos.html): Jorge no esta conforme con el diseño actual. Quiere pedirle a Replit (otra herramienta de IA) un diseño con tarjetas — 4 arriba y 4 abajo, o separadas por tipo de evaluacion, cada tarjeta con nombre e descripcion breve del instrumento. Plan: escribir un prompt de diseño para Replit (mismo patron que se uso con ChatGPT para los reactivos), no implementar el diseño directamente en esta sesion.
+
+Screenshot de referencia adjuntado por Jorge mostrando el sidebar actual completo (Dashboard, Centros de Trabajo, Añadir un Centro, Portafolio de evidencias, Evaluaciones, Candidatos, Mi plan, Configuracion) — este es el sidebar "correcto" contra el cual comparar Clima Laboral y Mi plan.
