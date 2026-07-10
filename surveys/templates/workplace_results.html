@@ -230,7 +230,8 @@ table.dataTable tbody tr:last-child td { border-bottom: none !important; }
   border-color: var(--primary) !important;
   color: #fff !important;
 }
-.dataTables_wrapper .dataTables_paginate { list-style: none !important; padding-left: 0 !important; }
+.dataTables_wrapper .dataTables_paginate { list-style: none !important; padding-left: 0 !important; display: flex !important; flex-wrap: wrap !important; gap: 4px !important; align-items: center !important; }
+.dataTables_wrapper .dataTables_paginate li { display: inline-block !important; }
 .dataTables_wrapper .dataTables_paginate span { list-style: none !important; }
 .dataTables_wrapper ul, .dataTables_wrapper li { list-style: none !important; padding-left: 0 !important; }
 .dataTables_wrapper .dataTables_info { font-size: 12px !important; }
