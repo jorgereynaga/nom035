@@ -117,3 +117,9 @@ Durante la investigacion de Moss se detecto que el bloque `elif tipo == 'raven':
 2. Arreglar Zavic: causa raiz ya identificada (template linea 123 agrupa zavic incorrectamente con la logica Mas/Menos de DISC, deberia tener su propia logica de distribuir 5 puntos entre 4 opciones)
 3. Probar Raven end-to-end para confirmar si tiene el mismo bug latente que tenia Moss (ver hallazgo arriba)
 4. Pendiente menor sin resolver: warning de Railway sobre migracion no reflejada (choices nuevos en PsychoInstrument.TIPOS)
+
+### Moss CONFIRMADO FUNCIONANDO end-to-end en produccion ✅ (sesión 10, parte 8, cierre)
+Jorge probo con candidato real: cuestionario completo, avanza correctamente entre las 30 preguntas, y el envio final ("Enviar evaluación") se completo con exito. Hubo un error transitorio "Error al enviar: intenta de nuevo" en el primer intento, pero al repetir el envio funciono correctamente — parece haber sido un problema de red/timeout puntual, no relacionado con el fix de codigo (no se detecto traceback de Django en los logs revisados). Si el error "Error al enviar" vuelve a aparecer de forma consistente, revisar logs de Railway en el momento exacto del fallo para descartar causa real en el backend.
+
+## INSTRUMENTOS FUNCIONANDO END-TO-END CONFIRMADO: Competencias Laborales, Perfil Comercial, Moss ✅
+## PENDIENTE: Zavic (bug identificado, fix no aplicado) y Raven (posible bug latente identico a Moss, sin confirmar)
