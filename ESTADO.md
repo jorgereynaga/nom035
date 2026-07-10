@@ -96,3 +96,24 @@
 - Sistema de diseño NormaIA: .form-group, .form-label, .form-control, .section-card, .btn/.btn-primary/.btn-outline-primary, var(--bg-base), var(--border), var(--text-primary/secondary), var(--radius-md/lg), var(--shadow-sm)
 - Templates psico_*.html son STANDALONE (su propio <html>, sidebar y CSS hardcodeados) — NO extienden index.html, no hay {% include %}
 - imports en views.py son wildcard; cargar_datos_demo.py usa import explicito, hay que agregar cada modelo nuevo a la lista manualmente
+
+### BUG RESUELTO — Moss (Supervision y Liderazgo) no mostraba opciones ni avanzaba (sesión 10, parte 8)
+Misma causa raiz que Competencias/Comercial: cargar_moss.py usaba opciones con campos `texto`+`puntos`, incompatibles con el template psico_test.html que espera `letra`+`valor` para el formato "multiple choice".
+
+FIX aplicado (mismo patron que Competencias/Comercial):
+1. Transformadas las opciones de cargar_moss.py: `{"texto": X, "puntos": Y}` -> `{"letra": "A-D", "valor": X, "peso": Y}`
+2. CUIDADO TECNICO: cargar_moss.py (como cargar_zavic.py) usa TABS para indentacion, no espacios. El primer intento de transformacion con python3 heredoc uso espacios para la linea "for s in situaciones:", causando TabError al compilar. Fix: reemplazar explicitamente por tabs (`\t\t`) en vez de espacios al insertar texto nuevo en archivos que usan tabs. LECCION para futuros archivos con tabs: verificar con `cat -A` el estilo de indentacion ANTES de insertar texto nuevo por concatenacion de strings, no asumir espacios.
+3. _calcular_scores (dentro de TestCompleteView, linea ~215): bloque moss corregido para leer `letra = r.respuesta` (string plano enviado por el frontend) y buscar en item.opciones la opcion con esa letra, sumando su `peso` al total — antes intentaba `respuesta.get('puntos', 0)` asumiendo que r.respuesta era un diccionario, lo cual hubiera crasheado (AttributeError) si algun candidato hubiera logrado completar el test
+4. Confirmado que las otras 3 vistas que manejan moss (TestResultView, GenerarPerfilNarrativoView, ReporteUnificadoView) NO necesitaron cambios porque solo leen el diccionario `scores` ya calculado (ej. scores.get('total', 0)), no las respuestas crudas
+5. Los 30 items viejos de Moss fueron borrados y recargados en produccion: "Moss cargado: 30 situaciones creadas." confirmado
+
+### HALLAZGO IMPORTANTE SIN RESOLVER — posible bug identico latente en Raven
+Durante la investigacion de Moss se detecto que el bloque `elif tipo == 'raven':` en _calcular_scores tiene el MISMO problema de diseño: usa `respuesta.get('seleccion')` asumiendo que r.respuesta es un diccionario, pero por la arquitectura confirmada de TestCompleteView.post(), para CUALQUIER item tipo 'multiple' (que incluye raven), r.respuesta se guarda como la letra en texto plano, NO como diccionario. Esto significa que si un candidato completara Raven, el calculo de scores probablemente crashearia con AttributeError.
+- Jorge no reporto a Raven como roto en las pruebas de esta sesion, posiblemente porque no lo probo de principio a fin (solo problemas visibles al TOMAR el test, no necesariamente llego a completarlo y generar el reporte)
+- PENDIENTE: probar Raven end-to-end (completar el test con un candidato real) para confirmar si este bug realmente se manifiesta, y aplicar el mismo tipo de fix si es necesario (leer letra=r.respuesta directo y comparar contra item.respuesta_correcta, ya que Raven no necesita buscar en opciones, solo comparar la letra seleccionada)
+
+## Pendiente inmediato actualizado
+1. Probar Moss en navegador con candidato real (link nuevo) para confirmar que ya funciona de principio a fin
+2. Arreglar Zavic: causa raiz ya identificada (template linea 123 agrupa zavic incorrectamente con la logica Mas/Menos de DISC, deberia tener su propia logica de distribuir 5 puntos entre 4 opciones)
+3. Probar Raven end-to-end para confirmar si tiene el mismo bug latente que tenia Moss (ver hallazgo arriba)
+4. Pendiente menor sin resolver: warning de Railway sobre migracion no reflejada (choices nuevos en PsychoInstrument.TIPOS)
