@@ -215,9 +215,12 @@ class TestCompleteView(View):
         elif tipo == 'moss':
             total = 0
             for r in responses:
-                respuesta = r.respuesta
-                puntos = respuesta.get('puntos', 0)
-                total += puntos
+                letra = r.respuesta
+                opciones = r.item.opciones
+                for op in opciones:
+                    if op.get('letra') == letra:
+                        total += op.get('peso', 0)
+                        break
             return {'total': total}
 
         elif tipo == 'raven':
