@@ -148,3 +148,17 @@ TODOS los instrumentos psicometricos de la plataforma (DISC, Raven, Moss, Zavic,
 ## Pendiente inmediato actualizado
 1. Probar Raven end-to-end (completar el test con un candidato real) para confirmar si tiene el mismo bug latente que tenia Moss antes del fix (ver hallazgo de sesion anterior: _calcular_scores bloque raven usa `respuesta.get('seleccion')` asumiendo diccionario, pero el formato real guardado es la letra en texto plano — mismo problema que tenia moss). Si se confirma el bug, aplicar mismo tipo de fix (leer letra=r.respuesta directo y comparar contra item.respuesta_correcta)
 2. Pendiente menor sin resolver: warning de Railway sobre migracion no reflejada (choices nuevos en PsychoInstrument.TIPOS)
+
+### Raven CONFIRMADO FUNCIONANDO end-to-end en produccion ✅ (sesión 10, parte 10, cierre)
+Jorge confirmo: evaluacion completada exitosamente tras el fix.
+
+## SESION 10 CERRADA — TODOS los instrumentos psicometricos operativos y confirmados en produccion ✅
+1. DISC — sin cambios, funcionando desde antes
+2. Raven — bug de scoring (respuesta como dict vs string) corregido y confirmado ✅
+3. Moss — bug de formato de opciones (letra/valor/peso) corregido y confirmado ✅
+4. Zavic — bug de interfaz (usaba logica de DISC en vez de distribucion de puntos) corregido y confirmado ✅
+5. Competencias Laborales — instrumento nuevo construido de cero, bug de formato corregido, confirmado ✅
+6. Perfil Comercial y Servicio al Cliente — instrumento nuevo construido de cero, bug de formato corregido, confirmado ✅
+
+## Pendiente inmediato actualizado (unico pendiente activo)
+1. Pendiente menor sin resolver: warning de Railway sobre migracion no reflejada (choices nuevos 'competencias'/'comercial' en PsychoInstrument.TIPOS) — confirmar si requiere migracion manual con python manage.py makemigrations o se puede ignorar de forma segura (es un CharField con choices, no deberia cambiar la columna de BD)
