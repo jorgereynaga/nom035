@@ -2,8 +2,6 @@
 {% load static %}
 
 {% block style %}
-<link rel="stylesheet" type="text/css" href="{% static 'app-assets/vendors/css/tables/datatable/datatables.min.css' %}">
-<link rel="stylesheet" type="text/css" href="{% static 'app-assets/vendors/css/forms/select/select2.css' %}">
 <style>
 /* ── Results header card ─────────────────────────────────── */
 .results-header {
@@ -208,7 +206,9 @@
 .dt-card-title {
   font-family: 'Plus Jakarta Sans', sans-serif;
   font-size: 13px; font-weight: 700; color: var(--text-primary);
+  display: flex; align-items: center; gap: 8px;
 }
+.dt-card-title svg { width: 15px; height: 15px; color: var(--primary); flex-shrink: 0; }
 
 /* DataTables overrides */
 table.dataTable { width: 100% !important; border-collapse: collapse !important; }
@@ -291,6 +291,9 @@ table.dataTable tbody tr:last-child td { border-bottom: none !important; }
 .dataTables_wrapper .dataTables_info { font-size: 12px !important; }
 </style>
 {% endblock %}
+
+<link rel="stylesheet" type="text/css" href="{% static 'app-assets/vendors/css/tables/datatable/datatables.min.css' %}">
+<link rel="stylesheet" type="text/css" href="{% static 'app-assets/vendors/css/forms/select/select2.css' %}">
 
 {% block dashboard %}
 
