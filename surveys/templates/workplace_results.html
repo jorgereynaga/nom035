@@ -126,19 +126,24 @@
 
 /* Select2 overrides */
 .select2-container .select2-selection--single {
-  height: 38px !important;
-  border: 1px solid var(--border) !important;
+  height: 46px !important;
+  border: 1.5px solid var(--border) !important;
   border-radius: var(--radius-md) !important;
+  box-shadow: var(--shadow-sm) !important;
   display: flex !important; align-items: center !important;
+  transition: border-color .15s, box-shadow .15s;
+}
+.select2-container .select2-selection--single:hover {
+  border-color: var(--primary) !important;
 }
 .select2-container--default .select2-selection--single .select2-selection__rendered {
-  line-height: 38px !important;
-  font-size: 13px !important;
+  line-height: 46px !important;
+  font-size: 14px !important; font-weight: 600 !important;
   color: var(--text-primary) !important;
-  padding-left: 12px !important;
+  padding-left: 16px !important;
 }
 .select2-container--default .select2-selection--single .select2-selection__arrow {
-  height: 38px !important;
+  height: 46px !important; right: 12px !important;
 }
 .select2-dropdown { border: 1px solid var(--border) !important; border-radius: var(--radius-md) !important; box-shadow: var(--shadow-md) !important; font-size: 13px !important; }
 .select2-container--default .select2-results__option--highlighted { background: var(--primary) !important; }
@@ -753,5 +758,16 @@ table.dataTable tbody tr:last-child td { border-bottom: none !important; }
     });
     $(function(){
     });
+</script>
+
+<!-- Fix: ECharts necesita resize() explicito cuando su contenedor pasa de display:none a visible (pestanas CSS puras) -->
+<script>
+$(function(){
+    $('input[name="chart-tab"]').on('change', function(){
+        if (this.id === 'tab-cat') { myChart4.resize(); myChart2.resize(); }
+        else if (this.id === 'tab-dom') { myChart3.resize(); myChart.resize(); }
+        else if (this.id === 'tab-dim') { myChart5.resize(); myChart6.resize(); }
+    });
+});
 </script>
 {% endblock %}
