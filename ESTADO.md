@@ -225,3 +225,12 @@ Rediseño: banner de cumplimiento NOM-035 con gradiente, checklist transformado 
 2. Escribir prompt para Replit: Vista de empresa (confirmar archivo exacto primero)
 3. Pendiente menor sin resolver: warning de Railway sobre migracion no reflejada (choices nuevos en PsychoInstrument.TIPOS)
 4. Pendiente menor sin resolver: `page=(start/length)+1` en employees_dt usa division float en vez de entera
+
+### Vista 3: Clima Laboral (clima_resultados.html) — COMPLETADO Y CONFIRMADO ✅ (sesión 10, parte 15)
+Rediseño: hero con gradiente oscuro-morado, stats destacados (respuestas recibidas, dimensiones evaluadas), tarjeta de link para compartir con boton copiar, filas de dimension con barra de progreso + score + nivel de riesgo con color, leyenda de criterios de interpretacion (Critico/En riesgo/Adecuado/Favorable).
+- BUG DETECTADO Y CORREGIDO ANTES DE INTEGRAR: Replit dejo el numero "8" hardcodeado en la tarjeta de "Dimensiones evaluadas" en vez de usar una variable dinamica. Corregido a `{{ dimensiones|length }}` antes del commit.
+- Elementos funcionales preservados: `id="clima-url"`, el `onclick` exacto del boton copiar (`navigator.clipboard.writeText(...)`), variables de contexto `workplace`, `total`, `dimensiones`, `access_url`
+- Confirmado funcionando perfecto en produccion por Jorge
+
+## PENDIENTE: 1 vista mas por rediseñar (vista de empresa)
+Aun no se ha confirmado el archivo/vista exacta — probablemente sea la vista de detalle del centro de trabajo (/workplaces/<id>/, la que muestra nombre de empresa, direccion, empleados registrados, evaluacion activa, tabla de empleados). Falta identificar el archivo real antes de escribir el prompt.
