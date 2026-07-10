@@ -123,3 +123,28 @@ Jorge probo con candidato real: cuestionario completo, avanza correctamente entr
 
 ## INSTRUMENTOS FUNCIONANDO END-TO-END CONFIRMADO: Competencias Laborales, Perfil Comercial, Moss ✅
 ## PENDIENTE: Zavic (bug identificado, fix no aplicado) y Raven (posible bug latente identico a Moss, sin confirmar)
+
+### BUG RESUELTO — Zavic no permitia avanzar (usaba logica incorrecta de DISC) ✅ (sesión 10, parte 9, cierre)
+CAUSA RAIZ: el template psico_test.html agrupaba Zavic con DISC (`{% if instrumento.tipo == 'disc' or instrumento.tipo == 'zavic' %}`), usando botones binarios "+ Mas" / "- Menos" por dimension. Pero las instrucciones del propio instrumento (visibles al candidato) piden "distribuir 5 puntos entre las 4 opciones" — una mecanica de asignacion de puntos, no de seleccion de opuestos. El backend (_calcular_scores, bloque zavic) YA esperaba el formato correcto (`respuesta.get('distribucion', {})`) desde antes de esta sesion — es decir, Zavic nunca tuvo una interfaz que generara ese formato, probablemente nunca funciono correctamente desde su implementacion original.
+
+FIX aplicado en surveys/templates/psico_test.html (SOLO frontend, backend NO se toco):
+1. CSS nuevo: contador circular con botones +/- (`.btn-zavic-mas`, `.btn-zavic-menos`, `.zavic-contador`, `.zavic-total`)
+2. HTML: separada la rama `{% if instrumento.tipo == 'disc' %}` de una nueva `{% elif instrumento.tipo == 'zavic' %}` — cada opcion muestra un contador (0-5) con botones +1/-1, y un indicador de "Puntos asignados: X / 5" por grupo de pregunta
+3. JS nuevo: funciones `zavicIncrementar(itemId, escala)` / `zavicDecrementar(itemId, escala)` — construyen `respuestas[itemId].distribucion = {escala: puntos}`, bloquean incrementar si la suma ya es 5
+4. `grupoCompleto()`: separada la validacion de disc (igual que antes) de una nueva rama zavic que valida `suma === 5` exactamente
+5. `enviar()`: separado el payload de disc (`{mas, menos}`, sin cambios) del de zavic (`{distribucion: {...}}`) — coincide exactamente con lo que _calcular_scores ya esperaba, cero cambios de backend necesarios
+6. NO fue necesario borrar/recargar reactivos de Zavic en produccion (no se toco cargar_zavic.py, solo la interfaz de captura de respuestas)
+7. CONFIRMADO por Jorge: evaluacion Zavic completada exitosamente end-to-end en produccion
+
+## RESUMEN FINAL DE LA SESION — TODOS LOS BUGS DE INSTRUMENTOS RESUELTOS ✅
+Los 4 problemas reportados por Jorge al probar los instrumentos en produccion quedaron resueltos y confirmados funcionando end-to-end:
+1. Competencias Laborales ✅
+2. Perfil Comercial y Servicio al Cliente ✅
+3. Zavic ✅
+4. Moss ✅
+
+TODOS los instrumentos psicometricos de la plataforma (DISC, Raven, Moss, Zavic, Competencias Laborales, Perfil Comercial) estan ahora operativos para candidatos reales.
+
+## Pendiente inmediato actualizado
+1. Probar Raven end-to-end (completar el test con un candidato real) para confirmar si tiene el mismo bug latente que tenia Moss antes del fix (ver hallazgo de sesion anterior: _calcular_scores bloque raven usa `respuesta.get('seleccion')` asumiendo diccionario, pero el formato real guardado es la letra en texto plano — mismo problema que tenia moss). Si se confirma el bug, aplicar mismo tipo de fix (leer letra=r.respuesta directo y comparar contra item.respuesta_correcta)
+2. Pendiente menor sin resolver: warning de Railway sobre migracion no reflejada (choices nuevos en PsychoInstrument.TIPOS)
