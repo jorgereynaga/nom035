@@ -175,3 +175,26 @@ Jorge sigue probando la plataforma y encontro 4 pendientes nuevos, sin investiga
 4. **Rediseño de la vista Evaluaciones** (catalogo de instrumentos, psico_instrumentos.html): Jorge no esta conforme con el diseño actual. Quiere pedirle a Replit (otra herramienta de IA) un diseño con tarjetas — 4 arriba y 4 abajo, o separadas por tipo de evaluacion, cada tarjeta con nombre e descripcion breve del instrumento. Plan: escribir un prompt de diseño para Replit (mismo patron que se uso con ChatGPT para los reactivos), no implementar el diseño directamente en esta sesion.
 
 Screenshot de referencia adjuntado por Jorge mostrando el sidebar actual completo (Dashboard, Centros de Trabajo, Añadir un Centro, Portafolio de evidencias, Evaluaciones, Candidatos, Mi plan, Configuracion) — este es el sidebar "correcto" contra el cual comparar Clima Laboral y Mi plan.
+
+### Sidebar tambien incompleto en Evaluaciones y Candidatos — CAUSA RAIZ DISTINTA, TAMBIEN RESUELTA (sesión 10, parte 13)
+Jorge confirmo que el fix anterior (Clima Laboral, Planes) funciono, pero reporto el MISMO SINTOMA en 2 vistas mas: Evaluaciones (psico_instrumentos.html) y Candidatos (psico_candidatos.html).
+
+CAUSA DISTINTA a la de Clima Laboral/Planes: estos 2 templates son STANDALONE (sidebar hardcodeado propio, no heredan de index.html via {% extends %}). Investigando se encontro que NUNCA tuvieron el link "Clima Laboral" ni el loop de centros de trabajo individuales en su seccion NOM-035 — no es que la variable de contexto faltara (como en Clima Laboral/Planes), sino que el HTML mismo del sidebar copiado nunca incluyo esos elementos, probablemente porque se copio de una version antigua de index.html anterior a que existiera Clima Laboral.
+
+Descubrimiento adicional: los 2 templates usan convenciones CSS DIFERENTES entre si:
+- psico_candidatos.html usa `.nav-item-link` / `.nav-section-label` (igual que index.html)
+- psico_instrumentos.html usa `.sidebar-link` / `.sidebar-section-label` (nomenclatura distinta)
+
+FIX aplicado:
+1. surveys/psico_views.py: agregado `Workplace` al import explicito, y `workplaces: Workplace.objects.filter(user=request.user)` al contexto de CandidateListView y InstrumentosCatalogoView
+2. psico_candidatos.html: agregado `{% for item in workplaces %}` (centros individuales bajo NOM-035, usando clases .nav-item-link) + loop de Clima Laboral, replicando estructura de index.html
+3. psico_instrumentos.html: mismo fix pero adaptado a sus propias clases .sidebar-link (para mantener consistencia visual con el resto del archivo)
+4. LECCION TECNICA: al hacer content.replace() en estos templates, el primer intento en ambos archivos fallo por asserts — causa: habia una linea en blanco entre bloques que no se incluyo en el marcador de busqueda. Verificar SIEMPRE con `cat -A` el bloque completo (incluyendo lineas vacias) antes de armar el marcador de texto para reemplazo, no asumir que sed -n sin cat -A muestra todo con precision
+
+PENDIENTE: confirmar visualmente tras el deploy que Evaluaciones y Candidatos ya muestran sidebar completo.
+
+## Pendiente inmediato actualizado
+1. Confirmar visualmente el fix de sidebar en Evaluaciones y Candidatos tras el deploy
+2. Rediseno de la vista Evaluaciones (psico_instrumentos.html) con tarjetas — prompt para Replit pendiente de escribir
+3. Pendiente menor sin resolver: warning de Railway sobre migracion no reflejada (choices nuevos en PsychoInstrument.TIPOS)
+4. Pendiente menor sin resolver: `page=(start/length)+1` en employees_dt usa division float en vez de entera
