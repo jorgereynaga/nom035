@@ -325,7 +325,7 @@ table.dataTable tbody tr:last-child td { border-bottom: none !important; }
 <div class="alert alert-danger">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
   No cuentas con más empleados por registrar. Dirígete a la sección de compras para habilitar un nuevo centro de trabajo o contacta a un asesor.
-  <a href="/payments">Ver opciones</a>
+  <a href="{% url 'stripe_planes' %}">Ver opciones</a>
 </div>
 {% endif %}
 
