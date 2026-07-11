@@ -2,7 +2,6 @@
 {% load static %}
 
 {% block style %}
-<link rel="stylesheet" type="text/css" href="{% static 'app-assets/vendors/css/forms/select/select2.css' %}">
 <style>
 /* ── Page layout ─────────────────────────────────────────── */
 .evidence-header {
@@ -33,6 +32,11 @@
 /* ── Workplace selector ──────────────────────────────────── */
 .workplace-selector { margin-bottom: 20px; max-width: 420px; }
 .form-label { display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 5px; }
+.ws-label {
+  font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text-muted);
+  display: flex; align-items: center; gap: 6px; margin-bottom: 8px;
+}
+.ws-label svg { width: 13px; height: 13px; color: var(--primary); }
 
 /* ── Results list ────────────────────────────────────────── */
 .results-list { display: flex; flex-direction: column; gap: 8px; }
@@ -233,6 +237,8 @@
 </style>
 {% endblock %}
 
+<link rel="stylesheet" type="text/css" href="{% static 'app-assets/vendors/css/forms/select/select2.css' %}">
+
 {% block dashboard %}
 
 <div class="content-body" id="app" v-cloak>
@@ -258,7 +264,10 @@
 
       <!-- Workplace selector -->
       <div class="workplace-selector">
-        <label class="form-label">Centro de trabajo</label>
+        <label class="ws-label">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
+          Centro de trabajo
+        </label>
         <select id="select_workplace" class="select2" placeholder="Selecciona un centro de trabajo" v-select2 v-model="workplace" @change="on_workplace_change">
           {% for item in workplaces %}
           <option value="{{item.id}}">{{item.name}}</option>
