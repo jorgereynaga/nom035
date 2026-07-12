@@ -234,3 +234,66 @@ Rediseño: hero con gradiente oscuro-morado, stats destacados (respuestas recibi
 
 ## PENDIENTE: 1 vista mas por rediseñar (vista de empresa)
 Aun no se ha confirmado el archivo/vista exacta — probablemente sea la vista de detalle del centro de trabajo (/workplaces/<id>/, la que muestra nombre de empresa, direccion, empleados registrados, evaluacion activa, tabla de empleados). Falta identificar el archivo real antes de escribir el prompt.
+
+## RESUMEN COMPLETO DE LA SESION — para retomar en otra cuenta de Claude (8 Jul 2026, sesión 10 completa)
+
+### 1. Instrumentos psicometricos nuevos — COMPLETADOS Y FUNCIONANDO ✅
+- Competencias Laborales (40 reactivos, 8 dimensiones) y Perfil Comercial y Servicio al Cliente (40 reactivos, 8 dimensiones) construidos de cero, cargados en produccion, con scoring y perfil narrativo IA funcionando.
+
+### 2. Bugs de instrumentos preexistentes — TODOS RESUELTOS Y CONFIRMADOS ✅
+- Moss: opciones sin campo letra/valor correcto — corregido, formato letra/valor/peso
+- Zavic: usaba logica de DISC (Mas/Menos) en vez de distribuir 5 puntos — nueva interfaz de contador +/- construida
+- Raven: _calcular_scores comparaba respuesta como diccionario cuando era string plano — corregido
+- Los 6 instrumentos (DISC, Raven, Moss, Zavic, Competencias, Comercial) confirmados funcionando end-to-end por Jorge
+
+### 3. Bugs de sidebar y navegacion — TODOS RESUELTOS ✅
+- Rename "Mi plan" -> "Planes" en 4 templates
+- Sidebar incompleto en Clima Laboral y Planes: faltaba variable `workplaces` en contexto de ClimaResultadosView y StripePlansView — agregada
+- Sidebar incompleto en Evaluaciones y Candidatos: el HTML nunca tuvo el loop de centros de trabajo ni el link de Clima Laboral (bug distinto, no de contexto sino de HTML faltante) — agregado
+- Paginacion rota en tabla "Resultados por empleado" (workplace_results.html): CSS de `.dataTables_paginate` sin `display:flex` — corregido
+- Boton "Ver opciones" en alerta de limite de empleados (workplace_detail.html) apuntaba a `/payments` en vez de a Planes — corregido a `{% url 'stripe_planes' %}`
+
+### 4. Rediseño visual con Replit — 5 VISTAS COMPLETADAS ✅
+Flujo establecido: Claude escribe prompt de diseño (ruta del archivo en GitHub, elementos funcionales a NO tocar, libertad creativa de diseño dentro de la identidad de marca), Jorge lo pega en Replit, descarga el archivo, Claude lo revisa (balanceo de tags Django, elementos funcionales) antes de integrar, se hace backup del original, se reemplaza, commit, push.
+1. Catalogo de Instrumentos (psico_instrumentos.html) ✅
+2. Portafolio de Evidencias (evidence.html) ✅ (ver seccion 5 abajo, tuvo un bug largo)
+3. Clima Laboral (clima_resultados.html) ✅ — tuvo un bug de "8" hardcodeado en vez de `{{ dimensiones|length }}`, corregido antes de integrar
+4. Vista de Empresa (workplace_detail.html) ✅
+5. Ver Resultados (workplace_results.html) ✅ — la mas compleja, tuvo un bug critico de fondo invisible (ver LECCION TECNICA abajo)
+
+### LECCION TECNICA CRITICA — Django `{% block %}` anidado dentro de `<style>` del layout base
+En `index.html`, el `{% block style %}{% endblock %}` esta colocado DENTRO de la etiqueta `<style>` que el layout abre antes y cierra despues (linea ~591). Esto genera 2 bugs distintos posibles en templates hijos que usan `{% extends 'index.html' %}`:
+
+**Bug A — corrupcion de parseo CSS**: si un template hijo pone `<link rel="stylesheet">` ANTES de su propio `<style>` dentro del `{% block style %}`, el navegador (ya en "modo CSS") trata el `<link>` como texto invalido, busca la primera `{` para "cerrar" esa regla basura — y esa `{` resulta ser la del primer selector CSS real del archivo, absorbiendo y descartando esa primera regla completa. Sintoma: la PRIMERA regla CSS del archivo se pierde silenciosamente (ej. el fondo de un hero card), el resto de reglas funcionan normal.
+
+**Bug B — contenido descartado por Django (el mas grave, encontrado en Portafolio de Evidencias)**: si se mueve el `<link>` a DESPUES de `{% endblock %}` del block style pero ANTES del siguiente `{% block %}` (ej. `{% block dashboard %}`), ese contenido queda FUERA de cualquier bloque reconocido. Django, en templates que usan `{% extends %}`, DESCARTA SILENCIOSAMENTE cualquier contenido que no este dentro de un `{% block %}` que exista en el padre — el `<link>` nunca se renderiza en el HTML final, ni siquiera corrupto, simplemente no existe en la pagina. Esto causo que select2.css nunca cargara en Portafolio de Evidencias, dejando el `<select>` nativo sin ocultar correctamente (bug del "doble selector").
+
+**FIX CORRECTO Y DEFINITIVO**: cualquier `<link rel="stylesheet">` que un template hijo necesite cargar DEBE ir DENTRO de un `{% block %}` que exista en el padre y que SI se renderice — la opcion mas simple es ponerlo como primera linea dentro de `{% block dashboard %}` (los navegadores procesan `<link>` en `<body>` sin problema). NUNCA dejarlo suelto entre bloques, y NUNCA antes del `<style>` propio dentro de `{% block style %}`.
+
+**Nota sobre workplace_detail.html y workplace_results.html**: estas 2 vistas tenian el mismo patron de `<link>` fuera de bloques (Bug B) pero Jorge no reporto problemas visibles graves ahi — posiblemente porque datatables.min.css/select2.css no son tan criticos para esas paginas especificas, o el problema esta presente pero es menos notorio. PENDIENTE revisar si conviene aplicar el mismo fix (mover el link dentro de block dashboard) preventivamente en esas 2 vistas tambien.
+
+### 5. Portafolio de Evidencias — saga completa del bug del doble selector (RESUELTO, pendiente de confirmacion final)
+Jorge reporto que el selector "Centro de trabajo" se veia como si hubiera 2 selectores mezclados (uno bonito arriba, uno feo/nativo abajo que se desplegaba al hacer clic). Investigacion larga:
+1. Primero se sospecho que era el mismo bug de Ver Resultados (Bug A) — se aplico fix de reordenar el link, pero el bug persistio
+2. Jorge sugirio que podria ser un bug heredado de antes de cualquier cambio — se probo revirtiendo a la version 100% original (pre-Replit) y el bug SEGUIA presente, confirmando que es preexistente, no causado por el rediseño
+3. Se encontro la causa raiz real: Bug B (arriba) — el link estaba fuera de cualquier block, Django lo descartaba, select2.css nunca cargaba
+4. FIX APLICADO: link movido a dentro de `{% block dashboard %}`. Tambien se restauro la mejora visual del label con icono (`ws-label`) que se habia perdido durante las pruebas de diagnostico
+5. **INCIDENTE OPERATIVO**: durante el diagnostico, un commit de "restaurar version mejorada" se dio como instruccion pero Jorge no lo ejecuto (solo corrio el comando de investigacion siguiente), causando confusion sobre que version estaba realmente en produccion. LECCION: verificar siempre con `git log --oneline -5` y `git status` cuando haya duda de que se ejecuto, no asumir.
+6. Estado actual: el fix definitivo (commit mas reciente) fue pusheado. **PENDIENTE: Jorge aun no ha confirmado visualmente en produccion tras este ultimo push si el selector ya se ve correcto sin duplicados.**
+
+## PENDIENTES ACTIVOS PARA LA OTRA CUENTA
+1. **INMEDIATO**: confirmar visualmente que el fix definitivo del selector de Portafolio de Evidencias funciono (hard refresh en /evidence/, verificar que no hay selector duplicado y que se ve el label con icono azul)
+2. Revisar si workplace_detail.html y workplace_results.html tienen el mismo Bug B (link fuera de bloques) y si vale la pena aplicar el mismo fix preventivamente aunque no den problemas visibles hoy
+3. Pendiente menor sin resolver: warning de Railway sobre migracion no reflejada (choices nuevos en PsychoInstrument.TIPOS)
+4. Pendiente menor sin resolver: `page=(start/length)+1` en employees_dt usa division float en vez de entera
+5. Recordatorio permanente: NUNCA incluir el caracter `!` en mensajes de commit (error "event not found" en Git Bash Windows)
+6. Recordatorio permanente: cuando haya dudas sobre si un comando se ejecuto, usar `git log --oneline -5` y `git status` para confirmar antes de asumir
+
+## ARCHIVOS DE BACKUP CREADOS ESTA SESION (por si se necesita revertir algo)
+- psico_instrumentos_backup_pre_replit.html
+- evidence_backup_pre_replit.html
+- evidence_con_bug_doble_selector.html (snapshot intermedio, ya no necesario pero se dejo por si acaso)
+- clima_resultados_backup_pre_replit.html
+- workplace_detail_backup_pre_replit.html
+- workplace_results_backup_pre_replit.html
+- workplace_results_backup_pre_replit_v2.html
