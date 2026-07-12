@@ -297,3 +297,9 @@ Jorge reporto que el selector "Centro de trabajo" se veia como si hubiera 2 sele
 - workplace_detail_backup_pre_replit.html
 - workplace_results_backup_pre_replit.html
 - workplace_results_backup_pre_replit_v2.html
+
+### Portafolio de Evidencias — SELECTOR DUPLICADO CONFIRMADO RESUELTO ✅ (cierre definitivo)
+Jorge confirmo visualmente en produccion: el selector "Centro de trabajo" ya se ve correcto, sin duplicados, con el label e icono aplicados. La saga completa (Bug B: link fuera de bloques Django, descartado silenciosamente) queda cerrada.
+
+## SESION 10 CERRADA POR COMPLETO — TODO CONFIRMADO EN PRODUCCION ✅
+Ningun pendiente activo de bugs visuales o funcionales conocidos. Los unicos pendientes restantes son menores (migracion Railway, division float en employees_dt) y la revision preventiva opcional de workplace_detail.html/workplace_results.html por el mismo patron de Bug B (no urgente, no hay sintomas reportados ahi).
