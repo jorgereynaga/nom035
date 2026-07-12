@@ -2,7 +2,6 @@
 {% load static %}
 
 {% block style %}
-<link rel="stylesheet" type="text/css" href="{% static 'app-assets/vendors/css/forms/select/select2.css' %}">
 <style>
 /* ── Page layout ─────────────────────────────────────────── */
 .evidence-header {
@@ -31,8 +30,13 @@
 .section-card-body { padding: 20px 22px; }
 
 /* ── Workplace selector ──────────────────────────────────── */
-.workplace-selector { margin-bottom: 20px; }
+.workplace-selector { margin-bottom: 20px; max-width: 420px; }
 .form-label { display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 5px; }
+.ws-label {
+  font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text-muted);
+  display: flex; align-items: center; gap: 6px; margin-bottom: 8px;
+}
+.ws-label svg { width: 13px; height: 13px; color: var(--primary); }
 
 /* ── Results list ────────────────────────────────────────── */
 .results-list { display: flex; flex-direction: column; gap: 8px; }
@@ -64,6 +68,69 @@
 }
 .result-download:hover { background: #dbeafe; }
 .result-download svg { width: 13px; height: 13px; }
+
+/* ── NOM-035 compliance checklist (redesign) ─────────────── */
+.compliance-banner {
+  display: flex; align-items: center; gap: 16px;
+  padding: 18px 22px; margin-bottom: 22px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, #4f46e5 0%, #6366f1 60%, #818cf8 100%);
+  color: #fff;
+  box-shadow: 0 8px 24px rgba(79,70,229,.25);
+}
+.compliance-banner-icon {
+  width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0;
+  background: rgba(255,255,255,.18);
+  display: flex; align-items: center; justify-content: center;
+}
+.compliance-banner-icon svg { width: 22px; height: 22px; }
+.compliance-banner-text { flex: 1; min-width: 180px; }
+.compliance-banner-title { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; font-weight: 800; margin-bottom: 2px; }
+.compliance-banner-sub { font-size: 12px; opacity: .85; }
+
+.checklist-section-label {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 12px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase;
+  color: var(--text-muted); margin: 4px 0 12px;
+}
+
+.checklist { display: flex; flex-direction: column; gap: 10px; margin-bottom: 26px; }
+.checklist-item {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  padding: 16px 18px;
+  background: var(--bg-base);
+  border: 1px solid var(--border);
+  border-left: 4px solid #d97706;
+  border-radius: var(--radius-md);
+  transition: box-shadow .15s, transform .15s;
+}
+.checklist-item:hover { box-shadow: var(--shadow-sm); transform: translateY(-1px); }
+.checklist-item.is-complete { border-left-color: #16a34a; }
+.checklist-item-left { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.checklist-status-badge {
+  width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; font-weight: 800;
+  background: #fef3c7; color: #d97706;
+}
+.checklist-item.is-complete .checklist-status-badge { background: #dcfce7; color: #16a34a; }
+.checklist-item-info { min-width: 0; }
+.checklist-item-title {
+  font-size: 13px; font-weight: 700; color: var(--text-primary);
+  margin-bottom: 3px; display: flex; align-items: center; gap: 7px;
+}
+.checklist-pill {
+  font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em;
+  padding: 2px 8px; border-radius: 999px;
+  background: #fef3c7; color: #b45309; flex-shrink: 0;
+}
+.checklist-item.is-complete .checklist-pill { background: #dcfce7; color: #15803d; }
+.checklist-item-meta { font-size: 11.5px; color: var(--text-muted); }
+
+.checklist-empty-hint {
+  font-size: 11.5px; color: var(--text-muted); text-align: center;
+  padding: 18px 10px 4px;
+}
 
 /* ── Empty state ─────────────────────────────────────────── */
 .empty-state {
@@ -135,20 +202,25 @@
 
 /* Select2 */
 .select2-container .select2-selection--single {
-  height: 38px !important; border: 1px solid var(--border) !important;
+  height: 46px !important; border: 1.5px solid var(--border) !important;
   border-radius: var(--radius-md) !important;
+  box-shadow: var(--shadow-sm) !important;
   display: flex !important; align-items: center !important;
+  transition: border-color .15s, box-shadow .15s;
+}
+.select2-container .select2-selection--single:hover {
+  border-color: var(--primary) !important;
 }
 .select2-container--default .select2-selection--single .select2-selection__rendered {
-  line-height: 38px !important; font-size: 13px !important;
-  color: var(--text-primary) !important; padding-left: 12px !important;
+  line-height: 46px !important; font-size: 14px !important; font-weight: 600 !important;
+  color: var(--text-primary) !important; padding-left: 16px !important;
 }
-.select2-container--default .select2-selection--single .select2-selection__placeholder { color: var(--text-muted) !important; }
-.select2-container--default .select2-selection--single .select2-selection__arrow { height: 38px !important; }
+.select2-container--default .select2-selection--single .select2-selection__placeholder { color: var(--text-muted) !important; font-weight: 500 !important; }
+.select2-container--default .select2-selection--single .select2-selection__arrow { height: 46px !important; right: 12px !important; }
 .select2-container--focus .select2-selection--single,
 .select2-container--open .select2-selection--single {
   border-color: var(--primary) !important;
-  box-shadow: 0 0 0 3px rgba(37,99,235,.1) !important; outline: none !important;
+  box-shadow: 0 0 0 3px rgba(79,70,229,.12) !important; outline: none !important;
 }
 .select2-dropdown {
   border: 1px solid var(--border) !important; border-radius: var(--radius-md) !important;
@@ -166,6 +238,7 @@
 {% endblock %}
 
 {% block dashboard %}
+<link rel="stylesheet" type="text/css" href="{% static 'app-assets/vendors/css/forms/select/select2.css' %}">
 
 <div class="content-body" id="app" v-cloak>
 
@@ -190,7 +263,10 @@
 
       <!-- Workplace selector -->
       <div class="workplace-selector">
-        <label class="form-label">Centro de trabajo</label>
+        <label class="ws-label">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
+          Centro de trabajo
+        </label>
         <select id="select_workplace" class="select2" placeholder="Selecciona un centro de trabajo" v-select2 v-model="workplace" @change="on_workplace_change">
           {% for item in workplaces %}
           <option value="{{item.id}}">{{item.name}}</option>
@@ -198,27 +274,44 @@
         </select>
       </div>
 
-      <!-- Portafolio de Evidencias NOM-035 -->
-      <div class="result-item" style="margin-bottom:14px;" v-for="item in portafolio_status" v-if="workplace">
-        <div class="result-item-left">
-          <div class="result-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-          </div>
-          <div>
-            <p class="result-title">
-              <span v-if="item.estado === 'completo'" style="color:#16a34a;">&#10003;</span>
-              <span v-else style="color:#d97706;">&#9888;</span>
-              ${item.nombre}
-            </p>
-            <p class="result-meta">${item.detalle}</p>
-          </div>
+      <!-- Compliance banner (visual only, shown when a workplace is selected) -->
+      <div class="compliance-banner" v-if="workplace">
+        <div class="compliance-banner-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6z"/></svg>
         </div>
-        <a :href="item.url" target="_blank" class="result-download">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-          Abrir
-        </a>
+        <div class="compliance-banner-text">
+          <p class="compliance-banner-title">Cumplimiento NOM-035</p>
+          <p class="compliance-banner-sub">Checklist de documentos y evidencias requeridos por la norma</p>
+        </div>
       </div>
+
+      <!-- Portafolio de Evidencias NOM-035 -->
+      <p class="checklist-section-label" v-if="workplace">Documentos requeridos</p>
+      <div class="checklist">
+        <div class="checklist-item" :class="{ 'is-complete': item.estado === 'completo' }" v-for="item in portafolio_status" v-if="workplace">
+          <div class="checklist-item-left">
+            <div class="checklist-status-badge">
+              <span v-if="item.estado === 'completo'">&#10003;</span>
+              <span v-else>&#9888;</span>
+            </div>
+            <div class="checklist-item-info">
+              <p class="checklist-item-title">
+                ${item.nombre}
+                <span class="checklist-pill" v-if="item.estado === 'completo'">Completo</span>
+                <span class="checklist-pill" v-else>Pendiente</span>
+              </p>
+              <p class="checklist-item-meta">${item.detalle}</p>
+            </div>
+          </div>
+          <a :href="item.url" target="_blank" class="result-download">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+            Abrir
+          </a>
+        </div>
+      </div>
+
       <!-- Results -->
+      <p class="checklist-section-label" v-if="workplace && results.length">Resultados y evaluaciones</p>
       <div class="results-list" v-if="results.length">
         <div class="result-item" v-for="item in results">
           <div class="result-item-left">
