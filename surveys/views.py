@@ -6,6 +6,7 @@ from django.views.generic import View
 from django.utils import timezone
 import json
 from django.contrib.auth import login, logout, authenticate
+from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError
 from django.contrib import messages
 from django.urls import reverse_lazy
@@ -654,8 +655,8 @@ class WorkplaceResultView(LoginRequiredMixin,View):
 			h=200+(20*wk.employees.all().count())
 			ctx["chart_height"]=h+300 if h>600 else 900
 			ctx["chart_hb"]=h if h>600 else 600
-			# if not request.user.workplaces.filter(id=kwargs['workplace_id']).exists():
-			# 	return HttpResponseRedirect(reverse_lazy('workplaces'))
+			if not request.user.workplaces.filter(id=kwargs['workplace_id']).exists():
+				return HttpResponseRedirect(reverse_lazy('workplaces'))
 		else:
 			return HttpResponseRedirect(reverse_lazy('workplaces'))
 		if 'evaluation' in kwargs:
@@ -1151,7 +1152,10 @@ class SurveyView(View):
 			return render(request, 'survey.html',ctx)
 		return render(request, 'survey.html')
 
+@login_required
 def employees_dt(request,workplace_id,t,evaluation):
+	if not Workplace.objects.filter(id=workplace_id, user=request.user).exists():
+		return JsonResponse({'draw':0,'recordsTotal':0,'recordsFiltered':0,'data':[]}, status=403)
 	draw = int(request.GET.get('draw'))
 	start = int(request.GET.get('start'))
 	length = int(request.GET.get('length'))
@@ -1241,8 +1245,11 @@ def employees_dt(request,workplace_id,t,evaluation):
 				})
 	return JsonResponse({'draw':draw,'recordsTotal':records_total,'recordsFiltered':records_filtered,'data':arr,})
 
+@login_required
 def get_results(request):
 	workplace_id=request.GET.get('workplace_id',None)
+	if not Workplace.objects.filter(id=workplace_id, user=request.user).exists():
+		return JsonResponse({'results':[]}, status=403)
 	results=ResultFiles.objects.filter(workplace_id=workplace_id)
 	data=[{"evaluation":item.evaluation,
 		"result_type":item.get_result_type_display(),
@@ -1250,14 +1257,16 @@ def get_results(request):
 		"image":item.image.url if item.image else "#"}for item in results]
 	return JsonResponse({'results':data})
 
+@login_required
 def get_workplaces(request):
-	user_id=request.GET.get('user_id',None)
-	data=[{'id':wk.id,"text":wk.name} for wk in Workplace.objects.filter(user_id=user_id)]
-	p_.error(data)
+	data=[{'id':wk.id,"text":wk.name} for wk in Workplace.objects.filter(user_id=request.user.id)]
 	return JsonResponse({'results':data})
 
+@login_required
 def get_departments(request):
 	workplace_id=request.GET.get('workplace_id',None)
+	if not Workplace.objects.filter(id=workplace_id, user=request.user).exists():
+		return JsonResponse({'results':[]}, status=403)
 	emp_list = Employee.objects.filter(workplace_id=workplace_id).values_list('department', flat=True).distinct()
 	data=[{'id':wk,"text":wk} for wk in emp_list]
 	return JsonResponse({'results':[{'id':'', "text":''},*data]})
@@ -1326,8 +1335,11 @@ def get_questions(request):
 
 			return JsonResponse({'data':{"questions":questions},'form_name':Employee._meta.verbose_name,'form':Employee._meta.model_name})
 	return JsonResponse({'data':{"questions":[]},'form_name':'invalid form','form':''})
+@login_required
 def get_chart_data(request):
 	workplace_id=request.GET.get('workplace_id',None)
+	if not Workplace.objects.filter(id=workplace_id, user=request.user).exists():
+		return JsonResponse({'error':'not_found'}, status=403)
 	dept_id=request.GET.get('dept_id',None)
 	evaluation=request.GET.get('evaluation',None)
 	if evaluation is None:
@@ -2066,9 +2078,12 @@ class EmployeeList(generics.ListCreateAPIView):
 	pagination_class = StandardPagination
 	def get_queryset(self):
 		if 'workplace_id' in self.request.query_params:
-			queryset = Employee.objects.filter(workplace_id=self.request.query_params['workplace_id'])
+			queryset = Employee.objects.filter(
+				workplace_id=self.request.query_params['workplace_id'],
+				workplace__user=self.request.user
+			)
 		else:
-			queryset = Employee.objects.all()
+			queryset = Employee.objects.filter(workplace__user=self.request.user)
 		return queryset
 	def get(self, request, *args, **kwargs):
 		response = super(EmployeeList, self).get(request, args, kwargs)
