@@ -303,3 +303,45 @@ Jorge confirmo visualmente en produccion: el selector "Centro de trabajo" ya se 
 
 ## SESION 10 CERRADA POR COMPLETO — TODO CONFIRMADO EN PRODUCCION ✅
 Ningun pendiente activo de bugs visuales o funcionales conocidos. Los unicos pendientes restantes son menores (migracion Railway, division float en employees_dt) y la revision preventiva opcional de workplace_detail.html/workplace_results.html por el mismo patron de Bug B (no urgente, no hay sintomas reportados ahi).
+
+# ============================================================
+# LOTE A (IDOR NOM-035) — INVESTIGACION EN CURSO (sesion 12)
+# Fecha: 14 Jul 2026
+# ============================================================
+
+## N35-SEC-001 CONFIRMADO EN CODIGO REAL
+Archivo: surveys/views.py, clase WorkplaceResultView (linea 636), metodo get() linea 639.
+Linea exacta del bug: linea 644 -> `wk=Workplace.objects.filter(id=kwargs['workplace_id']).last()` -- NO filtra por user=request.user.
+URLs afectadas (nom035/urls.py lineas 77-78): `workplace_result` y `workplace_result2`.
+
+**HALLAZGO IMPORTANTE:** el control de ownership correcto SI fue escrito en su momento pero quedo COMENTADO deliberadamente (lineas 657-658):
+Esto no es una omision de diseno, es una regresion -- alguien desactivo la proteccion (probablemente durante debugging) y nunca se reactivo. Referencia para el fix: reactivar esta logica (ajustando el nombre del related_name si `workplaces` no es el correcto, verificar en el modelo).
+
+## HALLAZGO NUEVO — NO ESTABA EN LOS 22 DE LA AUDITORIA ORIGINAL
+
+### Llave AES hardcodeada (CWE-798)
+surveys/views.py lineas 667-676, funciones encript()/decript():
+key="test1234test1234"
+Se usa para generar/validar codigos de verificacion de email y recuperacion de contrasena (formato user.id<->timestamp<->record_create_timestamp cifrado con AES-CBC). Cualquiera con acceso al codigo fuente puede forjar codigos validos para cualquier usuario.
+
+### CRITICO — Posible bypass completo de recuperacion de contrasena (severidad: CRITICA, mayor que N35-SEC-001)
+Archivo: surveys/views.py, clase PasswordRecover (linea 729, endpoint PUBLICO, sin LoginRequiredMixin).
+Metodo post() tiene 2 bloques:
+1. Primer bloque (if email != ""): solicita el link de recuperacion, genera codigo cifrado, envia por correo. Este bloque esta bien.
+2. Segundo bloque (elif "new_password1" in request.POST...): cambia la contrasena real via SetPasswordForm(user, request.POST), usando email = request.POST.get('user-email', '') tomado DIRECTO del POST -- sin verificar en ningun momento que el codigo de recuperacion (code/iv) haya sido validado. El flag valid_code que se calcula en el GET solo controla que se muestra en el template, no viaja como token de sesion ni se revalida en este POST.
+
+Implicacion: si esto se confirma (pendiente de verificar el template password_recover.html para descartar que el codigo viaje oculto en el form y se revise en otro punto no visto aun), cualquiera podria hacer POST directo a este endpoint con user-email=<email de la victima> + nueva contrasena, y tomar control total de cualquier cuenta SIN necesitar el codigo de verificacion ni acceso al correo de la victima.
+
+IMPORTANTE - aclaracion de Jorge: el sistema hoy no tiene SMTP configurado ni dominio publico real (sigue en desarrollo). PERO este bug NO depende de que SMTP funcione -- el endpoint vulnerable no necesita que el correo se haya enviado, se puede explotar posteando directo a la URL sin pasar nunca por el flujo de correo. Es decir, es explotable HOY MISMO si alguien tiene acceso a la URL del ambiente de staging/produccion actual, independientemente del estado de SMTP.
+
+DECISION DE JORGE: no corregir ahora mismo (no bloquea el trabajo actual del Lote A), pero se registra como PENDIENTE BLOQUEANTE ANTES DE SALIR A PRODUCCION REAL CON DOMINIO Y CLIENTES, sin importar si SMTP esta configurado o no para ese momento.
+
+## PENDIENTE INMEDIATO DE INVESTIGACION (antes de escribir la especificacion de correccion)
+1. Verificar surveys/templates/password_recover.html: grep -n "code\|iv\|token" surveys/templates/password_recover.html -- confirmar si el codigo/iv viaja oculto en el form y se revisa en otro punto de la vista no visto aun, o si el hallazgo de bypass de contrasena queda confirmado al 100%
+2. Confirmar el related_name correcto en el modelo Workplace para reactivar el ownership check comentado (verificar si es request.user.workplaces o algun otro nombre)
+3. Ubicar TODOS los demas usos de .filter(id=...) sin user= en surveys/views.py (patron sistemico, no exclusivo de WorkplaceResultView) -- probablemente EmployeeList, WorkplaceList, y otras vistas mencionadas en el roadmap (get_results, get_chart_data, employees_dt)
+4. Confirmar alcance completo del IDOR antes de escribir la especificacion final del Lote A (tal como establecio el plan: "antes de ampliar la bateria, conviene identificar el alcance de la vulnerabilidad en modo lectura")
+
+## HALLAZGOS NUEVOS A AGREGAR A LA MATRIZ FORMAL (fuera de los 22 originales)
+- Llave AES hardcodeada en surveys/views.py (CWE-798) - severidad ALTA
+- Posible bypass total de autenticacion via PasswordRecover sin verificacion de codigo - severidad CRITICA, pendiente de confirmar con el template antes de darlo por cerrado, pero con evidencia fuerte de codigo Python ya revisada
