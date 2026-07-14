@@ -345,3 +345,10 @@ DECISION DE JORGE: no corregir ahora mismo (no bloquea el trabajo actual del Lot
 ## HALLAZGOS NUEVOS A AGREGAR A LA MATRIZ FORMAL (fuera de los 22 originales)
 - Llave AES hardcodeada en surveys/views.py (CWE-798) - severidad ALTA
 - Posible bypass total de autenticacion via PasswordRecover sin verificacion de codigo - severidad CRITICA, pendiente de confirmar con el template antes de darlo por cerrado, pero con evidencia fuerte de codigo Python ya revisada
+
+## ACTUALIZACION: PasswordRecover bypass — CONFIRMADO AL 100% (ya no es hipotesis)
+Se verifico surveys/templates/password_recover.html lineas 90-113: el formulario de "cambiar contrasena" (mostrado solo cuando valid_code==True, proteccion de frontend unicamente) envia UNICAMENTE user-email (hidden), new_password1, new_password2 -- NO existe ningun campo con el codigo/iv de verificacion. Confirmado en el Python (surveys/views.py, PasswordRecover.post(), bloque elif "new_password1" in request.POST) que jamas se revalida el codigo en este punto.
+
+CONFIRMADO EXPLOTABLE: un POST directo a la URL de PasswordRecover con user-email=<victima> + new_password1/new_password2 cambia la contrasena de cualquier cuenta sin necesitar codigo de verificacion, sin acceso al correo de la victima, y sin importar si SMTP esta configurado. No requiere autenticacion previa (vista publica).
+
+Sigue siendo PENDIENTE BLOQUEANTE ANTES DE PRODUCCION REAL (decision de Jorge), no se corrige en esta sesion, pero el hallazgo ya no tiene ninguna duda pendiente de verificacion -- es hallazgo confirmado, severidad CRITICA, listo para entrar al roadmap de remediacion (Fase 0) en cuanto se decida atacarlo.
