@@ -352,3 +352,33 @@ Se verifico surveys/templates/password_recover.html lineas 90-113: el formulario
 CONFIRMADO EXPLOTABLE: un POST directo a la URL de PasswordRecover con user-email=<victima> + new_password1/new_password2 cambia la contrasena de cualquier cuenta sin necesitar codigo de verificacion, sin acceso al correo de la victima, y sin importar si SMTP esta configurado. No requiere autenticacion previa (vista publica).
 
 Sigue siendo PENDIENTE BLOQUEANTE ANTES DE PRODUCCION REAL (decision de Jorge), no se corrige en esta sesion, pero el hallazgo ya no tiene ninguna duda pendiente de verificacion -- es hallazgo confirmado, severidad CRITICA, listo para entrar al roadmap de remediacion (Fase 0) en cuanto se decida atacarlo.
+
+## MAPEO COMPLETO DEL ALCANCE DEL IDOR (N35-SEC-001 y mas alla) — sesion 12, cont.
+
+Se completo el mapeo de TODAS las vistas relacionadas con el patron IDOR mencionado en el roadmap. Hallazgo mucho mas amplio y grave de lo reportado originalmente en la auditoria de 22 hallazgos.
+
+### Vistas CBV afectadas (surveys/views.py)
+- WorkplaceResultView (linea 636): ownership check COMENTADO (lineas 657-658). Requiere login (LoginRequiredMixin) pero cualquier usuario autenticado accede a cualquier workplace. Related_name correcto confirmado: request.user.workplaces
+- WorkplaceDetailView (linea 607): ownership check SI ACTIVO (linea 627) -- esta vista es el patron de referencia correcto, sirve de plantilla para el fix
+- EmployeeList (DRF, linea 2062): si se pasa workplace_id, no valida dueno (linea 2069). MAS GRAVE: si NO se pasa workplace_id, devuelve Employee.objects.all() (linea 2071) -- CUALQUIER usuario autenticado obtiene la lista COMPLETA de empleados de TODAS las empresas de la plataforma, no solo cruzando una cuenta especifica
+- WorkplaceList (DRF, linea 2005): esta SI filtra correctamente por user_id=self.request.user.id (linea 2010) -- control efectivo, no tocar
+
+### Vistas function-based SIN NINGUNA PROTECCION DE LOGIN (mas grave que N35-SEC-001 original)
+Confirmado que NINGUNA de estas 5 funciones tiene @login_required ni proteccion equivalente, Y sus URLs en nom035/urls.py son path() planos sin middleware de proteccion:
+- employees_dt (linea 1154, urls.py linea 83-84) -- recibe workplace_id de la URL, sin validar dueno, SIN LOGIN REQUERIDO
+- get_results (linea 1244, urls.py linea 88) -- recibe workplace_id de GET, sin validar dueno, SIN LOGIN REQUERIDO
+- get_workplaces (linea 1252, urls.py linea 90) -- recibe user_id DIRECTO del GET (linea 1253), permite ENUMERAR los centros de trabajo de CUALQUIER usuario con solo cambiar el user_id, SIN LOGIN REQUERIDO
+- get_departments (linea 1259, urls.py linea 81) -- recibe workplace_id de GET, sin validar dueno, SIN LOGIN REQUERIDO
+- get_chart_data (linea 1329, urls.py linea 87) -- recibe workplace_id de GET, sin validar dueno, SIN LOGIN REQUERIDO. Esta es la vista que calcula todos los niveles de riesgo psicosocial (dimensionA, etc.) -- expone el detalle completo de riesgo NOM-035 de cualquier empresa
+
+CONCLUSION DEL MAPEO: el problema es sistemico y MAS GRAVE que N35-SEC-001 tal como se reporto originalmente. No es solo "un usuario autenticado puede ver datos de otro usuario" -- son 5 endpoints COMPLETAMENTE PUBLICOS (sin necesidad de cuenta ni login) que exponen: lista completa de empleados de toda la plataforma (sin filtro), datos de riesgo psicosocial NOM-035 completos por empresa, y permiten enumerar que centros de trabajo tiene cualquier usuario. Se recomienda elevar la severidad reportada y ampliar el hallazgo original en la matriz formal de la auditoria.
+
+### Patron de referencia para el fix (ya existe en el codigo, usar como plantilla)
+WorkplaceDetailView (linea 607-627) tiene el patron correcto:
+if not request.user.workplaces.filter(id=kwargs['workplace_id']).exists():
+        return HttpResponseRedirect(reverse_lazy('workplaces'))
+
+Para las vistas function-based (que no son parte de una clase con LoginRequiredMixin), el fix debe: (1) agregar @login_required como decorador, (2) agregar el filtro de ownership equivalente (Workplace.objects.filter(id=workplace_id, user=request.user) en vez de solo id=workplace_id) antes de usar el dato.
+
+## SIGUIENTE PASO
+Con el alcance completo ya mapeado, el siguiente paso es escribir la especificacion de correccion del Lote A completa (todas las vistas listadas arriba), para que Codex la implemente. Se debe seguir el patron: no mezclar en el mismo lote autorizacion con otros temas (llave AES, PasswordRecover, archivos de /media/, etc. van en lotes separados segun el plan original).
