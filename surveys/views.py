@@ -97,6 +97,14 @@ def download_file2(request, workplace_id,evaluation,file_name):
 		if not user:
 			print("invalid user")
 			raise Http404
+	else:
+		filename=file_name
+		if not request.user.is_authenticated:
+			print("invalid user")
+			raise Http404
+		if not Workplace.objects.filter(id=workplace_id, user=request.user).exists():
+			print("invalid user")
+			raise Http404
 	file_path = os.path.join(settings.PROTECTED_MEDIA_ROOT, f"charts/{workplace_id}/{evaluation}/{filename}")
 	if os.path.exists(f"{settings.BASE_DIR}/files/charts/{workplace_id}/{evaluation}"):
 		with open(f"{settings.BASE_DIR}/files/charts/{workplace_id}/{evaluation}/{filename}", 'rb') as fh:
