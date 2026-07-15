@@ -34,6 +34,7 @@ DATABASE_URL = config('DATABASE_URL')
 
 
 APPEND_SLASH = True
+LOGIN_URL = 'login'
 # SECURE_SSL_REDIRECT=True
 SESSION_COOKIE_AGE=(60*120)
 SESSION_SAVE_EVERY_REQUEST=True
@@ -86,7 +87,6 @@ CORS_ALLOWED_ORIGINS = [
 CSRF_TRUSTED_ORIGINS = [
     "https://035.ihes.mx",
     "https://nom035-production.up.railway.app",
-    "https://nom035-staging.up.railway.app",
 ]
 # CORS_ALLOWED_ORIGINS  = [
 #     # 'https://connect.facebook.net',
