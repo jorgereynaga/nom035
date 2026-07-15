@@ -469,3 +469,32 @@ Este bug es de la MISMA FAMILIA que EVI-SEC-001 pero en el sistema de archivos "
 1. Confirmar si download_file y download_file2 tienen @login_required o algun control de autenticacion a nivel de vista (ademas del check interno de ownership)
 2. Decidir la estrategia de fix para /media/: la solucion robusta es reemplazar static() con vistas custom que validen ownership antes de servir cada tipo de archivo (siguiendo el patron ya usado en download_file), pero esto es un cambio de arquitectura mayor (cambiar como se generan los templates que referencian estas URLs, no solo el backend). Evaluar alternativa mas simple: mover estos 3 campos especificos a PROTECTED_MEDIA_ROOT y crear vistas de descarga dedicadas para cada uno, en vez de tocar el mecanismo general de /media/ (que podria tener otros usos no sensibles, ej. staticfiles del admin)
 3. Confirmar que ningun otro campo/modelo use /media/ para contenido sensible que no hayamos mapeado (revisar todos los FileField/ImageField del proyecto completo, no solo surveys/models.py)
+
+# ============================================================
+# LOTE C1 (download_file2) — IMPLEMENTADO Y VALIDADO (sesion 14, cont.)
+# Fecha: 15 Jul 2026
+# ============================================================
+
+## RESULTADO: LOTE C1 COMPLETO
+
+Rama: fix/lote-c1-download-file2 (a partir de auditoria-local con Lote A ya incluido). Fusionada a auditoria-local.
+
+### Cambios implementados en download_file2 (surveys/views.py)
+1. Agregada la rama else faltante (cuando NO hay token en file_name): valida request.user.is_authenticated y Workplace.objects.filter(id=workplace_id, user=request.user).exists(), lanza Http404 si falla cualquiera de las dos
+2. BUG PREEXISTENTE encontrado y corregido de paso (no relacionado con seguridad): habia un from django.http import HttpResponse LOCAL dentro de la funcion (en el bloque de "modo demo"), que hacia que Python tratara HttpResponse como variable local a TODA la funcion -- esto causaba UnboundLocalError en el flujo de descarga EXITOSA (cuando el usuario si es dueno), es decir, esta funcion probablemente nunca funciono correctamente para descargas legitimas. Se elimino el import local redundante (HttpResponse ya estaba importado globalmente al inicio del archivo)
+
+### Validacion (con RequestFactory, sin necesitar contenedor de Railway)
+Se uso django.test.RequestFactory para simular 3 peticiones directas a la funcion (con archivo dummy creado en PROTECTED_MEDIA_ROOT/charts/<workplace_id>/<evaluation>/ via DATABASE_URL sobreescrita + TCP proxy temporal):
+- Usuario A (propietario) -> PASS, HTTP 200 con el PDF
+- Usuario B (no propietario) -> PASS, Http404
+- Usuario anonimo -> PASS, Http404
+
+### Commits en fix/lote-c1-download-file2
+1. "Fix: agregar validacion de ownership faltante en download_file2 (rama sin token)"
+2. "Fix: eliminar import local redundante de HttpResponse en download_file2 (causaba UnboundLocalError en descargas exitosas)"
+
+## TECNICA NUEVA DE VALIDACION (util para futuros lotes que involucren archivos)
+Cuando el fix requiere probar contra archivos en el filesystem del contenedor (PROTECTED_MEDIA_ROOT, MEDIA_ROOT), no hace falta desplegar y navegar manualmente -- se puede usar django.test.RequestFactory en un script temporal corrido localmente (con DATABASE_URL apuntando al proxy de staging), crear el archivo dummy directo en el filesystem LOCAL (ya que RequestFactory ejecuta la vista en el proceso local, no en el contenedor remoto), simular las peticiones con distintos request.user, y borrar todo al terminar. Mas rapido que desplegar y probar por navegador para validar solo la logica de autorizacion de una vista.
+
+## SIGUIENTE PASO
+Continuar con Lote C2: proteger los 3 campos de FileField que se sirven sin autenticacion via /media/ (logos de empresa, resultados/evidencias, EvidenciaFaseC). Requiere: crear vistas de descarga protegidas + actualizar templates que hoy enlazan directo a /media/... . Cambio de arquitectura mas grande que C1, pendiente de escribir la especificacion.
