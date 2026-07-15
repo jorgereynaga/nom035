@@ -584,3 +584,31 @@ Documento de continuidad creado: MATRIZ_CONSOLIDADA_POST_REMEDIACION.md (en la r
 2. Definir siguiente lote de seguridad: N35-INT-001/002/003 (creditos y duplicados NOM-035), EVI-SEC-002 (archivos EXE aceptados), o PSI-VAL-001 a 006 (validacion backend de los 6 instrumentos psicometricos)
 3. SEC-006 (PasswordRecover bypass) sigue como ULTIMO PASO antes de produccion real, decision ya tomada por Jorge
 4. Recordar SIEMPRE: revertir CSRF_TRUSTED_ORIGINS temporal antes de mergear cualquier lote que requiera probar formularios POST en staging
+
+# ============================================================
+# LOTE E (N35-INT-001, creditos NOM-035) — IMPLEMENTADO Y VALIDADO (sesion 14, cont.)
+# Fecha: 15 Jul 2026
+# ============================================================
+
+## RESULTADO: LOTE E COMPLETO Y FUSIONADO
+
+Rama fix/lote-e-creditos-nom035, fusionada a auditoria-local.
+
+### Cambio implementado en SaveAnswers.post() (surveys/views.py)
+- Antes: serializer.save() ocurria PRIMERO, la validacion de es_demo/creditos ocurria DESPUES (con try/except que silenciaba errores con solo un print) -- si fallaba la validacion, el registro ya se habia guardado en BD a pesar de responder 403
+- Ahora: para las ramas risksurveya/risksurveyb/traumasurvey, se valida es_demo y nom035_creditos<=0 ANTES de guardar nada; el guardado + descuento de credito quedan dentro de transaction.atomic(); se elimino el try/except que silenciaba errores
+- Import agregado: from django.db import IntegrityError, transaction
+
+### Validacion en staging (con Cuenta A, workplace_id=1)
+- Sin creditos (forzado a 0): HTTP 403, CERO registros RiskSurveyA creados -- CONFIRMADO que ya no persiste nada indebido
+- Con creditos (restaurados a 5): HTTP 201, 1 registro creado, creditos bajaron correctamente a 4
+- Rama form=='employee' no se toco en el diff, riesgo de regresion minimo
+
+## RESUMEN ACTUALIZADO DE LOTES COMPLETADOS (sesion 14)
+A (IDOR), C1 (download_file2), C2 (media protegido), D (llaves hardcodeadas), E (creditos NOM-035 atomicos) -- 5 lotes en una sola sesion, todos validados en staging y fusionados a auditoria-local.
+
+## PENDIENTES ACTUALIZADOS PARA SIGUIENTE SESION
+1. INFRA-001 (Volume persistente Railway) -- sigue sin resolver, no bloquea nada
+2. Candidatos para siguiente lote: N35-INT-002 (duplicados/consumo repetido, relacionado con lo que ya se toco en Lote E), N35-INT-003 (.last() silencioso), EVI-SEC-002 (archivos EXE aceptados), PSI-VAL-001 a 006 (validacion backend de los 6 instrumentos)
+3. SEC-006 (PasswordRecover bypass) sigue como ULTIMO PASO antes de produccion real
+4. Actualizar MATRIZ_CONSOLIDADA_POST_REMEDIACION.md con el cierre de Lote E (agregar fila N35-INT-001 como CORREGIDO)
