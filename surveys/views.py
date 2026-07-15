@@ -571,7 +571,7 @@ class LandingView(View):
         return render(request, 'landing.html')		
 class NewUserView(View):
 	def get(self, request, *args, **kwargs):
-		return render(request, 'auth-register.html')
+		return render(request, 'auth-register.html', {'recaptcha_site_key': settings.RECAPTCHA_SITE_KEY})
 class WorkplaceView(LoginRequiredMixin,View):
 	login_url = reverse_lazy('login')
 	redirect_field_name = 'redirect_to'
@@ -698,13 +698,13 @@ class WorkplaceResultView(LoginRequiredMixin,View):
 		return render(request, 'workplace_results.html',ctx)
 
 def encript(text):
-	key="test1234test1234"
+	key=settings.AES_ENCRYPTION_KEY
 	enc=AES.new(key.encode(),AES.MODE_CBC)
 	cipher=enc.encrypt(pad(text.encode(),AES.block_size))
 	return (cipher.hex(),enc.iv.hex())
 
 def decript(text,iv):
-	key="test1234test1234"
+	key=settings.AES_ENCRYPTION_KEY
 	decrypt=AES.new(key.encode(),AES.MODE_CBC,iv=bytes.fromhex(iv))
 	# ddata=decrypt.decrypt(text2)
 	return unpad(decrypt.decrypt(bytes.fromhex(text)),AES.block_size)
@@ -1904,7 +1904,7 @@ class UserappList(generics.ListCreateAPIView):
 		if 'webform' in dic:
 			print(request.data['webform'])
 			recaptcha_response =request.data['webform']
-			secret_key="6Le3XCEtAAAAAFDF0__aZfnj9DQjwe6lkzdylREY"
+			secret_key=settings.RECAPTCHA_SECRET_KEY
 			data = {
 				'response': recaptcha_response,
 				'secret': secret_key

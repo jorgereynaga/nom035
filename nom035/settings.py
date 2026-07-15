@@ -24,6 +24,9 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 from decouple import config
 
 SECRET_KEY = config('SECRET_KEY')
+AES_ENCRYPTION_KEY = config('AES_ENCRYPTION_KEY', default='test1234test1234')
+RECAPTCHA_SECRET_KEY = config('RECAPTCHA_SECRET_KEY', default='6Le3XCEtAAAAAFDF0__aZfnj9DQjwe6lkzdylREY')
+RECAPTCHA_SITE_KEY = config('RECAPTCHA_SITE_KEY', default='6Le3XCEtAAAAAO-V0M9w9XaNgAtUHFj7TxrMJz0B')
 DEBUG = config('DEBUG', default=False, cast=bool)
 ALLOWED_HOSTS = config('ALLOWED_HOSTS').split(',')
 
