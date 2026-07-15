@@ -87,6 +87,7 @@ CORS_ALLOWED_ORIGINS = [
 CSRF_TRUSTED_ORIGINS = [
     "https://035.ihes.mx",
     "https://nom035-production.up.railway.app",
+    "https://nom035-staging.up.railway.app",
 ]
 # CORS_ALLOWED_ORIGINS  = [
 #     # 'https://connect.facebook.net',
