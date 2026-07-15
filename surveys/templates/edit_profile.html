@@ -235,7 +235,7 @@
 
           <!-- Avatar -->
           <div class="avatar-section">
-            <img src="{% if request.user.userapp.image %}/media/{{request.user.userapp.image}}{% else %}{% static 'app-assets/images/portrait/small/avatar-s-1.png' %}{% endif %}" class="avatar-img" id="image_preview" alt="Foto de perfil">
+            <img src="{% if request.user.userapp.image %}{% url 'download_logo' %}{% else %}{% static 'app-assets/images/portrait/small/avatar-s-1.png' %}{% endif %}" class="avatar-img" id="image_preview" alt="Foto de perfil">
             <div class="avatar-actions">
               <div class="avatar-actions-row">
                 <label class="btn btn-outline btn-sm btn-file">
@@ -534,7 +534,7 @@ $(function(){
 
     // ── Clean avatar ──────────────────────────────────────────
     $("#clean_preview").click(function(){
-        src = "{% if request.user.userapp.image %}/media/{{ request.user.userapp.image }}{% else %}{% static 'app-assets/images/portrait/small/avatar-s-1.png' %}{% endif %}";
+        src = "{% if request.user.userapp.image %}{% url 'download_logo' %}{% else %}{% static 'app-assets/images/portrait/small/avatar-s-1.png' %}{% endif %}";
         $('#image_preview').attr('src', src);
         $("#account-upload").val('');
     });

@@ -2,7 +2,11 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.contrib.postgres.fields import ArrayField
 from django.core.exceptions import ValidationError
+from django.conf import settings
+from django.core.files.storage import FileSystemStorage
 from datetime import timedelta
+
+protected_storage = FileSystemStorage(location=settings.PROTECTED_MEDIA_ROOT)
 
 def validate_file_extension(value):
 	ext = value.name.split('.')
@@ -42,7 +46,7 @@ class Userapp(models.Model):
 	#username=correo
 	record_create=models.DateTimeField(auto_now_add=True)
 	record_update=models.DateTimeField(auto_now=True)
-	image=models.FileField(u'Logo de la empresa', upload_to=user_directory_path,validators=[validate_file_extension], blank=True, null=True)
+	image=models.FileField(u'Logo de la empresa', upload_to=user_directory_path, storage=protected_storage, validators=[validate_file_extension], blank=True, null=True)
 
 
 class Workplace(models.Model):
@@ -78,7 +82,7 @@ class Workplace(models.Model):
 class ResultFiles(models.Model):
 	workplace=models.ForeignKey(Workplace,related_name="result_files",verbose_name='Centro de trabajo', on_delete=models.PROTECT)
 	evaluation=models.IntegerField('Número de evaluación')
-	image=models.FileField(u'Archivo', upload_to=result_directory_path, blank=True, null=True)
+	image=models.FileField(u'Archivo', upload_to=result_directory_path, storage=protected_storage, blank=True, null=True)
 	record_create = models.DateTimeField(u"Fecha de creación",auto_now_add=True)
 	result_type=models.IntegerField(u'Tipo de resultado',choices=enumerate(["Informe de resultados ejecutivo","Informe de resultados detallado",
 		"Resultados del Instrumento para Identificar los Factores de Riesgo Psicosocial","Gantt de Actividades",
@@ -1037,7 +1041,7 @@ class EvidenciaFaseC(models.Model):
 	)
 	workplace=models.ForeignKey(Workplace,related_name="evidencias_fase_c",verbose_name='Centro de trabajo', on_delete=models.CASCADE)
 	tipo=models.CharField(u'Tipo de evidencia', max_length=30, choices=TIPO_CHOICES)
-	archivo=models.FileField(u'Archivo', upload_to='evidencias_fase_c/%Y/%m/')
+	archivo=models.FileField(u'Archivo', upload_to='evidencias_fase_c/%Y/%m/', storage=protected_storage)
 	notas=models.TextField(u'Notas', blank=True)
 	fecha_carga=models.DateTimeField(auto_now_add=True)
 	def __str__(self):

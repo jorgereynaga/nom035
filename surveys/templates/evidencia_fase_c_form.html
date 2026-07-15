@@ -59,7 +59,7 @@
           <div>{{ ev.archivo.name|slice:"20:" }}</div>
           <div class="evidencia-meta">Subido el {{ ev.fecha_carga|date:"d/m/Y H:i" }}{% if ev.notas %} — {{ ev.notas }}{% endif %}</div>
         </div>
-        <a href="{{ ev.archivo.url }}" target="_blank" class="evidencia-link">Ver archivo</a>
+        <a href="{% url 'download_evidencia_fase_c' ev.id %}" target="_blank" class="evidencia-link">Ver archivo</a>
       </div>
       {% endfor %}
     </div>

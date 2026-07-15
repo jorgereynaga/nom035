@@ -1,6 +1,6 @@
 from surveys.services.credits import assign_nom035_credits
-from django.shortcuts import render, redirect
-from django.http import HttpResponse, JsonResponse
+from django.shortcuts import render, redirect, get_object_or_404
+from django.http import FileResponse, HttpResponse, JsonResponse
 from django.db.models import Q
 from django.views.generic import View
 from django.utils import timezone
@@ -9,7 +9,7 @@ from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError
 from django.contrib import messages
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
 from django.http import HttpResponse, HttpResponseRedirect,JsonResponse,Http404
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.forms import UserCreationForm,SetPasswordForm,PasswordChangeForm
@@ -112,6 +112,31 @@ def download_file2(request, workplace_id,evaluation,file_name):
 			return response
 	print("path not found")
 	raise Http404
+
+@login_required
+def download_logo(request):
+	userapp = getattr(request.user, "userapp", None)
+	if not userapp or not userapp.image:
+		raise Http404
+	return FileResponse(open(userapp.image.path, 'rb'))
+
+@login_required
+def download_result_image(request, workplace_id, result_id):
+	if not Workplace.objects.filter(id=workplace_id, user=request.user).exists():
+		raise Http404
+	result = get_object_or_404(ResultFiles, id=result_id, workplace_id=workplace_id)
+	if not result.image:
+		raise Http404
+	return FileResponse(open(result.image.path, 'rb'))
+
+@login_required
+def download_evidencia_fase_c(request, evidencia_id):
+	evidencia = get_object_or_404(EvidenciaFaseC, id=evidencia_id)
+	if evidencia.workplace.user_id != request.user.id:
+		raise Http404
+	if not evidencia.archivo:
+		raise Http404
+	return FileResponse(open(evidencia.archivo.path, 'rb'))
 
 def send_mail(to_emails,ctx,template='email-template.html',subject='Tu registro a nuestra plataforma IHES 035 está completo',text_content='Gracias por tu registro con nosotros.'):
 	from_email='IHES <n035.ihes@gmail.com>'
@@ -1261,7 +1286,7 @@ def get_results(request):
 	data=[{"evaluation":item.evaluation,
 		"result_type":item.get_result_type_display(),
 		"date":item.record_create.strftime('%d/%m/%Y %H:%M'),
-		"image":item.image.url if item.image else "#"}for item in results]
+		"image":reverse('download_result_image', args=[item.workplace_id, item.id]) if item.image else "#"}for item in results]
 	return JsonResponse({'results':data})
 
 @login_required

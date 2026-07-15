@@ -682,7 +682,7 @@
       <div class="dropdown">
         <div class="topbar-avatar-wrap">
           <img class="topbar-avatar"
-            src="{% if request.user.userapp.image %}/media/{{request.user.userapp.image}}{% else %}{% static 'app-assets/images/portrait/small/avatar-s-1.png' %}{% endif %}"
+            src="{% if request.user.userapp.image %}{% url 'download_logo' %}{% else %}{% static 'app-assets/images/portrait/small/avatar-s-1.png' %}{% endif %}"
             alt="avatar">
           <div class="topbar-user-info">
             <span class="topbar-user-name">{{request.user.username}}</span>
