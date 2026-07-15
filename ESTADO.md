@@ -548,3 +548,39 @@ Durante las pruebas de este lote, una subida de archivo tardo varios minutos y m
 
 ## SIGUIENTE PASO
 Lote C2 listo para merge a auditoria-local -- PERO PRIMERO revertir el cambio temporal de CSRF_TRUSTED_ORIGINS (confirmar que no quede en el commit final, igual que se hizo correctamente en el Lote A).
+
+# ============================================================
+# LOTE D (llaves hardcodeadas) — IMPLEMENTADO Y FUSIONADO (sesion 14, cierre)
+# Fecha: 15 Jul 2026
+# ============================================================
+
+## RESULTADO: LOTE D COMPLETO
+
+Rama fix/lote-d-llaves-hardcodeadas fusionada a auditoria-local.
+
+### Cambios
+1. nom035/settings.py: 3 variables nuevas via config() (python-decouple, mismo patron ya usado para SECRET_KEY/ALLOWED_HOSTS): AES_ENCRYPTION_KEY, RECAPTCHA_SECRET_KEY, RECAPTCHA_SITE_KEY -- todas con default= al valor actual (NO se roto ningun valor real, solo se movio la fuente)
+2. surveys/views.py: encript()/decript() usan settings.AES_ENCRYPTION_KEY; UserappList (verificacion recaptcha backend) usa settings.RECAPTCHA_SECRET_KEY; NewUserView pasa recaptcha_site_key al contexto del template
+3. surveys/templates/auth-register.html: las 2 ocurrencias hardcodeadas de la site key reemplazadas por {{ recaptcha_site_key }}
+
+### Validacion
+Probado en staging: la pagina /newuser/ sigue mostrando el mismo error de reCAPTCHA que YA CONOCIAMOS de sesiones anteriores (dominio de staging no autorizado en la consola de Google para esa site key) -- esto CONFIRMA que el fix funciona correctamente (el valor real se esta leyendo bien desde la variable), no es un bug nuevo. Comportamiento identico al de antes del lote, que es exactamente el objetivo (mover sin alterar comportamiento).
+
+### PENDIENTE (no bloqueante, anotado para cuando se vaya a produccion real)
+Jorge debe configurar las 3 variables de entorno reales en Railway (produccion Y staging) en algun momento. Mientras no se configuren, el sistema sigue funcionando igual que antes (usa los default= que son los valores viejos). Rotar la llave AES a un valor nuevo (distinto del actual) invalidara cualquier link de verificacion de email o recuperacion de contrasena ya emitido y no usado -- hacerlo con cuidado, idealmente en una ventana de mantenimiento.
+
+## RESUMEN COMPLETO DE LA SESION 14 (para continuidad)
+
+4 lotes completados y fusionados a auditoria-local en esta sesion:
+- Lote A: IDOR NOM-035 (7 vistas)
+- Lote C1: download_file2 (ownership + bug UnboundLocalError)
+- Lote C2: archivos /media/ protegidos (logos, resultados, evidencias Fase C) + hallazgo critico de Volume persistente faltante en Railway
+- Lote D: llaves hardcodeadas (AES + reCAPTCHA) movidas a variables de entorno
+
+Documento de continuidad creado: MATRIZ_CONSOLIDADA_POST_REMEDIACION.md (en la raiz del repo, rama auditoria-local) -- consolida el estado de los 22 hallazgos originales + 12 hallazgos nuevos encontrados durante la remediacion.
+
+## PENDIENTES PARA LA SIGUIENTE SESION
+1. INFRA-001 (Volume persistente en Railway) -- resolver directamente en el dashboard de Railway, no requiere lote de Codex, puede hacerse en paralelo sin bloquear
+2. Definir siguiente lote de seguridad: N35-INT-001/002/003 (creditos y duplicados NOM-035), EVI-SEC-002 (archivos EXE aceptados), o PSI-VAL-001 a 006 (validacion backend de los 6 instrumentos psicometricos)
+3. SEC-006 (PasswordRecover bypass) sigue como ULTIMO PASO antes de produccion real, decision ya tomada por Jorge
+4. Recordar SIEMPRE: revertir CSRF_TRUSTED_ORIGINS temporal antes de mergear cualquier lote que requiera probar formularios POST en staging
