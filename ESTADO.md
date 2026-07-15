@@ -433,3 +433,39 @@ Se crearon 2 usuarios de prueba en staging (pruebaA@test.com / pruebaB@test.com,
 2. Revertir el Source del servicio de staging en Railway de vuelta a auditoria-local (o a la rama que se decida) despues del merge
 3. Definir el siguiente lote a atacar: llave AES + secret key de reCAPTCHA hardcodeadas (mismo patron CWE-798, podrian ir juntas en un lote), o el bypass critico de PasswordRecover (mas grave pero Jorge decidio dejarlo para antes de produccion real, no ahora)
 4. Seguir pendiente: EVI-SEC-001 (archivos /media/ sin autenticacion), aun no investigado en codigo real
+
+# ============================================================
+# LOTE C (EVI-SEC-001 — archivos /media/ sin autenticacion) — INVESTIGACION (sesion 14)
+# Fecha: 15 Jul 2026
+# ============================================================
+
+## MAPEO COMPLETO DEL PROBLEMA
+
+### Causa raiz confirmada
+nom035/urls.py linea 128: urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) -- sirve TODO el contenido de MEDIA_ROOT (carpeta media/) directo del disco, sin ninguna vista intermedia, sin autenticacion, sin validacion de ownership. Cualquiera con la URL exacta (o que adivine la ruta) descarga el archivo.
+
+### 3 campos de FileField que se sirven via /media/ sin proteccion (surveys/models.py)
+1. Linea 45, Userapp: image (logo de empresa) -- upload_to=user_directory_path -> ruta logos/<user_id>/<filename>
+2. Linea 81, ResultFiles (o modelo similar): image (archivo de resultados/evidencias) -- upload_to=result_directory_path -> ruta results/<workplace_id>/<evaluation>/<filename>
+3. Linea 1040, EvidenciaFaseC: archivo (evidencias NOM-035 Fase C: canalizaciones de trauma, examenes medicos, medidas de control, difusion) -- upload_to='evidencias_fase_c/%Y/%m/' -- EL MAS SENSIBLE, contiene documentos de canalizacion de trauma severo y examenes medicos/psicologicos
+
+### AGRAVANTE: las rutas usan IDs secuenciales predecibles (surveys/models.py lineas 15-18)
+def user_directory_path(instance, filename):
+        return 'logos/{0}/{1}'.format(instance.user.id, filename)
+def result_directory_path(instance, filename):
+        return 'results/{0}/{1}/{2}'.format(instance.workplace.id,instance.evaluation,filename)
+
+Como user_id/workplace_id son autoincrementales desde 1, es trivial ITERAR secuencialmente (/media/results/1/1/..., /media/results/2/1/..., etc.) sin necesitar conocer ningun nombre de archivo real -- ampliacion del alcance de EVI-SEC-001 mas alla de lo reportado originalmente (que asumia "URL conocida", aqui ademas se puede enumerar sin conocerla).
+
+## HALLAZGO NUEVO — bug adicional en el patron de "archivos protegidos" ya existente
+
+El proyecto SI tiene un patron de archivos protegidos separado (PROTECTED_MEDIA_ROOT, carpeta files/ fuera de media/), con 2 vistas custom:
+- download_file (surveys/views.py ~linea 60, URL files/tmp/<int:user_id>/<str:file_name>): CORRECTO, valida request.user.id != user_id cuando no hay token, bloquea con Http404
+- download_file2 (surveys/views.py ~linea 85, URL files/charts/<int:workplace_id>/<str:evaluation>/<str:file_name>): BUG -- el bloque if "_-_Token " in file_name: NO TIENE rama else que valide ownership cuando NO hay token en el nombre de archivo. Si se accede sin token, la funcion continua SIN VALIDAR QUIEN ES EL USUARIO -- descarga directa del PDF de resultados generales de CUALQUIER empresa conociendo workplace_id/evaluation/file_name, sin sesion siquiera necesariamente (dependiendo si la vista tiene @login_required, verificar).
+
+Este bug es de la MISMA FAMILIA que EVI-SEC-001 pero en el sistema de archivos "protegidos", no en /media/ -- se agrega al mismo lote por ser el mismo tipo de correccion (servir archivos con validacion de ownership).
+
+## PENDIENTE ANTES DE ESCRIBIR LA ESPECIFICACION DEL LOTE C
+1. Confirmar si download_file y download_file2 tienen @login_required o algun control de autenticacion a nivel de vista (ademas del check interno de ownership)
+2. Decidir la estrategia de fix para /media/: la solucion robusta es reemplazar static() con vistas custom que validen ownership antes de servir cada tipo de archivo (siguiendo el patron ya usado en download_file), pero esto es un cambio de arquitectura mayor (cambiar como se generan los templates que referencian estas URLs, no solo el backend). Evaluar alternativa mas simple: mover estos 3 campos especificos a PROTECTED_MEDIA_ROOT y crear vistas de descarga dedicadas para cada uno, en vez de tocar el mecanismo general de /media/ (que podria tener otros usos no sensibles, ej. staticfiles del admin)
+3. Confirmar que ningun otro campo/modelo use /media/ para contenido sensible que no hayamos mapeado (revisar todos los FileField/ImageField del proyecto completo, no solo surveys/models.py)
