@@ -7,7 +7,7 @@ from django.utils import timezone
 import json
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
 from django.contrib import messages
 from django.urls import reverse, reverse_lazy
 from django.http import HttpResponse, HttpResponseRedirect,JsonResponse,Http404
@@ -364,23 +364,22 @@ class SaveAnswers(generics.GenericAPIView):
 		else:
 			return Response('invalid form', status=status.HTTP_400_BAD_REQUEST)
 		if serializer.is_valid():
-			data=serializer.save()
+			if form in ("risksurveya","risksurveyb","traumasurvey"):
+				userapp = workplace.user.userapp
+				if workplace.es_demo:
+					return Response('Modo demo: adquiere un plan para registrar encuestas reales.', status=status.HTTP_403_FORBIDDEN)
+				if userapp.nom035_creditos <= 0:
+					return Response('Sin creditos disponibles. Adquiere un plan.', status=status.HTTP_403_FORBIDDEN)
+				with transaction.atomic():
+					data = serializer.save()
+					userapp.nom035_creditos -= 1
+					userapp.save()
+			else:
+				data = serializer.save()
 			if form=="employee":
 				code=data.get_code()
 			else:
 				code=data.employee.get_code()
-			if form in ("risksurveya","risksurveyb","traumasurvey"):
-				try:
-					userapp=workplace.user.userapp
-					if workplace.es_demo:
-						return Response('Modo demo: adquiere un plan para registrar encuestas reales.', status=status.HTTP_403_FORBIDDEN)
-					elif userapp.nom035_creditos>0:
-						userapp.nom035_creditos-=1
-						userapp.save()
-					else:
-						return Response('Sin creditos disponibles. Adquiere un plan.', status=status.HTTP_403_FORBIDDEN)
-				except Exception as e:
-					print(f'Error descontando credito NOM-035: {e}')
 			return Response({"status":"ok","employee_url":code,"next_form":next_form}, status=status.HTTP_201_CREATED)
 
 		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
