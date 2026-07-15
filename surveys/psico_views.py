@@ -169,18 +169,42 @@ class TestCompleteView(View):
         except Exception:
             return JsonResponse({'error': 'Datos inválidos'}, status=400)
 
+        if not isinstance(respuestas, list):
+            return JsonResponse({'error': 'Datos inválidos'}, status=400)
+
+        items_instrumento = {
+            item.id: item for item in session.instrumento.items.all()
+        }
+        total_items = len(items_instrumento)
+        respuestas_validas = {}
+
         for r in respuestas:
+            if not isinstance(r, dict):
+                return JsonResponse({'error': 'Datos inválidos'}, status=400)
             item_id = r.get('item_id')
             respuesta = r.get('respuesta')
-            try:
-                item = PsychoItem.objects.get(id=item_id, instrumento=session.instrumento)
-                TestResponse.objects.update_or_create(
-                    session=session,
-                    item=item,
-                    defaults={'respuesta': respuesta}
-                )
-            except PsychoItem.DoesNotExist:
+            item = items_instrumento.get(item_id)
+            if item is None:
                 continue
+            valido, error = self._validar_respuesta(item, respuesta)
+            if not valido:
+                return JsonResponse({
+                    'error': f'Respuesta invalida en item {item_id}: {error}'
+                }, status=400)
+            respuestas_validas[item_id] = respuesta
+
+        if len(respuestas_validas) != total_items:
+            faltantes = total_items - len(respuestas_validas)
+            return JsonResponse({
+                'error': f'Cuestionario incompleto: faltan {faltantes} de {total_items} respuestas'
+            }, status=400)
+
+        for item_id, respuesta in respuestas_validas.items():
+            TestResponse.objects.update_or_create(
+                session=session,
+                item=items_instrumento[item_id],
+                defaults={'respuesta': respuesta}
+            )
 
         session.status = 'completada'
         session.fecha_completado = timezone.now()
@@ -194,6 +218,52 @@ class TestCompleteView(View):
         )
 
         return JsonResponse({'status': 'ok', 'redirect': f'/psico/test/{token}/'})
+
+    def _validar_respuesta(self, item, respuesta):
+        """Valida el formato y contenido de una respuesta psicométrica."""
+        tipo_instrumento = item.instrumento.tipo
+
+        if tipo_instrumento == 'disc':
+            if not isinstance(respuesta, dict):
+                return False, 'formato invalido, se esperaba objeto con mas/menos'
+            mas = respuesta.get('mas')
+            menos = respuesta.get('menos')
+            if not mas or not menos:
+                return False, 'faltan mas o menos'
+            if mas == menos:
+                return False, 'mas y menos no pueden ser iguales'
+            dimensiones_validas = {op.get('dimension') for op in item.opciones}
+            if mas not in dimensiones_validas or menos not in dimensiones_validas:
+                return False, 'mas o menos no son dimensiones validas para este item'
+            return True, None
+
+        if tipo_instrumento in ('moss', 'competencias', 'comercial', 'raven'):
+            if not isinstance(respuesta, str) or not respuesta:
+                return False, 'se esperaba una letra de respuesta'
+            letras_validas = {op.get('letra') for op in item.opciones}
+            if respuesta not in letras_validas:
+                return False, 'letra de respuesta no valida para este item'
+            return True, None
+
+        if tipo_instrumento == 'zavic':
+            if not isinstance(respuesta, dict):
+                return False, 'formato invalido, se esperaba objeto con distribucion'
+            distribucion = respuesta.get('distribucion')
+            if not isinstance(distribucion, dict) or not distribucion:
+                return False, 'falta distribucion'
+            escalas_validas = {op.get('escala') for op in item.opciones}
+            suma = 0
+            for escala, puntos in distribucion.items():
+                if escala not in escalas_validas:
+                    return False, f'escala {escala} no valida para este item'
+                if type(puntos) is not int or puntos < 0:
+                    return False, 'los puntos deben ser enteros no negativos'
+                suma += puntos
+            if suma != 5:
+                return False, f'la suma debe ser exactamente 5, se recibio {suma}'
+            return True, None
+
+        return True, None
 
     def _calcular_scores(self, session):
         tipo = session.instrumento.tipo
