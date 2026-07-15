@@ -645,3 +645,43 @@ A, C1, C2, D, E, F -- 6 lotes completados, validados en staging, y fusionados a 
 3. SEC-006 (PasswordRecover bypass) -- ULTIMO PASO antes de produccion real
 4. Actualizar MATRIZ_CONSOLIDADA_POST_REMEDIACION.md: agregar N35-INT-002 como CORREGIDO
 5. Recordar: auditar duplicados existentes antes de aplicar migracion 0038 en cualquier BD con datos reales
+
+# ============================================================
+# LOTE G (PSI-VAL-001 a 006, validacion psicometrica) — COMPLETADO Y FUSIONADO (sesion 14, cont.)
+# Fecha: 15 Jul 2026
+# ============================================================
+
+## RESULTADO: LOTE G COMPLETO, FUSIONADO A auditoria-local
+
+Rama fix/lote-g-validacion-psicometrica. Merge fast-forward, sin conflictos.
+
+### Cambio implementado en TestCompleteView.post() (surveys/psico_views.py)
+Reestructurado en 2 pasadas:
+1. Primera pasada: valida CADA respuesta (formato + coherencia) SIN guardar nada en BD. Si algo es invalido, responde 400 inmediatamente, la sesion permanece en su estado original (pendiente/en_proceso), CERO TestResponse creados
+2. Segunda pasada (solo si TODO paso la validacion): guarda todas las TestResponse, marca sesion completada, calcula scores (via _calcular_scores, sin cambios)
+
+Nuevo metodo _validar_respuesta(self, item, respuesta) con reglas especificas por tipo de instrumento:
+- disc: respuesta debe ser dict con 'mas'/'menos', ambos deben ser dimensiones validas presentes en item.opciones, y mas != menos
+- moss/competencias/comercial/raven: respuesta debe ser string no vacio, debe existir como 'letra' en item.opciones
+- zavic: respuesta debe ser dict con 'distribucion' (dict), cada escala debe ser valida para ese item, cada valor debe ser entero >=0 (type(puntos) is not int para excluir booleanos), y la SUMA debe ser exactamente 5
+
+Tambien se agrego: verificacion de completitud (numero de respuestas validas debe igualar el total de items del instrumento) y validaciones defensivas de tipo (respuestas debe ser lista, cada item debe ser dict).
+
+### Validacion (RequestFactory, aislado, sin necesitar contenedor)
+Los 6 instrumentos probados con 3 escenarios cada uno (18 verificaciones total):
+- Envio completo y valido -> 200, guarda correctamente (sin regresion)
+- Envio incompleto -> 400, CERO TestResponse guardados, sesion no completada
+- Formato invalido especifico del tipo (DISC mas==menos, Zavic suma!=5, letra inexistente en Moss/Raven/Competencias/Comercial) -> 400, CERO guardados
+
+Todos los 18 casos PASS.
+
+## RESUMEN FINAL DE LA SESION 14 — 7 LOTES COMPLETADOS
+
+A (IDOR NOM-035), C1 (download_file2), C2 (media protegido), D (llaves hardcodeadas), E (creditos NOM-035 atomicos), F (duplicados NOM-035), G (validacion psicometrica 6 instrumentos) -- todos implementados, validados en staging o con RequestFactory aislado, y fusionados a auditoria-local.
+
+## PENDIENTES PARA SIGUIENTE SESION
+1. INFRA-001 (Volume persistente Railway) -- sin resolver, no bloqueante
+2. Candidatos siguiente lote: N35-INT-003 (.last() silencioso), EVI-SEC-002 (archivos EXE en evidencias), DEP-001/002 (fix definitivo de migraciones/Procfile, ya mitigados manualmente)
+3. Hallazgos "Media/Baja" pendientes: CLM-INT-001 (Clima Laboral reenvios), PN-01 a PN-06 (Perfil Narrativo, IA aun no conectada realmente), CONFIG-001/002, SEC-008 (llaves Conekta comentadas)
+4. SEC-006 (PasswordRecover bypass) -- ULTIMO PASO antes de produccion real, decision ya tomada
+5. Actualizar MATRIZ_CONSOLIDADA_POST_REMEDIACION.md: agregar PSI-VAL-001 a 006 como CORREGIDOS (6 filas), y corregir el conteo total de hallazgos (revisar bien SEC-005/007 que ya se movieron a Lote D, evitar doble conteo)
