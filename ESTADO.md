@@ -612,3 +612,36 @@ A (IDOR), C1 (download_file2), C2 (media protegido), D (llaves hardcodeadas), E 
 2. Candidatos para siguiente lote: N35-INT-002 (duplicados/consumo repetido, relacionado con lo que ya se toco en Lote E), N35-INT-003 (.last() silencioso), EVI-SEC-002 (archivos EXE aceptados), PSI-VAL-001 a 006 (validacion backend de los 6 instrumentos)
 3. SEC-006 (PasswordRecover bypass) sigue como ULTIMO PASO antes de produccion real
 4. Actualizar MATRIZ_CONSOLIDADA_POST_REMEDIACION.md con el cierre de Lote E (agregar fila N35-INT-001 como CORREGIDO)
+
+# ============================================================
+# LOTE F (N35-INT-002, duplicados NOM-035) — IMPLEMENTADO Y VALIDADO (sesion 14, cont.)
+# Fecha: 15 Jul 2026
+# ============================================================
+
+## RESULTADO: LOTE F COMPLETO Y VALIDADO
+
+Rama fix/lote-f-duplicados-nom035, lista para merge a auditoria-local.
+
+### Cambios
+1. surveys/models.py: unique_together = ('employee', 'evaluation') agregado a la Meta existente de RiskSurveyA, TraumaSurvey, RiskSurveyB
+2. Migracion manual 0038_unique_survey_per_evaluation.py: 3x AlterUniqueTogether, dependencia correcta a 0037
+3. surveys/views.py, SaveAnswers.post(): doble proteccion contra duplicados --
+   - El try/except alrededor del transaction.atomic() (ya existente del Lote E) ahora captura IntegrityError especificamente (condicion de carrera / colision concurrente), responde 409
+   - ADEMAS (hallazgo de Codex durante implementacion): DRF ModelSerializer genera automaticamente un validador de unique_together, asi que el caso MAS COMUN de duplicado se detecta antes, en serializer.is_valid()==False -- se agrego un chequeo explicito despues del if serializer.is_valid() para responder 409 en vez del 400 generico en ese caso tambien
+
+### Validacion en staging
+- Migracion 0038 aplicada correctamente durante el deploy
+- Intento de duplicado (mismo employee+evaluation que ya tenia 1 RiskSurveyA del Lote E): respuesta 409, conteo de RiskSurveyA se mantuvo en 1 (no subio a 2), creditos se mantuvieron en 4 (no bajaron de nuevo)
+
+## PENDIENTE IMPORTANTE ANTES DE PRODUCCION REAL
+Esta migracion (0038) NO debe aplicarse contra una base de datos con datos reales sin antes auditar y resolver duplicados existentes (employee+evaluation repetidos) -- si existieran, la migracion fallaria al no poder crear la restriccion de unicidad sobre datos que ya la violan. Como el proyecto aun no tiene datos reales de produccion, esto no es bloqueante hoy, pero DEBE recordarse antes de cualquier paso a produccion real con datos existentes.
+
+## RESUMEN ACTUALIZADO DE LOTES DE LA SESION 14
+A, C1, C2, D, E, F -- 6 lotes completados, validados en staging, y fusionados a auditoria-local en una sola sesion.
+
+## PENDIENTES PARA SIGUIENTE SESION
+1. INFRA-001 (Volume persistente Railway) -- sin resolver
+2. Candidatos siguiente lote: N35-INT-003 (.last() silencioso), EVI-SEC-002 (archivos EXE), PSI-VAL-001 a 006 (validacion backend instrumentos psicometricos)
+3. SEC-006 (PasswordRecover bypass) -- ULTIMO PASO antes de produccion real
+4. Actualizar MATRIZ_CONSOLIDADA_POST_REMEDIACION.md: agregar N35-INT-002 como CORREGIDO
+5. Recordar: auditar duplicados existentes antes de aplicar migracion 0038 en cualquier BD con datos reales
