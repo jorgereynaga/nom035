@@ -370,10 +370,13 @@ class SaveAnswers(generics.GenericAPIView):
 					return Response('Modo demo: adquiere un plan para registrar encuestas reales.', status=status.HTTP_403_FORBIDDEN)
 				if userapp.nom035_creditos <= 0:
 					return Response('Sin creditos disponibles. Adquiere un plan.', status=status.HTTP_403_FORBIDDEN)
-				with transaction.atomic():
-					data = serializer.save()
-					userapp.nom035_creditos -= 1
-					userapp.save()
+				try:
+					with transaction.atomic():
+						data = serializer.save()
+						userapp.nom035_creditos -= 1
+						userapp.save()
+				except IntegrityError:
+					return Response('Ya existe una respuesta registrada para este empleado en esta evaluacion.', status=status.HTTP_409_CONFLICT)
 			else:
 				data = serializer.save()
 			if form=="employee":
@@ -382,6 +385,8 @@ class SaveAnswers(generics.GenericAPIView):
 				code=data.employee.get_code()
 			return Response({"status":"ok","employee_url":code,"next_form":next_form}, status=status.HTTP_201_CREATED)
 
+		if form in ("risksurveya","risksurveyb","traumasurvey") and serializer.Meta.model.objects.filter(employee_id=employee_id, evaluation=workplace.evaluation).exists():
+			return Response('Ya existe una respuesta registrada para este empleado en esta evaluacion.', status=status.HTTP_409_CONFLICT)
 		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class SaveCharts(APIView):

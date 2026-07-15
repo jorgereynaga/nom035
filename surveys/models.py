@@ -230,6 +230,7 @@ class RiskSurveyA(models.Model):
 	def __str__(self):
 		return f"{self.employee.name}"
 	class Meta:
+		unique_together = ('employee', 'evaluation')
 		verbose_name='Identificacion de analisis de los factores de riesgo psicosocial'
 		verbose_name_plural='Identificacion de analisis de los factores de riesgo psicosocial'
 
@@ -260,6 +261,7 @@ class TraumaSurvey(models.Model):
 	def __str__(self):
 		return f"{self.employee.name}"
 	class Meta:
+		unique_together = ('employee', 'evaluation')
 		verbose_name='Acontecimientos traumáticos severos'
 		verbose_name_plural='Acontecimientos traumáticos severos'
 class RiskSurveyB(models.Model):
@@ -346,6 +348,7 @@ class RiskSurveyB(models.Model):
 	def __str__(self):
 		return f"{self.employee.name}"
 	class Meta:
+		unique_together = ('employee', 'evaluation')
 		verbose_name='Identificacion de analisis de los factores de riesgo psicosocial'
 		verbose_name_plural='Identificacion de analisis de los factores de riesgo psicosocial'
 	# def cal_dominios(self):
