@@ -382,3 +382,54 @@ Para las vistas function-based (que no son parte de una clase con LoginRequiredM
 
 ## SIGUIENTE PASO
 Con el alcance completo ya mapeado, el siguiente paso es escribir la especificacion de correccion del Lote A completa (todas las vistas listadas arriba), para que Codex la implemente. Se debe seguir el patron: no mezclar en el mismo lote autorizacion con otros temas (llave AES, PasswordRecover, archivos de /media/, etc. van en lotes separados segun el plan original).
+
+# ============================================================
+# LOTE A (IDOR NOM-035) — IMPLEMENTADO Y VALIDADO EN STAGING (sesion 13)
+# Fecha: 15 Jul 2026
+# ============================================================
+
+## RESULTADO: LOTE A COMPLETAMENTE VALIDADO EN STAGING
+
+Rama: fix/lote-a-idor-nom035 (a partir de auditoria-local), implementada por Codex siguiendo la especificacion LOTE_A_especificacion_IDOR.md.
+
+### Cambios implementados (surveys/views.py + nom035/settings.py)
+1. WorkplaceResultView: ownership check descomentado (lineas 657-658)
+2. EmployeeList.get_queryset(): ambas ramas (con/sin workplace_id) ahora filtran por workplace__user=self.request.user; eliminado el Employee.objects.all() sin filtro
+3. employees_dt: agregado @login_required + validacion de ownership
+4. get_results: agregado @login_required + validacion de ownership
+5. get_workplaces: eliminada dependencia de user_id externo, ahora usa request.user.id directo; quitada linea de debug p_.error(data)
+6. get_departments: agregado @login_required + validacion de ownership
+7. get_chart_data: agregado @login_required + validacion de ownership, sin tocar la inicializacion de cat/domains/dimensions
+8. AGREGADO (no estaba en la spec original, encontrado durante pruebas): LOGIN_URL = 'login' en nom035/settings.py -- sin esto, @login_required redirigia al default de Django /accounts/login/, que no existe en este proyecto (causaba 404 tras la redireccion). Ahora redirige correctamente a /login/ (name="login" en urls.py)
+
+### Validacion completa en ambiente de staging (con 2 cuentas sinteticas)
+Se crearon 2 usuarios de prueba en staging (pruebaA@test.com / pruebaB@test.com, password Prueba2026!), cada uno con 1 Workplace y 1 Employee sintetico. Se confirmaron las 7 vistas corregidas + comportamiento sin sesion (redirige a login, HTTP 302), todas con resultado correcto. Ningun caso de exposicion cruzada detectado tras el fix.
+
+### Commits en la rama fix/lote-a-idor-nom035
+1. "Fix IDOR: ownership en WorkplaceResultView, EmployeeList, employees_dt, get_results, get_workplaces, get_departments, get_chart_data"
+2. "Fix IDOR Lote A: agregar LOGIN_URL para que @login_required redirija correctamente"
+
+## HALLAZGOS NUEVOS ENCONTRADOS DURANTE EL PROCESO (fuera de los 22 originales, para agregar a la matriz)
+
+1. Llave AES hardcodeada en encript()/decript() (surveys/views.py ~667-676): key="test1234test1234" -- severidad ALTA, usada para codigos de verificacion de email y recuperacion de contrasena
+2. CRITICO CONFIRMADO -- bypass total de PasswordRecover: el endpoint publico que cambia la contrasena (surveys/views.py, clase PasswordRecover, bloque elif "new_password1" in request.POST) nunca revalida el codigo de verificacion -- confirmado 100% contra el template (password_recover.html no incluye campo hidden de codigo/iv). Explotable HOY MISMO independientemente de si SMTP esta configurado. PENDIENTE BLOQUEANTE ANTES DE PRODUCCION REAL (decision de Jorge, no corregido en esta sesion)
+3. Secret key de reCAPTCHA hardcodeada (surveys/views.py linea ~1873): secret_key="6Le3XCEtAAAAAFDF0__aZfnj9DQjwe6lkzdylREY" -- mismo patron CWE-798 que la llave AES. Encontrado al intentar registrar cuentas de prueba en staging (el site key tambien esta hardcodeado en auth-register.html, sin usar variables de entorno)
+4. CSRF_TRUSTED_ORIGINS y CORS_ALLOWED_ORIGINS hardcodeados en nom035/settings.py (no usan variable de entorno, a diferencia de ALLOWED_HOSTS que si la usa) -- inconsistencia de patron, mismo tipo de deuda tecnica ya documentada. CORS_ALLOWED_ORIGINS ademas tiene un dominio placeholder sin usar ("https://tu-frontend.com") que deberia limpiarse
+5. Procfile confirmado una vez mas (DEP-002): no incluye cargar_competencias ni cargar_comercial en el arranque automatico
+
+## PROCEDIMIENTO OPERATIVO CONSOLIDADO (para repetir en lotes futuros)
+1. Crear rama nueva desde auditoria-local: git checkout auditoria-local && git pull && git checkout -b fix/lote-X
+2. Escribir especificacion de correccion como archivo .md, con seccion de instrucciones operativas al inicio (repo, rama, venv, que NO hacer)
+3. Pasarsela a Codex con instruccion EXPLICITA de "implementa la especificacion completa" (Codex no asume la accion solo con recibir el archivo)
+4. Revisar git diff (git status + git diff, usar git --no-pager diff para evitar que el pager corte la salida)
+5. Cambiar el Source/Branch del servicio de staging en Railway a la rama del lote (Settings -> Source -> seleccionar rama)
+6. Si hace falta correr comandos directos contra la DB de staging (crear superusuario, datos de prueba, etc.): reactivar TCP Proxy en Postgres de staging (Settings -> Networking -> "+ New"), ESPERAR 1-2 MINUTOS a que propague (los intentos inmediatos fallan con "server closed the connection unexpectedly"), usar DATABASE_URL sobreescrita en el comando (nunca railway run, que usa el host interno no resoluble desde la maquina local). ELIMINAR el proxy despues de cada uso
+7. Variables de entorno especificas de staging que pueden requerir ajuste temporal para pruebas: ALLOWED_HOSTS (agregar dominio de staging), CSRF_TRUSTED_ORIGINS (hardcodeado en settings.py, requiere cambio de codigo temporal sin commit final, o commit temporal a revertir)
+8. Para acelerar creacion de usuarios/datos de prueba: pasarle a Codex el comando completo con DATABASE_URL ya armada, evitando ida y vuelta -- Codex puede ejecutar python manage.py shell con scripts de creacion de datos directamente
+9. Una vez validado en staging, hacer merge de la rama del lote a auditoria-local, y decidir si se aplica a produccion real
+
+## PENDIENTE INMEDIATO
+1. Confirmar con Jorge si se hace merge de fix/lote-a-idor-nom035 a auditoria-local ahora, o se espera a acumular mas lotes
+2. Revertir el Source del servicio de staging en Railway de vuelta a auditoria-local (o a la rama que se decida) despues del merge
+3. Definir el siguiente lote a atacar: llave AES + secret key de reCAPTCHA hardcodeadas (mismo patron CWE-798, podrian ir juntas en un lote), o el bypass critico de PasswordRecover (mas grave pero Jorge decidio dejarlo para antes de produccion real, no ahora)
+4. Seguir pendiente: EVI-SEC-001 (archivos /media/ sin autenticacion), aun no investigado en codigo real
