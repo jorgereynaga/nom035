@@ -498,3 +498,53 @@ Cuando el fix requiere probar contra archivos en el filesystem del contenedor (P
 
 ## SIGUIENTE PASO
 Continuar con Lote C2: proteger los 3 campos de FileField que se sirven sin autenticacion via /media/ (logos de empresa, resultados/evidencias, EvidenciaFaseC). Requiere: crear vistas de descarga protegidas + actualizar templates que hoy enlazan directo a /media/... . Cambio de arquitectura mas grande que C1, pendiente de escribir la especificacion.
+
+# ============================================================
+# LOTE C2 (EVI-SEC-001 — archivos /media/) — IMPLEMENTADO Y VALIDADO (sesion 14, cont.)
+# Fecha: 15 Jul 2026
+# ============================================================
+
+## RESULTADO: LOTE C2 COMPLETO Y VALIDADO EN STAGING
+
+Rama: fix/lote-c2-media-protegido (a partir de auditoria-local, incluye Lote A + C1).
+
+### Cambios implementados
+1. surveys/models.py: agregado protected_storage = FileSystemStorage(location=settings.PROTECTED_MEDIA_ROOT). Los 3 campos afectados (Userapp.image, ResultFiles.image, EvidenciaFaseC.archivo) ahora usan storage=protected_storage -- las funciones user_directory_path/result_directory_path NO cambiaron (siguen devolviendo rutas relativas, el storage custom es quien las resuelve fuera de MEDIA_ROOT)
+2. CONFIRMADO EXPERIMENTALMENTE (por Codex, antes de implementar): en Django 3.2.25 upload_to con ruta absoluta NO funciona (lanza SuspiciousFileOperation) -- FileSystemStorage personalizado es la unica via correcta, confirmado antes de tocar codigo real
+3. Migracion manual 0037_protected_file_storage.py: AlterField en los 3 campos, solo cambia storage, dependencia correcta a 0036
+4. 3 vistas nuevas en surveys/views.py: download_logo, download_result_image, download_evidencia_fase_c -- las 3 con @login_required + validacion de ownership (Workplace/EvidenciaFaseC filtrados por request.user), usando FileResponse (no HttpResponse con content_type invalido -- ver leccion abajo)
+5. 3 rutas nuevas en nom035/urls.py: /descargar/logo/, /descargar/resultado/<workplace_id>/<result_id>/, /descargar/evidencia/<evidencia_id>/
+6. Templates actualizados (edit_profile.html x2, index.html, evidencia_fase_c_form.html) para usar {% url %} de las nuevas vistas en vez de /media/... directo
+7. get_results (views.py) actualizado: el JSON ahora devuelve reverse('download_result_image', ...) en vez de item.image.url
+
+### LECCION TECNICA: bug de content_type invalido encontrado durante implementacion
+Primera version de las 3 vistas nuevas uso HttpResponse(fh.read(), content_type="image/*") -- "image/*" NO es un content-type valido (los navegadores esperan algo especifico como image/jpeg). Corregido reemplazando por FileResponse(open(path, 'rb')), que detecta el tipo correctamente y es ademas mas eficiente que leer todo el archivo con .read(). Patron a preferir en futuras vistas de descarga de archivos.
+
+### Validacion en staging
+- Logo: subido por Cuenta A, se muestra correctamente via /descargar/logo/. Confirmado que la ruta VIEJA /media/logos/1/logo.jpg ahora da 404 (el archivo ya NO esta en MEDIA_ROOT)
+- EvidenciaFaseC: Cuenta A subio evidencia, la vio correctamente. Cuenta B intento /descargar/evidencia/<id>/ de la evidencia de A -> BLOQUEADO (no pudo verla). Fix de seguridad CONFIRMADO funcionando
+
+### Ajuste temporal para pruebas (mismo patron que en lotes anteriores)
+CSRF_TRUSTED_ORIGINS necesito agregar temporalmente el dominio de staging (no depende de variable de entorno, hardcodeado en settings.py) -- se hizo como commit temporal en esta rama, DEBE REVERTIRSE antes de mergear a auditoria-local (recordatorio explicito, ya paso una vez que se olvido en un lote anterior -- Lote A tambien tuvo este mismo ajuste temporal y si se revirtio correctamente)
+
+## HALLAZGO NUEVO DE ARQUITECTURA (importante, no es bug de codigo sino de infraestructura Railway)
+
+El servicio de staging (y probablemente produccion tambien) NO tiene ningun Volume persistente asignado. Confirmado revisando Settings del servicio -- no existe seccion de Volumes configurada. Esto significa:
+- Cualquier archivo guardado en MEDIA_ROOT o PROTECTED_MEDIA_ROOT (disco local del contenedor) SE PIERDE en cada redeploy
+- Esto aplica a TODOS los archivos subidos por usuarios: logos, evidencias NOM-035, resultados -- no solo los que tocamos en el Lote C2
+- Se confirmo en vivo durante esta sesion: un logo/evidencia subidos antes de un redeploy (disparado por el commit temporal de CSRF) ya no estaban disponibles despues del redeploy
+
+Implicacion para produccion real: antes de operar con clientes reales, el proyecto DEBE resolver esto -- ya sea con un Volume persistente de Railway, o (mejor practica a largo plazo) migrando el almacenamiento de archivos a un servicio tipo S3/object storage, que ademas resolveria de forma mas robusta el problema de servir archivos protegidos (URLs firmadas con expiracion, en vez de vistas Django leyendo del disco local).
+
+PENDIENTE: agregar este hallazgo a la matriz formal de la auditoria -- no estaba en los 22 originales ni en los encontrados en sesiones anteriores. Severidad: ALTA para produccion (perdida de datos), aunque no es una vulnerabilidad de seguridad per se.
+
+## EVENTO OBSERVADO SIN CONFIRMAR CAUSA RAIZ (vigilar, no bloqueante)
+Durante las pruebas de este lote, una subida de archivo tardo varios minutos y mostro "upstream error" antes de eventualmente completarse exitosamente. Se investigo con Codex:
+- Descartado: creacion de carpetas faltantes en PROTECTED_MEDIA_ROOT (Django 3.2 las crea automaticamente via os.makedirs en FileSystemStorage._save(), sin reintentos por esta causa)
+- Descartado: "Serverless" (scale to zero) en Railway -- confirmado DESACTIVADO en el servicio de staging
+- Hipotesis mas probable, sin confirmar 100%: efecto del redeploy reciente (arranque en frio + reconexion de Postgres) coincidiendo con el intento de subida, no un bug del codigo de este lote
+- El problema NO se repitio en intentos posteriores inmediatos
+- PENDIENTE: si se repite en sesiones futuras, investigar con mas profundidad (revisar metricas de CPU/memoria del contenedor en el momento exacto, o revisar si el filesystem efimero de Railway tiene latencia de I/O variable)
+
+## SIGUIENTE PASO
+Lote C2 listo para merge a auditoria-local -- PERO PRIMERO revertir el cambio temporal de CSRF_TRUSTED_ORIGINS (confirmar que no quede en el commit final, igual que se hizo correctamente en el Lote A).
