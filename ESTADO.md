@@ -745,3 +745,38 @@ A, C1, C2, D, E, F, G, H, I -- todos fusionados a auditoria-local.
 4. SEC-006 (PasswordRecover bypass) -- ULTIMO PASO antes de produccion real
 5. Actualizar MATRIZ_CONSOLIDADA_POST_REMEDIACION.md: agregar N35-INT-003 como CORREGIDO, y EVI-SEC-002 (Lote H) que quedo pendiente de sesion anterior
 6. Nota menor: git detecto nombre/email de commit automaticamente en esta maquina -- no urgente, configurar con git config --global si Jorge quiere
+
+# ============================================================
+# LOTE J (DEP-001/DEP-002, fix definitivo migraciones+Procfile) — COMPLETADO Y FUSIONADO
+# Fecha: 15 Jul 2026 (sesion 15, cont.)
+# ============================================================
+
+## RESULTADO: LOTE J COMPLETO, FUSIONADO A auditoria-local, DEPLOY LIMPIO CONFIRMADO
+
+Rama fix/lote-j-migraciones-procfile.
+
+### Cambios
+1. surveys/migrations/0023_perfil_narrativo.py: vaciada de operaciones (quedo operations = []), conserva dependencia a 0022_psicometria. El campo perfil_narrativo ya lo crea 0022 (confirmado leyendo su codigo -- el CreateModel de TestResult ya incluye el campo)
+2. Procfile: agregados cargar_competencias y cargar_comercial a la cadena de comandos del arranque, antes de gunicorn
+
+### Validacion — LA MAS FUERTE DE TODA LA SESION
+Codex probo una INSTALACION 100% LIMPIA con PostgreSQL LOCAL (no staging, base nueva de verdad):
+- Las 38 migraciones (0001 a 0038) se aplicaron TODAS sin error y SIN NECESITAR --fake en ningun punto
+- Los 6 instrumentos (disc, moss, raven, zavic, competencias, comercial) se cargaron automaticamente en el primer arranque, sin intervencion manual
+- makemigrations --check --dry-run solo senala el pendiente YA CONOCIDO y ajeno a este lote: PsychoInstrument.tipo sin migracion formal para los choices 'competencias'/'comercial' (documentado desde sesiones anteriores, no bloqueante, de baja prioridad)
+
+DEP-001 y DEP-002 quedan CERRADOS DEFINITIVAMENTE -- ya no son solo "mitigados manualmente", tienen el fix de codigo real, probado desde cero.
+
+## RESUMEN: 10 LOTES COMPLETADOS (sesiones 14-15)
+A, C1, C2, D, E, F, G, H, I, J -- todos fusionados a auditoria-local. Deploy en staging confirmado limpio tras el Lote J.
+
+## ESTADO DE LOS HALLAZGOS "ALTA" ORIGINALES: TODOS CERRADOS
+De los 12 hallazgos "Alta" de la auditoria original (22 totales), los que aplicaban a codigo real (N35-INT-001, N35-INT-002, N35-INT-003, PSI-VAL-001 a 006, EVI-SEC-002, DEP-001, DEP-002) estan TODOS corregidos. Los 2 "Critica" tambien estan corregidos (N35-SEC-001, EVI-SEC-001).
+
+## PENDIENTES PARA SIGUIENTE SESION
+1. INFRA-001 (Volume persistente Railway) -- sin resolver, infraestructura no codigo
+2. Hallazgos Media/Baja restantes de la auditoria original: CLM-INT-001 (Clima Laboral reenvios ilimitados), PN-01 a PN-06 (Perfil Narrativo, modulo de IA aun sin proveedor real conectado)
+3. Hallazgos nuevos menores: CONFIG-001/002 (CSRF/CORS hardcodeados, dominio placeholder), SEC-008 (llaves Conekta comentadas en codigo)
+4. SEC-006 (PasswordRecover bypass) -- ULTIMO PASO antes de produccion real, sigue siendo la unica pieza critica pendiente, decision ya tomada por Jorge de dejarla para el final
+5. Pendiente menor conocido: PsychoInstrument.tipo sin migracion formal para choices 'competencias'/'comercial' (bajo riesgo, Django detecta la diferencia pero no rompe nada)
+6. Actualizar MATRIZ_CONSOLIDADA_POST_REMEDIACION.md con el cierre completo: agregar DEP-001, DEP-002, N35-INT-003, EVI-SEC-002 como CORREGIDOS -- consolidar conteo final
