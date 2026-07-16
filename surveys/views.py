@@ -47,10 +47,6 @@ conekta.locale="es"
 import stripe
 
 p_= logging.getLogger(__name__)
-#conekta api key produccion key_qfCtN8NqwJRTTJR23wdcqA
-#conekta api key produccion pulica key_V9bKr8wrjH5CxLrcbKo2PzA
-#conekta api key pruebas key_GjNVdzaLBs9ntDqXxzJvPg
-#conekta api key pruebas publica key_AhXYuQnj8pMv4UEmsEz8Hsw
 #https://n035.page.link/?link=https://035.ihes.mx/app/access?workplace_id=280053610240503210429881290965155008225-[1580245165.810466&apn=ihes.com.mx.n035
 
 def download_file(request, user_id,file_name):

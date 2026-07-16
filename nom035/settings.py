@@ -81,16 +81,15 @@ MIDDLEWARE = [
 
 CORS_ORIGIN_ALLOW_ALL = False
 CORS_ALLOW_CREDENTIALS = False
-CORS_ALLOWED_ORIGINS = [
-    "https://035.ihes.mx",
-    "https://nom035-production.up.railway.app",
-    "https://tu-frontend.com",
-]
+CORS_ALLOWED_ORIGINS = config(
+    'CORS_ALLOWED_ORIGINS',
+    default='https://035.ihes.mx,https://nom035-production.up.railway.app'
+).split(',')
 
-CSRF_TRUSTED_ORIGINS = [
-    "https://035.ihes.mx",
-    "https://nom035-production.up.railway.app",
-]
+CSRF_TRUSTED_ORIGINS = config(
+    'CSRF_TRUSTED_ORIGINS',
+    default='https://035.ihes.mx,https://nom035-production.up.railway.app'
+).split(',')
 # CORS_ALLOWED_ORIGINS  = [
 #     # 'https://connect.facebook.net',
 #     'https://035.ihes.mx',
