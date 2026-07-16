@@ -2132,18 +2132,20 @@ class EmployeeList(generics.ListCreateAPIView):
 			item['access_code']=emp.get_code()
 			item['status']=emp.get_status(text="text")
 
-			if emp.surveyB.last() and emp.workplace.survey_type()==3:
+			survey_b_actual = emp.surveyB.filter(evaluation=emp.workplace.evaluation).last()
+			survey_a_actual = emp.surveyA.filter(evaluation=emp.workplace.evaluation).last()
+			if survey_b_actual and emp.workplace.survey_type()==3:
 				_sum=0
 				for field in RiskSurveyB._meta.fields:
 					if field.name not in ['id','employee','evaluation','record_create','record_update','r3_a','r3_b']:
-						_sum=_sum+(getattr(emp.surveyB.last(),field.attname) or 0)
+						_sum=_sum+(getattr(survey_b_actual,field.attname) or 0)
 				val=f"{_sum}/288"
 				result_text="Riesgo nulo" if _sum<50 else ("Riesgo bajo" if _sum<75 else ("Riesgo medio" if _sum<99 else ("Riesgo alto" if _sum<140 else "Riesgo muy alto")))
-			elif emp.surveyA.last() and emp.workplace.survey_type()!=3:
+			elif survey_a_actual and emp.workplace.survey_type()!=3:
 				_sum=0
 				for field in RiskSurveyA._meta.fields:
 					if field.name not in ['id','employee','evaluation','record_create','record_update','r2_p_a','r2_p_b']:
-						_sum=_sum+(getattr(emp.surveyA.last(),field.attname) or 0)
+						_sum=_sum+(getattr(survey_a_actual,field.attname) or 0)
 				val=f"{_sum}/184"
 				result_text="Riesgo nulo" if _sum<20 else ("Riesgo bajo" if _sum<45 else ("Riesgo medio" if _sum<70 else ("Riesgo alto" if _sum<90 else "Riesgo muy alto")))
 			else:
