@@ -2,3 +2,6 @@ __pycache__/
 *.pyc
 .env
 *.log
+
+# QA/testing suite local de Jorge - no debe subirse al repo
+qa_tests/
