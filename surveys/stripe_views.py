@@ -112,12 +112,18 @@ class StripePortalView(LoginRequiredMixin, View):
             userapp = Userapp.objects.get(user=request.user)
 
             if not userapp.stripe_customer_id:
-                return redirect('/payments/')
+                customer = stripe.Customer.create(
+                    email=request.user.email,
+                    name=f"{request.user.first_name} {request.user.last_name}",
+                    metadata={'user_id': request.user.id}
+                )
+                userapp.stripe_customer_id = customer.id
+                userapp.save()
 
             base_url = request.build_absolute_uri('/').rstrip('/')
             session = stripe.billing_portal.Session.create(
                 customer=userapp.stripe_customer_id,
-                return_url=f"{base_url}/payments/",
+                return_url=f"{base_url}/edit_profile/",
             )
             return redirect(session.url)
 
@@ -125,7 +131,7 @@ class StripePortalView(LoginRequiredMixin, View):
             return redirect('/login/')
         except stripe.error.StripeError as e:
             logger.error(f"Portal error: {e}")
-            return redirect('/payments/')
+            return redirect('edit_profile')
 
 
 # ─────────────────────────────────────────────────────────────
