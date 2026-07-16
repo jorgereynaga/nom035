@@ -685,3 +685,34 @@ A (IDOR NOM-035), C1 (download_file2), C2 (media protegido), D (llaves hardcodea
 3. Hallazgos "Media/Baja" pendientes: CLM-INT-001 (Clima Laboral reenvios), PN-01 a PN-06 (Perfil Narrativo, IA aun no conectada realmente), CONFIG-001/002, SEC-008 (llaves Conekta comentadas)
 4. SEC-006 (PasswordRecover bypass) -- ULTIMO PASO antes de produccion real, decision ya tomada
 5. Actualizar MATRIZ_CONSOLIDADA_POST_REMEDIACION.md: agregar PSI-VAL-001 a 006 como CORREGIDOS (6 filas), y corregir el conteo total de hallazgos (revisar bien SEC-005/007 que ya se movieron a Lote D, evitar doble conteo)
+
+# ============================================================
+# LOTE H (EVI-SEC-002, validacion de contenido de archivos) — COMPLETADO Y FUSIONADO
+# Fecha: 15 Jul 2026 (sesion 15)
+# ============================================================
+
+## RESULTADO: LOTE H COMPLETO, FUSIONADO A auditoria-local
+
+Rama fix/lote-h-validacion-archivos. Merge fast-forward, sin conflictos.
+
+### Cambios
+1. surveys/models.py: nueva funcion validar_contenido_archivo(archivo, extensiones_permitidas) -- valida magic bytes reales (PDF: %PDF-, JPG: \xff\xd8\xff, PNG: \x89PNG\r\n\x1a\n) contra la extension declarada, mas validacion adicional con Pillow para JPG/PNG (Image.open().verify()). Deja el puntero del archivo en posicion 0 al terminar
+2. validate_file_extension (usado por Userapp.image, el logo) reescrito para usar la funcion nueva -- IMPORTANTE: el primer intento de Codex perdio la validacion de tamano de 2.5MB que tenia la funcion original, se detecto en revision de diff y se corrigio antes de comitear (ahora conserva ambas: limite de tamano Y validacion de contenido)
+3. surveys/forms.py: EvidenciaFaseCForm.clean_archivo ahora llama a validar_contenido_archivo despues de las validaciones existentes (tamano 10MB, extension)
+4. Sin dependencias nuevas -- solo se uso Pillow (ya instalado) y verificacion manual de magic bytes, evitando requerir python-magic/libmagic en el build de Railway
+
+### Validacion (local, sin necesitar staging)
+Probado con SimpleUploadedFile: PDF falso rechazado, PDF minimo valido aceptado, JPG real aceptado, PNG real aceptado, JPG falso rechazado, formulario completo con PDF falso rechazado, formulario con PDF valido aceptado. Todos los casos PASS.
+
+## LECCION: revisar diffs de refactors con cuidado especial cuando reemplazan una funcion completa
+Al reescribir validate_file_extension de cero, el primer intento omitio silenciosamente la validacion de tamano de 2.5MB que ya existia. Cuando se pide reescribir/refactorizar una funcion existente (no solo agregar codigo nuevo), revisar el diff linea por linea contra el ORIGINAL para confirmar que ningun comportamiento previo se perdio, no solo que el nuevo comportamiento funcione.
+
+## RESUMEN ACTUALIZADO: 8 LOTES COMPLETADOS (sesiones 14-15)
+A, C1, C2, D, E, F, G, H -- todos fusionados a auditoria-local.
+
+## PENDIENTES PARA SIGUIENTE SESION
+1. INFRA-001 (Volume persistente Railway) -- sin resolver
+2. Candidatos siguiente lote: N35-INT-003 (.last() silencioso), DEP-001/002 (fix definitivo migraciones/Procfile)
+3. Hallazgos Media/Baja pendientes: CLM-INT-001, PN-01 a 06, CONFIG-001/002, SEC-008
+4. SEC-006 (PasswordRecover bypass) -- ULTIMO PASO antes de produccion real
+5. Actualizar MATRIZ_CONSOLIDADA_POST_REMEDIACION.md: agregar EVI-SEC-002 como CORREGIDO
