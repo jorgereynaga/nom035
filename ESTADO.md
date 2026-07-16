@@ -716,3 +716,32 @@ A, C1, C2, D, E, F, G, H -- todos fusionados a auditoria-local.
 3. Hallazgos Media/Baja pendientes: CLM-INT-001, PN-01 a 06, CONFIG-001/002, SEC-008
 4. SEC-006 (PasswordRecover bypass) -- ULTIMO PASO antes de produccion real
 5. Actualizar MATRIZ_CONSOLIDADA_POST_REMEDIACION.md: agregar EVI-SEC-002 como CORREGIDO
+
+# ============================================================
+# LOTE I (N35-INT-003, .last() sin filtro de evaluation) — COMPLETADO Y FUSIONADO
+# Fecha: 15 Jul 2026 (sesion 15, cont.)
+# ============================================================
+
+## RESULTADO: LOTE I COMPLETO, FUSIONADO A auditoria-local
+
+Rama fix/lote-i-evaluacion-actual. Merge fast-forward, sin conflictos.
+
+### Cambio implementado en EmployeeList.get() (surveys/views.py, ~linea 2135)
+emp.surveyB.last() / emp.surveyA.last() (SIN filtro de evaluation, inconsistente con el resto del archivo que si filtra) ahora filtran por emp.workplace.evaluation antes de .last(), guardando el resultado en variables survey_b_actual/survey_a_actual reutilizadas (evita doble consulta ademas de corregir el bug).
+
+### Decision de diseno confirmada
+Se evaluo si debia usarse el patron eval_to_check (usado en Portafolio de Evidencias para el "ultimo ciclo cerrado") en vez de emp.workplace.evaluation directo. Se confirmo que NO aplica aqui: esta vista (EmployeeList) representa el ESTADO OPERATIVO DEL CICLO VIGENTE (ya usaba emp.workplace.evaluation para el chequeo de trauma en la misma vista), mientras que eval_to_check es especifico para mostrar resultados de una evaluacion ya finalizada en el Portafolio. Contextos distintos, decision correcta de mantener consistencia con el resto de la vista.
+
+### Alcance de N35-INT-003 en el proyecto (hallazgo importante)
+Se investigo el patron completo de .last() en surveys/views.py (mas de 25 ocurrencias). La gran mayoria (filter(evaluation=X).last()) YA quedaron mitigadas indirectamente por el Lote F (unique_together employee+evaluation en RiskSurveyA/TraumaSurvey/RiskSurveyB) -- como ya no pueden existir duplicados por empleado+evaluacion, esos .last() ya no "eligen entre varios" registros, solo devuelven el unico posible. El UNICO caso genuinamente problematico (sin filtro de evaluation) era el corregido en este lote. N35-INT-003 se considera CERRADO para el modulo NOM-035.
+
+## RESUMEN: 9 LOTES COMPLETADOS (sesiones 14-15)
+A, C1, C2, D, E, F, G, H, I -- todos fusionados a auditoria-local.
+
+## PENDIENTES PARA SIGUIENTE SESION
+1. INFRA-001 (Volume persistente Railway) -- sin resolver
+2. DEP-001/002 (fix definitivo de migraciones 0022/0023 y Procfile) -- unicos hallazgos "Alta" originales que faltan por atacar con codigo real (ya mitigados manualmente, falta el fix definitivo)
+3. Hallazgos Media/Baja pendientes: CLM-INT-001, PN-01 a 06, CONFIG-001/002, SEC-008
+4. SEC-006 (PasswordRecover bypass) -- ULTIMO PASO antes de produccion real
+5. Actualizar MATRIZ_CONSOLIDADA_POST_REMEDIACION.md: agregar N35-INT-003 como CORREGIDO, y EVI-SEC-002 (Lote H) que quedo pendiente de sesion anterior
+6. Nota menor: git detecto nombre/email de commit automaticamente en esta maquina -- no urgente, configurar con git config --global si Jorge quiere
