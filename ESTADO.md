@@ -780,3 +780,47 @@ De los 12 hallazgos "Alta" de la auditoria original (22 totales), los que aplica
 4. SEC-006 (PasswordRecover bypass) -- ULTIMO PASO antes de produccion real, sigue siendo la unica pieza critica pendiente, decision ya tomada por Jorge de dejarla para el final
 5. Pendiente menor conocido: PsychoInstrument.tipo sin migracion formal para choices 'competencias'/'comercial' (bajo riesgo, Django detecta la diferencia pero no rompe nada)
 6. Actualizar MATRIZ_CONSOLIDADA_POST_REMEDIACION.md con el cierre completo: agregar DEP-001, DEP-002, N35-INT-003, EVI-SEC-002 como CORREGIDOS -- consolidar conteo final
+
+# ============================================================
+# LOTE K (CONFIG-001/002, SEC-008) — COMPLETADO Y FUSIONADO
+# Fecha: 16 Jul 2026 (sesion 16)
+# ============================================================
+
+## RESULTADO: LOTE K COMPLETO, FUSIONADO A auditoria-local
+
+Rama fix/lote-k-config-limpieza.
+
+### Cambios
+1. nom035/settings.py: CORS_ALLOWED_ORIGINS y CSRF_TRUSTED_ORIGINS movidos a variables de entorno via config(), mismo patron que ALLOWED_HOSTS, con default = valores actuales de produccion. El dominio placeholder "https://tu-frontend.com" desaparecio (CONFIG-002 resuelto como efecto secundario)
+2. surveys/views.py: eliminadas 4 lineas de comentarios con llaves de Conekta (3 originales "pulica"/"publica" de prueba + 1 encontrada durante la revision, la de "produccion" sin calificar)
+
+### MEJORA DE PROCESO IMPORTANTE
+Con CORS_ALLOWED_ORIGINS/CSRF_TRUSTED_ORIGINS ahora via variable de entorno, YA NO sera necesario hacer el ajuste temporal de codigo (commit temporal + revertir) que tuvimos que hacer en varios lotes anteriores (A, C2) para poder probar formularios POST en staging -- de aqui en adelante basta con agregar el dominio de staging a la variable de entorno en Railway, sin tocar codigo.
+
+## HALLAZGO NUEVO IMPORTANTE — Conekta activo y con llave privada expuesta (para Lote L futuro)
+
+Durante la limpieza de comentarios de Conekta, Codex encontro que la integracion de Conekta NO es solo codigo muerto comentado -- esta ACTIVA:
+- conekta.api_key = "key_qfCtN8NqwJRTTJR23wdcqA" HARDCODEADA Y ACTIVA en surveys/views.py linea ~43 (llave privada de PRODUCCION, no de pruebas)
+- Vistas activas PaymentList y AddCardList (surveys/views.py) usan el SDK de Conekta para crear/buscar clientes, crear ordenes, manejar tarjetas
+- 2 templates (edit_profile.html, payments.html) cargan el SDK de Conekta y tokenizan tarjetas con una llave PUBLICA de pruebas (esta si esta bien que sea publica, no es el problema)
+- Dependencia conekta==6.0.4 en requirements.txt
+- Campo Userapp.client_id en models.py (historico, relacionado a Conekta)
+- Webhook comentado en models.py
+- Referencias en migraciones 0001 y 0010 (estas SI deben conservarse, no tocar historial de migraciones)
+
+CONTEXTO DE JORGE: Conekta era el proveedor de pagos ANTES de que el sistema fuera solo NOM-035; ya NO se va a usar, Stripe es el proveedor definitivo de aqui en adelante. Jorge NO tiene acceso a la cuenta de Conekta para revocar la llave desde su lado.
+
+RIESGO: la llave privada de produccion sigue expuesta en el codigo Y funcionalmente activa (el SDK realmente se usa). Como no se puede revocar desde Conekta (sin acceso a la cuenta), la unica mitigacion posible por ahora es eliminar el codigo que la usa y quitarla del repositorio -- aunque la llave en si podria seguir siendo valida en el lado de Conekta indefinidamente si nadie la revoca ahi.
+
+## PENDIENTE INMEDIATO — LOTE L (nuevo, alta prioridad)
+Limpieza completa de Conekta: eliminar llave hardcodeada, deshabilitar/eliminar PaymentList y AddCardList (o las partes que dependen de Conekta especificamente), quitar SDK de los 2 templates, remover dependencia de requirements.txt, decidir que hacer con Userapp.client_id (deprecar el campo o dejarlo por compatibilidad historica sin usarlo), NO tocar migraciones 0001/0010 (historial). Requiere mas cuidado que un lote tipico porque toca flujo de pagos -- confirmar con Jorge si PaymentList/AddCardList tienen alguna otra funcion ademas de Conekta antes de eliminarlas o si son 100% especificas de ese proveedor.
+
+## RESUMEN: 11 LOTES COMPLETADOS (sesiones 14-16)
+A, C1, C2, D, E, F, G, H, I, J, K -- todos fusionados a auditoria-local.
+
+## PENDIENTES PARA SIGUIENTE SESION
+1. LOTE L (Conekta completo) -- nueva prioridad alta, llave privada de produccion expuesta y activa
+2. INFRA-001 (Volume persistente Railway) -- CONFIRMADO que sigue sin resolver (Jorge reviso, no aparece seccion de Volumes)
+3. CLM-INT-001, PN-01 a 06 -- pendientes Media/Baja
+4. SEC-006 (PasswordRecover bypass) -- ULTIMO PASO antes de produccion real
+5. Actualizar MATRIZ_CONSOLIDADA_POST_REMEDIACION.md: agregar CONFIG-001/002 y SEC-008 como CORREGIDOS, agregar el hallazgo nuevo de Conekta activo (severidad ALTA/CRITICA a definir) como pendiente para Lote L
