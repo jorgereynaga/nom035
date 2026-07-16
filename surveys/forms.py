@@ -1,6 +1,7 @@
 # -*- coding: utf8 -*-
 
 from django import forms
+from django.core.exceptions import ValidationError
 from surveys.models import ResultFiles
 class LoginForm(forms.Form):
     username = forms.CharField(
@@ -52,4 +53,9 @@ class EvidenciaFaseCForm(forms.Form):
             ext = archivo.name.split('.')[-1].lower()
             if ext not in ('pdf', 'jpg', 'jpeg', 'png'):
                 raise forms.ValidationError('Solo se permiten archivos PDF, JPG o PNG.')
+            from surveys.models import validar_contenido_archivo
+            try:
+                validar_contenido_archivo(archivo, ['pdf', 'jpg', 'jpeg', 'png'])
+            except ValidationError as e:
+                raise forms.ValidationError(str(e))
         return archivo

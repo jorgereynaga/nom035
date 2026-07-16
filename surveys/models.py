@@ -8,13 +8,48 @@ from datetime import timedelta
 
 protected_storage = FileSystemStorage(location=settings.PROTECTED_MEDIA_ROOT)
 
+def validar_contenido_archivo(archivo, extensiones_permitidas):
+	"""
+	Valida que el contenido real del archivo corresponda a su extension declarada.
+	Deja el puntero del archivo en la posicion 0 al finalizar.
+	"""
+	nombre = archivo.name
+	ext = nombre.split('.')[-1].lower() if '.' in nombre else ''
+	if ext not in extensiones_permitidas:
+		raise ValidationError(f'Extension no permitida: {ext}')
+
+	archivo.seek(0)
+	cabecera = archivo.read(8)
+	archivo.seek(0)
+
+	if ext == 'pdf':
+		if not cabecera.startswith(b'%PDF-'):
+			raise ValidationError('El archivo declarado como PDF no tiene un contenido PDF valido.')
+	elif ext in ('jpg', 'jpeg'):
+		if not cabecera.startswith(b'\xff\xd8\xff'):
+			raise ValidationError('El archivo declarado como JPG no tiene un contenido de imagen JPEG valido.')
+		_validar_imagen_con_pillow(archivo)
+	elif ext == 'png':
+		if not cabecera.startswith(b'\x89PNG\r\n\x1a\n'):
+			raise ValidationError('El archivo declarado como PNG no tiene un contenido de imagen PNG valido.')
+		_validar_imagen_con_pillow(archivo)
+
+def _validar_imagen_con_pillow(archivo):
+	"""Verifica con Pillow que el archivo sea una imagen abrible y valida."""
+	from PIL import Image
+	archivo.seek(0)
+	try:
+		img = Image.open(archivo)
+		img.verify()
+	except Exception:
+		raise ValidationError('El archivo no es una imagen valida.')
+	finally:
+		archivo.seek(0)
+
 def validate_file_extension(value):
-	ext = value.name.split('.')
-	valid_extensions = ['jpg','png']
-	if not ext[len(ext)-1] in valid_extensions:
-		raise ValidationError(f'Solo se admiten archivos JPG y PNG! la extension de tu archivo es {ext}')
-	if value.size>2621440:
+	if value.size > 2621440:
 		raise ValidationError(u'Archivo muy pesado. Limite de 2.5Mb')
+	validar_contenido_archivo(value, ['jpg', 'png'])
 
 def user_directory_path(instance, filename):
 	return 'logos/{0}/{1}'.format(instance.user.id, filename)
