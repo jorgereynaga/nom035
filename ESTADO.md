@@ -824,3 +824,57 @@ A, C1, C2, D, E, F, G, H, I, J, K -- todos fusionados a auditoria-local.
 3. CLM-INT-001, PN-01 a 06 -- pendientes Media/Baja
 4. SEC-006 (PasswordRecover bypass) -- ULTIMO PASO antes de produccion real
 5. Actualizar MATRIZ_CONSOLIDADA_POST_REMEDIACION.md: agregar CONFIG-001/002 y SEC-008 como CORREGIDOS, agregar el hallazgo nuevo de Conekta activo (severidad ALTA/CRITICA a definir) como pendiente para Lote L
+
+# ============================================================
+# LOTE L (eliminacion de Conekta) — INCIDENTE DE SEGURIDAD Y REINICIO LIMPIO (sesion 16, cont.)
+# Fecha: 16 Jul 2026
+# ============================================================
+
+## INCIDENTE DE SEGURIDAD OCURRIDO Y RESUELTO — LEER ANTES DE CONTINUAR
+
+Durante la primera implementacion del Lote L, se uso `git add -A` para el commit final. Esto agrego accidentalmente al repo (PUBLICO en ese momento) una gran cantidad de archivos ajenos al lote que estaban sueltos sin trackear en el working directory de Jorge:
+- `db_test.sqlite3` (base de datos de prueba completa)
+- Archivos de evidencia de pruebas de seguridad con nombres reveladores (`...traversal.png`, `...extension.exe`, `...contenido-invalido.pdf`) dentro de `media/results/27/1/`
+- La carpeta `qa_tests/` COMPLETA — un framework de pruebas QA/auditoria de Jorge con reportes que incluyen `INFORME_EJECUTIVO_NORMAIA_QA.md`, `MATRIZ_FINAL_HALLAZGOS.md`, `ROADMAP_REMEDIACION.md` — documentos que detallan vulnerabilidades de seguridad del sistema, incluyendo (potencialmente) el detalle de SEC-006 (bypass de PasswordRecover) que **sigue sin corregir**
+
+Esto se subio a `github.com/jorgereynaga/nom035`, que en ese momento era PUBLICO. Riesgo: cualquiera pudo haber visto documentacion detallada de una vulnerabilidad critica activa y explotable.
+
+### Acciones de remediacion ya ejecutadas (en orden)
+1. Repo cambiado a PRIVADO en GitHub Settings (Jorge confirmo el cambio) — esto es lo mas importante, corta el acceso publico de inmediato
+2. Rama remota `fix/lote-l-conekta` eliminada (`git push origin --delete`)
+3. Rama local eliminada tambien (`git branch -D`)
+4. Rama recreada limpia desde `auditoria-local` (que NUNCA tuvo estos archivos, el problema fue exclusivo del commit de Lote L)
+5. `.gitignore` actualizado agregando `qa_tests/` explicitamente (commit `bcb6ded9`, ya pusheado, limpio, solo 3 lineas)
+6. NO fue necesario usar `git filter-repo` — como el commit contaminado era el UNICO commit exclusivo de esa rama por encima de `auditoria-local`, simplemente borrar y recrear la rama fue suficiente y mas simple
+
+### PENDIENTE DE ESTE INCIDENTE (importante, no cerrar hasta hacer esto)
+1. **Confirmar que `media/` y `db_test.sqlite3` ya estan en `.gitignore` de forma robusta** — al revisar el `git status` post-limpieza, estos NO aparecieron como untracked (sugiere que ya estaban ignorados), pero vale la pena confirmarlo explicitamente con `cat .gitignore` para asegurar que el patron cubre bien todas las subcarpetas de media/ y no fue una coincidencia
+2. **Evaluar con Jorge si se contacta a soporte de GitHub** para solicitud de purga de cache/indices de contenido sensible, dado que el repo estuvo publico con esos archivos por un tiempo indeterminado (breve, pero no confirmado con certeza que nadie accedio — "0 stars/watchers" no es garantia de que nadie vio archivos por URL directa)
+3. **Considerar adelantar la prioridad de SEC-006** (bypass de PasswordRecover) dado que su documentacion pudo haber estado expuesta publicamente, aunque sea brevemente — ya no se siente tan seguro dejarlo como "ultimo paso antes de produccion", el nivel de riesgo pudo haber cambiado
+4. **Regla nueva OBLIGATORIA para todos los commits futuros de cualquier lote**: NUNCA usar `git add -A` ni `git add .` — siempre agregar archivos EXPLICITAMENTE por nombre (`git add archivo1.py archivo2.html`). Revisar `git status` ANTES de cada `git add` para confirmar que no aparezca nada inesperado (carpetas de pruebas, bases de datos locales, archivos sueltos de trabajo)
+
+## ESTADO ACTUAL DE LA RAMA fix/lote-l-conekta (limpia, lista para reimplementar)
+- Rama creada limpia desde auditoria-local, con SOLO el commit del .gitignore (bcb6ded9)
+- El codigo de Conekta ESTA DE VUELTA en su estado original (se revirtio al recrear la rama) — confirmado: `grep -c "conekta" surveys/views.py` = 16, `surveys/templates/payments.html` sigue existiendo
+- El archivo `LOTE_L_especificacion_conekta.md` SI sigue presente (viene de auditoria-local, nunca se toco)
+- PENDIENTE: pedirle a Codex que reimplemente la especificacion completa desde cero en esta rama (el trabajo que ya habia hecho una vez, con buena calidad segun el diff revisado, se perdio al descartar la rama contaminada — hay que rehacerlo, pero la especificacion ya esta escrita y no cambia)
+- Cuando Codex termine: NO usar `git add -A`, agregar archivos explicitos: `nom035/urls.py`, `requirements.txt`, `surveys/models.py`, `surveys/stripe_views.py`, `surveys/templates/edit_profile.html`, `surveys/views.py`, y el `git rm surveys/templates/payments.html` para el archivo eliminado
+
+## CAMBIO DE HERRAMIENTA: Jorge empieza a usar Claude Code
+A partir de este punto, Jorge va a trabajar con Claude Code (la app de escritorio) apuntando directo a la carpeta del repo (`C:\NormaIA-Pruebas\nom035`), en vez de copiar/pegar comandos y resultados entre la terminal y el chat de Claude.ai. Esto deberia agilizar mucho el trabajo, especialmente revisar diffs completos y archivos grandes sin las limitaciones de copiar/pegar por chat.
+
+El flujo de trabajo cambia ligeramente:
+- Claude Code puede leer archivos, correr comandos, y ver resultados directamente sin que Jorge tenga que copiar/pegar
+- Los principios siguen siendo los mismos: Jorge revisa y aprueba antes de cada commit/push, nunca se actua de forma completamente autonoma sin su confirmacion en pasos criticos (deploys, cambios de rama en Railway, merges)
+- La regla de NUNCA usar git add -A aplica igual, sin importar la herramienta usada para ejecutar los comandos
+- Verificar que Claude Code tambien tenga acceso de lectura a este ESTADO.md al iniciar, ya que es el puente de contexto entre sesiones (y ahora entre herramientas tambien)
+
+## PENDIENTE INMEDIATO PARA RETOMAR (con Claude Code o la cuenta que continue)
+1. Reimplementar Lote L en la rama limpia fix/lote-l-conekta (spec ya escrita, solo falta que Codex/Claude Code la aplique de nuevo)
+2. Al commitear: SOLO archivos explicitos, jamas git add -A, revisar git status antes de cada add
+3. Confirmar .gitignore cubre bien media/ y db_test.sqlite3 de forma robusta (no solo por casualidad)
+4. Decidir con Jorge si se contacta a soporte de GitHub por el incidente de exposicion breve
+5. Reevaluar prioridad de SEC-006 (PasswordRecover bypass) dado el incidente
+6. Una vez reimplementado y validado en staging: merge de fix/lote-l-conekta a auditoria-local, cambiar Source de Railway de vuelta si se habia cambiado
+7. INFRA-001 (Volume persistente Railway) sigue sin resolver
+8. CLM-INT-001, PN-01 a 06 -- pendientes Media/Baja sin atacar aun
