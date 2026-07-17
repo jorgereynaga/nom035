@@ -1149,3 +1149,57 @@ de infraestructura junto a INFRA-001 (Volume persistente Railway).
 
 ## LOTE O: COMPLETADO Y VALIDADO (dentro de lo verificable en este ambiente) -- LISTO
 ## PARA MERGE A auditoria-local
+
+# ============================================================
+# LOTE P (credenciales SMTP hardcodeadas) — IMPLEMENTADO Y VALIDADO (sesion 18, cont.)
+# Fecha: 17 Jul 2026
+# ============================================================
+
+## RESULTADO: LOTE P COMPLETO Y VALIDADO EN STAGING
+
+Rama fix/lote-p-smtp-env-vars (a partir de auditoria-local, ya incluye el fix del link
+roto de "Olvidaste tu contrasena" hecho en tarea aparte), implementada por Codex
+siguiendo LOTE_P_especificacion_smtp_hardcoded.md.
+
+### Contexto del hallazgo
+Al intentar validar el flujo legitimo de PasswordRecover (Lote O) via correo real,
+Jorge confirmo que el envio de correo en staging falla (error "no pudimos enviarte un
+correo de confirmacion"). Diagnostico de Claude: la credencial de Gmail hardcodeada en
+nom035/settings.py (EMAIL_HOST_USER/EMAIL_HOST_PASSWORD) SI es valida -- un login SMTP
+de prueba contra smtp.gmail.com con esa credencial exacta funciono correctamente desde
+fuera de Railway (LOGIN_OK). Esto descarta credencial revocada/incorrecta y apunta a
+algo especifico del entorno de Railway (Google bloqueando la IP de Railway como inicio
+de sesion sospechoso, o limite de Gmail SMTP para envio servidor-a-servidor) -- PENDIENTE
+de que Jorge lo investigue por separado (revisar alertas de seguridad en la bandeja de
+n035.ihes@gmail.com), fuera de alcance de este lote.
+
+De paso se encontro que EMAIL_HOST_USER y EMAIL_HOST_PASSWORD (contrasena de aplicacion
+real de Gmail) estaban hardcodeados en texto plano en el codigo fuente -- mismo patron
+CWE-798 que AES_ENCRYPTION_KEY/RECAPTCHA_SECRET_KEY ya corregido en el Lote D, que
+quedo fuera en ese momento.
+
+### Cambio implementado
+nom035/settings.py lineas 183-188: EMAIL_HOST, EMAIL_PORT, EMAIL_HOST_USER,
+EMAIL_HOST_PASSWORD, EMAIL_USE_TLS movidos a config() (python-decouple), mismo patron
+exacto ya usado para AES_ENCRYPTION_KEY/RECAPTCHA_SECRET_KEY, con default= identico al
+valor hardcodeado anterior -- CERO cambio de comportamiento mientras Railway no tenga
+las variables de entorno configuradas.
+
+### Validacion en staging
+- Deploy limpio, gunicorn arriba sin errores
+- Pagina de login renderiza normal (confirmado por Claude via navegador embebido) --
+  sin regresion, tal como se esperaba de un cambio que solo mueve el origen del valor
+- No se repitieron pruebas de envio de correo (ya se sabe que sigue fallando por la
+  causa externa a Railway, sin relacion con este lote)
+
+## PENDIENTE DE INFRAESTRUCTURA ACTUALIZADO
+1. Jorge debe revisar alertas de seguridad en n035.ihes@gmail.com (posible bloqueo de
+   Google al inicio de sesion desde la IP de Railway) -- si se resuelve, considerar
+   configurar EMAIL_HOST_USER/EMAIL_HOST_PASSWORD reales en Railway (staging y
+   produccion) usando las variables de entorno que ya existen desde este lote
+2. Evaluar a futuro migrar a un proveedor de email transaccional dedicado (SendGrid,
+   Mailgun, SES) si Gmail SMTP sigue siendo poco confiable -- no urgente
+3. INFRA-001 (Volume persistente Railway) -- sigue sin resolver
+4. PN-01 a 06 -- bloqueado, falta conectar proveedor de IA real
+
+## LOTE P: COMPLETADO Y VALIDADO EN STAGING -- LISTO PARA MERGE A auditoria-local
