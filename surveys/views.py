@@ -2737,6 +2737,8 @@ class ClimaLaboralView(View):
             return HttpResponse("Centro de trabajo no encontrado", status=404)
         if not getattr(wk.user.userapp, "stripe_plan_key", None) and not getattr(wk.user.userapp, "nom035_creditos", 0):
             return render(request, "clima_sin_plan.html", {"workplace": wk})
+        if request.session.get(f'clima_submitted_{wk.id}'):
+            return render(request, 'clima_gracias.html', {'workplace': wk, 'ya_enviado': True})
         departments = Employee.objects.filter(workplace=wk).values_list('department', flat=True).distinct()
         ctx = {
             'workplace': wk,
@@ -2751,12 +2753,15 @@ class ClimaLaboralView(View):
             return HttpResponse("Centro de trabajo no encontrado", status=404)
         if not getattr(wk.user.userapp, "stripe_plan_key", None) and not getattr(wk.user.userapp, "nom035_creditos", 0):
             return HttpResponse("Sin plan activo", status=403)
+        if request.session.get(f'clima_submitted_{wk.id}'):
+            return render(request, 'clima_gracias.html', {'workplace': wk, 'ya_enviado': True})
         department = request.POST.get('department', '')
         data = {'workplace': wk, 'department': department}
         for i in range(1, 41):
             val = request.POST.get(f'cl_p{i}')
             data[f'cl_p{i}'] = int(val) if val and val.isdigit() else None
         WorkEnvironmentSurvey.objects.create(**data)
+        request.session[f'clima_submitted_{wk.id}'] = True
         return render(request, 'clima_gracias.html', {'workplace': wk})
 
 class ClimaResultadosView(LoginRequiredMixin, View):
