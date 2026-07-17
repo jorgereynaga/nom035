@@ -1203,3 +1203,71 @@ las variables de entorno configuradas.
 4. PN-01 a 06 -- bloqueado, falta conectar proveedor de IA real
 
 ## LOTE P: COMPLETADO Y VALIDADO EN STAGING -- LISTO PARA MERGE A auditoria-local
+
+# ============================================================
+# LOTE Q (remitente SMTP hardcodeado + observabilidad) — IMPLEMENTADO Y VALIDADO (sesion 18, cont.)
+# Fecha: 17 Jul 2026
+# ============================================================
+
+## RESULTADO: LOTE Q COMPLETO -- Y REVELO LA CAUSA REAL DE QUE SMTP NO FUNCIONE
+
+Rama fix/lote-q-smtp-from-y-logging (a partir de auditoria-local), implementada por
+Codex siguiendo LOTE_Q_especificacion_smtp_from_y_logging.md.
+
+### Cambios implementados
+1. nom035/settings.py: agregado DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL',
+   default=EMAIL_HOST_USER) -- el remitente por default ahora siempre coincide con la
+   cuenta que autentica, sin importar cual sea
+2. surveys/views.py, send_mail(): from_email hardcodeado a 'IHES <n035.ihes@gmail.com>'
+   (la cuenta VIEJA) reemplazado por f'NormaIA <{settings.DEFAULT_FROM_EMAIL}>' -- esto
+   corrige el mismatch que causaba que Gmail rechazara el envio tras cambiar de cuenta
+   en el Lote P (proteccion anti-spoofing de Gmail: remitente debe coincidir con quien
+   autentica)
+3. surveys/views.py: agregado logging real (p_.error(), logger ya existente en el
+   archivo) en los 2 except: desnudos que envuelven especificamente las llamadas a
+   send_mail() -- EmailVerification.post() (linea ~703) y PasswordRecover.post() (linea
+   ~761, SOLO ese, no el que valida el codigo de recuperacion en la misma clase, ese
+   sigue intacto sin loguear nada, es logica de seguridad del Lote O sin relacion)
+   Antes: except: silencioso, CERO rastro en logs. Ahora: except Exception as e:
+   p_.error(f"...: {e}") antes de mostrar el mismo mensaje generico al usuario
+
+### VALIDACION EN STAGING -- HALLAZGO CRITICO DE INFRAESTRUCTURA CONFIRMADO
+Al probar el flujo real de recuperacion de contrasena en staging (POST a
+/password_recover con pruebaA@test.com), el request se quedo COLGADO ~2 minutos 20
+segundos (sin responder), y el log de Railway (gracias al logging nuevo de este mismo
+lote) finalmente mostro:
+
+    Error enviando correo de recuperacion a pruebaA@test.com: [Errno 101] Network is unreachable
+
+ESTO CAMBIA EL DIAGNOSTICO POR COMPLETO. NO es un problema de credenciales invalidas,
+NI del remitente (aunque ese fix seguia siendo necesario y correcto de todas formas).
+Es un error de RED A NIVEL DE SISTEMA OPERATIVO: Railway no puede establecer conexion
+saliente hacia smtp.gmail.com:587 en absoluto. La prueba anterior de Claude (sesion
+17) que dio "LOGIN_OK" fue ejecutada desde el sandbox local de Claude, CON salida a
+internet sin restricciones -- NO representativa de la red real de Railway. Se descarta
+la hipotesis de "Google bloqueo la IP de Railway como sospechosa".
+
+Patron conocido: varias plataformas PaaS (Railway, Heroku, Render, etc.) bloquean por
+defecto la salida por puertos SMTP crudos (25, 465, 587) como medida anti-spam,
+mientras que la salida HTTPS (443) casi nunca se bloquea -- por eso los proveedores de
+email transaccional (SendGrid, Mailgun, Postmark, SES, Resend) exponen API HTTPS en vez
+de solo SMTP.
+
+## DECISION DE JORGE
+Dejar pendiente por ahora -- NO es bloqueante para el resto de la auditoria (SEC-006 ya
+esta cerrado en el Lote O, independientemente de si el correo funciona). Cuando se
+retome: opciones evaluadas fueron (1) migrar a proveedor de email transaccional via API
+HTTPS -- la solucion mas probable de funcionar dado el error de red confirmado, pero
+requiere mas trabajo (cuenta nueva, verificar dominio, adaptar send_mail() al
+SDK/API del proveedor), o (2) confirmar con soporte/documentacion de Railway si el
+egress SMTP se puede habilitar en el plan actual.
+
+## PENDIENTE DE INFRAESTRUCTURA ACTUALIZADO
+1. SMTP: confirmado que Railway bloquea o no puede alcanzar smtp.gmail.com:587 (Errno
+   101, Network is unreachable) -- pendiente decidir entre migrar a proveedor via
+   API HTTPS o gestionar habilitar el puerto con Railway
+2. INFRA-001 (Volume persistente Railway) -- sigue sin resolver
+3. PN-01 a 06 -- bloqueado, falta conectar proveedor de IA real
+
+## LOTE Q: COMPLETADO Y VALIDADO EN STAGING (el logging cumplio su proposito de
+## diagnostico exactamente como se penso) -- LISTO PARA MERGE A auditoria-local
