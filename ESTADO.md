@@ -945,3 +945,26 @@ ser publico).
    o se espera a acumular mas lotes
 5. Nuevo pendiente (no bloqueante para este lote): evaluar lote de limpieza
    para db.sqlite3/media/ trackeados en git (ver hallazgo arriba)
+
+## VALIDACION EN STAGING COMPLETADA — LOTE L CERRADO (sesion 14, cont.)
+Fecha: 17 Jul 2026
+
+Validado por Claude en nom035-staging.up.railway.app con la cuenta pruebaB@test.com
+(sin stripe_customer_id previo):
+
+1. Deploy limpio tras git push origin fix/lote-l-conekta (commits a80c3aef, badc3558) --
+   NOTA IMPORTANTE: el primer intento de validacion fallo porque se habia cambiado el
+   Source de Railway a la rama SIN empujar los commits a GitHub primero -- Railway seguia
+   sirviendo la version vieja (con Conekta activo). LECCION: siempre confirmar
+   `git log origin/<rama>` coincide con local antes de asumir que un cambio de Source
+   en Railway ya refleja el ultimo commit.
+2. /payments/, /api/payments/, /api/addCard/ -- los 3 devuelven 404 (confirmado con
+   fetch({redirect:'manual'/'follow'}) desde el navegador, no solo visualmente)
+3. edit_profile.html -- pestanas "Metodos de pago" y "Mis pagos" confirmadas sin ningun
+   resto visual del formulario viejo de tarjetas, ambas con link a stripe_portal
+4. Flujo completo probado: login sin stripe_customer_id -> click "Metodos de pago" ->
+   StripePortalView crea el customer de Stripe al vuelo -> redirige correctamente a
+   billing.stripe.com con el Portal real (metodo de pago, datos de facturacion con el
+   email correcto, historial de facturas) -- sin caer en 404 ni en /payments/
+
+## LOTE L: COMPLETADO Y VALIDADO EN STAGING -- LISTO PARA MERGE A auditoria-local
