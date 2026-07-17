@@ -878,3 +878,70 @@ El flujo de trabajo cambia ligeramente:
 6. Una vez reimplementado y validado en staging: merge de fix/lote-l-conekta a auditoria-local, cambiar Source de Railway de vuelta si se habia cambiado
 7. INFRA-001 (Volume persistente Railway) sigue sin resolver
 8. CLM-INT-001, PN-01 a 06 -- pendientes Media/Baja sin atacar aun
+
+# ============================================================
+# LOTE L (Eliminacion de Conekta) — IMPLEMENTADO EN RAMA (sesion 14)
+# Fecha: 16 Jul 2026
+# ============================================================
+
+## RESULTADO: LOTE L COMPLETADO, PENDIENTE DE VALIDAR EN STAGING Y MERGE
+
+Rama: fix/lote-l-conekta (a partir de auditoria-local, recreada limpia tras el
+incidente de seguridad documentado en la sesion anterior). Implementado por
+Codex siguiendo LOTE_L_especificacion_conekta.md. Commit: a80c3aef.
+
+### Cambios implementados
+1. surveys/stripe_views.py — StripePortalView.get() ahora crea el customer de
+   Stripe al vuelo si userapp.stripe_customer_id esta vacio (mismo patron que
+   StripeCheckoutView), guarda el id, y ya no redirige nunca a /payments/
+   (ni en el flujo normal ni en el catch de error)
+2. surveys/views.py — eliminado por completo: import conekta, la llave de
+   API de PRODUCCION hardcodeada (key_qfCtN8NqwJRTTJR23wdcqA), get_price(),
+   PaymentView, PaymentList, AddCardList
+3. nom035/urls.py — eliminadas las rutas /payments/, /api/payments/,
+   /api/addCard/ (stripe_portal no se toco, sigue igual)
+4. surveys/templates/edit_profile.html — pestanas "Metodos de pago" y
+   "Mis pagos" reemplazadas por mensaje + boton a {% url 'stripe_portal' %};
+   eliminado el script de cdn.conekta.io y todos los handlers JS huerfanos
+   (toggleAddCard, submit-card, delete-card)
+5. surveys/templates/payments.html — archivo eliminado
+6. surveys/models.py — Userapp.client_id conservado (sin migracion), marcado
+   con comentario "# DEPRECATED - Conekta ya no se usa..."; eliminado el
+   bloque comentado ConektaWebhook (codigo muerto)
+7. requirements.txt — eliminada la linea conekta==6.0.4
+
+### Revision de diff (Claude, antes del commit)
+- Confirmado con grep que solo quedan referencias a "conekta" en el
+  comentario de deprecacion de models.py y en las migraciones historicas
+  0001/0010 (correcto, no se tocan por especificacion)
+- Tags Django balanceados en edit_profile.html (if/endif, block/endblock)
+- Sin referencias colgantes a payments.html, PaymentView, PaymentList,
+  AddCardList, /api/addCard/ en ningun otro archivo del repo
+- python -m py_compile OK en los 4 archivos .py tocados (verificado dos
+  veces, por Codex con Python 3.10 y de forma independiente por Claude)
+- Detalle cosmetico no bloqueante: StripePortalView usa return_url con
+  string hardcodeado "/edit_profile/" en el flujo normal pero
+  reverse('edit_profile') en el catch de error — ambos resuelven al mismo
+  lugar, es solo inconsistencia de estilo, no bug
+
+### HALLAZGO NUEVO SIN RELACION AL LOTE (anotado, no corregido)
+db.sqlite3 (raiz del repo) y toda la carpeta media/ (incluye PDFs reales de
+resultados de clientes) estan TRACKEADOS en git desde antes de esta sesion,
+y .gitignore no tiene *.sqlite3 ni media/. No es parte del incidente de
+seguridad ya documentado (no aparecio en git status, no fue agregado ahora),
+es contenido preexistente en el historial. PENDIENTE: decidir si se trata
+como un lote de remediacion aparte (limpieza de historial de git, dato
+sensible de clientes reales expuesto si el repo alguna vez fue o vuelve a
+ser publico).
+
+## PENDIENTE INMEDIATO
+1. Validar en staging: iniciar sesion con cuenta SIN stripe_customer_id
+   previo, click en "Metodos de pago", confirmar que crea el customer de
+   Stripe al vuelo y redirige al Portal sin caer en 404 ni en /payments/
+2. Confirmar visualmente que ambas pestanas de edit_profile.html se ven
+   correctas sin resto visual del formulario viejo de tarjetas
+3. Confirmar que /payments/, /api/payments/ y /api/addCard/ devuelven 404
+4. Decidir si se hace merge de fix/lote-l-conekta a auditoria-local ahora
+   o se espera a acumular mas lotes
+5. Nuevo pendiente (no bloqueante para este lote): evaluar lote de limpieza
+   para db.sqlite3/media/ trackeados en git (ver hallazgo arriba)
