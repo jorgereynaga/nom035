@@ -1070,3 +1070,69 @@ flujo normal de la app, se deja anotado para decidir despues si se cierra (opcio
 simple: agregar evaluation=0 como default en la firma de la funcion).
 
 ## LOTE N: COMPLETADO Y VALIDADO EN STAGING -- LISTO PARA MERGE A auditoria-local
+
+# ============================================================
+# LOTE O (SEC-006, bypass total de PasswordRecover) — IMPLEMENTADO Y VALIDADO (sesion 18)
+# Fecha: 17 Jul 2026
+# ============================================================
+
+## RESULTADO: LOTE O COMPLETO -- HALLAZGO MAS GRAVE DE TODA LA AUDITORIA, CERRADO
+
+Rama fix/lote-o-password-recover-bypass (a partir de auditoria-local), implementada
+por Codex siguiendo LOTE_O_especificacion_password_recover_bypass.md. Commit de codigo:
+fix aplicado exclusivamente en PasswordRecover.post() (surveys/views.py, ~linea 766).
+
+### Cambio implementado
+- Condicion de la rama de cambio de contrasena corregida: antes comprobaba
+  "new_password1" dos veces (nunca comprobaba new_password2), ahora comprueba ambos
+- El POST ahora exige 'code' e 'iv' en kwargs (la URL) -- estos ya viajaban ahi porque
+  el <form method="POST"> de password_recover.html no tiene action, se somete a la
+  misma URL /password_recover/<code>/<iv> desde donde se cargo, NO fue necesario tocar
+  el template
+- Se replica exactamente la misma logica de desencriptacion+validacion de 1 hora que ya
+  usaba get() (mismo patron, mismo Userapp.objects.filter(user_id=..., record_create=...))
+- El usuario a modificar se deriva del token desencriptado (userapp.user), el campo
+  user-email del POST YA NO se usa para identidad en ningun punto
+- Codigo ausente/invalido/expirado -> no se ejecuta SetPasswordForm, mensaje
+  error_changing_pass, contrasena NO se toca
+- ct["valid_code"] ahora refleja la validacion real (antes hardcodeado a True)
+
+### Validacion en staging (Claude, navegador embebido)
+1. ATAQUE ORIGINAL (debia fallar): POST directo a /password_recover (sin code/iv en la
+   URL) con new_password1/new_password2 y user-email=pruebaB@test.com -> 200, pagina
+   "No pudimos verificar tu cuenta", CONFIRMADO que la contrasena de pruebaB NO cambio
+   (login posterior con la contrasena ORIGINAL de pruebaB exitoso)
+2. ATAQUE CON CODE/IV FORJADOS: POST a /password_recover/AAAA/BBBB (valores inventados)
+   con los mismos campos -> 200, misma pagina de rechazo, SIN 500 (excepcion de
+   desencriptacion manejada con gracia)
+3. FLUJO LEGITIMO: NO se pudo validar end-to-end porque el envio de correo (SMTP) no
+   esta configurado en este ambiente -- CONFIRMADO POR JORGE que es una limitacion
+   PREEXISTENTE del sistema original, sin relacion con este lote (el codigo de envio de
+   correo, PasswordRecover.post() rama `if email!="":`, no se toco en este lote). Se
+   confirmo en su lugar que solicitar el link no crashea (responde con gracia el mensaje
+   "no pudimos enviarte un correo de confirmacion"), y se confirmo por revision de
+   codigo que la logica de validacion nueva en post() es identica byte a byte al patron
+   ya usado y probado en get() desde hace meses (mismo decript(), misma ventana de 1
+   hora, misma consulta a Userapp)
+4. Confirmado tambien: el campo "user-email" ya no tiene ningun efecto sobre que cuenta
+   se modifica -- la unica fuente de verdad es el codigo desencriptado
+
+## HALLAZGO MENOR NUEVO, FUERA DE ALCANCE, ANOTADO PARA OTRA SESION
+Durante la validacion se encontro que el link "¿Olvidaste tu contraseña?" en la pantalla
+de login (surveys/templates/auth-login.html) apunta a href="/forgot-password/", una URL
+que NUNCA existio en nom035/urls.py (la ruta real es 'password_recover'). Bug preexistente,
+sin relacion con SEC-006. Se dejo una tarea aparte anotada (no parte de este lote).
+
+## PENDIENTE DE INFRAESTRUCTURA (preexistente, confirmado por Jorge, no bloqueante para
+## este lote pero SI bloqueante para que el flujo de recuperacion de contrasena funcione
+## de verdad en cualquier ambiente)
+SMTP no esta configurado (EMAIL_HOST/EMAIL_HOST_USER/EMAIL_HOST_PASSWORD en
+nom035/settings.py apuntan a Gmail pero el envio real falla). Jorge menciono que hay
+varias cosas por configurar, y que aparte ya se cambiaron RECAPTCHA_SITE_KEY y
+RECAPTCHA_SECRET_KEY (variables de entorno relacionadas, movidas a env vars en el
+Lote D). Configurar SMTP real es un prerequisito para que TANTO PasswordRecover como
+EmailVerification funcionen end-to-end -- se sugiere agregarlo a la lista de pendientes
+de infraestructura junto a INFRA-001 (Volume persistente Railway).
+
+## LOTE O: COMPLETADO Y VALIDADO (dentro de lo verificable en este ambiente) -- LISTO
+## PARA MERGE A auditoria-local
