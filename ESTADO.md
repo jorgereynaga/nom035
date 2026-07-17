@@ -968,3 +968,49 @@ Validado por Claude en nom035-staging.up.railway.app con la cuenta pruebaB@test.
    email correcto, historial de facturas) -- sin caer en 404 ni en /payments/
 
 ## LOTE L: COMPLETADO Y VALIDADO EN STAGING -- LISTO PARA MERGE A auditoria-local
+
+# ============================================================
+# LOTE M (CLM-INT-001, reenvios ilimitados Clima Laboral) — IMPLEMENTADO Y VALIDADO (sesion 17)
+# Fecha: 17 Jul 2026
+# ============================================================
+
+## RESULTADO: LOTE M COMPLETO Y VALIDADO EN STAGING
+
+Rama fix/lote-m-clima-reenvios (a partir de auditoria-local), implementada por Codex
+siguiendo LOTE_M_especificacion_clima_reenvios.md. Commit: c531016f.
+
+### Cambio implementado en ClimaLaboralView (surveys/views.py, ~linea 2733-2760)
+Bloqueo de reenvios via sesion de Django (sin requerir login, la encuesta sigue siendo
+anonima por diseno):
+- POST: despues de validar que el workplace existe y tiene plan/creditos activos, se
+  verifica request.session.get(f'clima_submitted_{wk.id}'); si ya existe, se devuelve
+  clima_gracias.html sin crear un WorkEnvironmentSurvey nuevo. Si es la primera vez, se
+  crea el registro y se marca request.session[f'clima_submitted_{wk.id}'] = True
+- GET: mismo chequeo -- si la sesion ya envio, se muestra clima_gracias.html directo en
+  vez del formulario vacio
+- Se eligio bloqueo por SESION (no por IP) deliberadamente: varios empleados de un mismo
+  centro de trabajo suelen compartir la misma IP de oficina (NAT), bloquear por IP
+  afectaria a empleados legitimos distintos. Mitigacion proporcional a la severidad Media
+  del hallazgo, consistente con que la encuesta es intencionalmente anonima
+- Indentacion de 4 espacios de la clase (distinta al resto del archivo) respetada
+- ClimaResultadosView (vista del empleador) sin cambios
+
+### Validacion en staging (Claude, navegador embebido)
+Con Workplace de pruebaA@test.com (4 creditos NOM-035 disponibles), access_code
+203503421f294e83b2305e5d85a7ed53:
+1. Envio completo valido (POST directo con los 40 campos vs fetch, csrftoken real) ->
+   200, 1 WorkEnvironmentSurvey creado, confirmado via ClimaResultadosView (1 respuesta)
+2. Reenvio inmediato desde la MISMA sesion -> 200 (misma plantilla gracias) pero CERO
+   registros nuevos -- confirmado que el conteo se mantuvo en 1, no subio a 2
+3. GET de vuelta al formulario en la misma sesion -> ya no muestra el formulario vacio,
+   redirige directo a clima_gracias.html (titulo de pagina cambio a "Gracias")
+4. Sesion distinta (logout de Django para forzar sesion nueva, request.session.flush())
+   -> SI pudo enviar una respuesta nueva -- conteo subio correctamente a 2, promedio de
+   las 8 dimensiones recalculado de 4.0 a 3.5 (consistente con valores 4 y 3 enviados)
+5. NOTA METODOLOGICA: pestanas nuevas del mismo navegador comparten cookies (no son
+   sesiones distintas) -- para probar el caso 4 hubo que forzar logout explicito, no
+   bastaba con abrir una pestana nueva
+6. ClimaResultadosView confirmada sin cambios de comportamiento (calculo de dimensiones
+   correcto)
+
+## LOTE M: COMPLETADO Y VALIDADO EN STAGING -- LISTO PARA MERGE A auditoria-local
