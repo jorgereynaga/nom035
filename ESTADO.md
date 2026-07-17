@@ -1014,3 +1014,59 @@ Con Workplace de pruebaA@test.com (4 creditos NOM-035 disponibles), access_code
    correcto)
 
 ## LOTE M: COMPLETADO Y VALIDADO EN STAGING -- LISTO PARA MERGE A auditoria-local
+
+# ============================================================
+# LOTE N (N35-FUN-004, employees_dt devuelve 500 en casos limite) — IMPLEMENTADO Y VALIDADO (sesion 17, cont.)
+# Fecha: 17 Jul 2026
+# ============================================================
+
+## RESULTADO: LOTE N COMPLETO Y VALIDADO EN STAGING
+
+Rama fix/lote-n-employees-dt-500 (a partir de auditoria-local), implementada por Codex
+siguiendo LOTE_N_especificacion_employees_dt_500.md. Commit: f4c76359.
+
+### Causas raiz confirmadas (surveys/views.py, employees_dt, linea ~1139)
+1. ZeroDivisionError: Paginator(query, length).page(page) con length=0 (controlable via
+   query string) -- la excepcion no era ni PageNotAnInteger ni EmptyPage, se propagaba
+   sin control -> 500
+2. TypeError: int(request.GET.get('draw'/'start'/'length')) sin validar que el parametro
+   existiera -> int(None) -> 500 si faltaba cualquiera de los 3 en la peticion
+3. KeyError: el chequeo `if order>3: order=0` no cubria valores negativos de
+   order[0][column] -- ordering[order] con order=-1 crasheaba (ordering es un dict con
+   llaves 0-3, no una lista)
+4. Menor: page=(start/length)+1 usaba division de punto flotante en vez de entera
+
+### Cambio implementado
+- draw/start/length/order[0][column] ahora se leen dentro de un try/except
+  (TypeError, ValueError) -- si falta cualquiera o no es entero valido, responde 400
+  con el mismo formato JSON vacio que ya usaba el 403 de ownership
+- length<=0 se rechaza explicitamente con 400 (variante elegida: rechazar en vez de
+  forzar un default)
+- `if order>3: order=0` reemplazado por `if order not in ordering: order=0` -- cubre
+  negativos y fuera de rango por arriba, sigue corrigiendo silenciosamente (no rechaza)
+- page=(start//length)+1, division entera, solo ejecuta despues de garantizar length>0
+- Ownership check y logica de negocio (armado de arr, badges, WhatsApp) sin cambios
+
+### Validacion en staging (Claude, navegador embebido, fetch directo con sesion real)
+Con pruebaA@test.com, workplace_id=1 (1 empleado registrado), endpoint
+/employees_dt/1/0/1/:
+- Peticion normal (draw/start/length/order completos) -> 200, datos correctos
+- length=0 -> 400 (antes: 500 ZeroDivisionError)
+- Falta draw -> 400 (antes: 500 TypeError)
+- Falta start -> 400
+- Falta length -> 400
+- order[0][column]=-1 -> 200, corregido a columna 0 (antes: 500 KeyError)
+- order[0][column]=99 -> 200, corregido a columna 0 (comportamiento preexistente, sin
+  regresion)
+- DataTable real de workplace_detail.html confirmado renderizando correctamente en
+  pantalla (1 empleado, paginacion "pagina 1 de 1")
+
+## HALLAZGO MENOR ADICIONAL, ANOTADO PERO NO CORREGIDO EN ESTE LOTE
+nom035/urls.py linea 81: path('employees_dt/<int:workplace_id>/<int:t>/', ...) sin
+evaluation en la URL -- si se invoca directamente (nadie lo hace hoy, confirmado con
+grep que ningun template usa esta variante de 2 segmentos) causaria
+TypeError: missing 1 required positional argument: 'evaluation'. No explotable por el
+flujo normal de la app, se deja anotado para decidir despues si se cierra (opcion mas
+simple: agregar evaluation=0 como default en la firma de la funcion).
+
+## LOTE N: COMPLETADO Y VALIDADO EN STAGING -- LISTO PARA MERGE A auditoria-local
