@@ -320,70 +320,13 @@
     <div class="tab-pane" id="account-vertical-payment">
       <div class="settings-panel-header">
         <p class="settings-panel-title">Métodos de pago</p>
-        <p class="settings-panel-subtitle">Tus tarjetas de crédito o débito registradas</p>
+        <p class="settings-panel-subtitle">Administración segura mediante Stripe</p>
       </div>
       <div class="settings-panel-body">
-
-        <div class="cards-list">
-          {% for item in cards %}
-          <div class="payment-card-row" data-token="{{item.card_token}}">
-            <div class="payment-card-left">
-              <img src="/static/app-assets/images/logo/{{item.brand}}.png" alt="{{item.brand}}" class="payment-card-logo">
-              <div class="payment-card-info">
-                <p class="payment-card-name">{{item.name}}</p>
-                <p class="payment-card-meta">
-                  {{item.brand}} · terminación <strong>{{item.last4}}</strong> · vence {{item.exp_month}}/{{item.exp_year}}
-                </p>
-              </div>
-            </div>
-            <button class="btn btn-danger-ghost btn-sm delete-card" data-token="{{item.card_token}}" title="Eliminar tarjeta">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
-              Eliminar
-            </button>
-          </div>
-          {% endfor %}
+        <div class="empty-note">
+          <p>Administra tus tarjetas de forma segura directamente en Stripe.</p>
+          <a class="btn btn-primary" href="{% url 'stripe_portal' %}">Administrar métodos de pago en Stripe</a>
         </div>
-
-        <!-- Add card -->
-        <div class="add-card-toggle" id="toggleAddCard">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-          Agregar tarjeta de crédito o débito
-        </div>
-
-        <div class="add-card-form" id="addCardForm">
-          <form action="" method="POST" id="card-form">
-            <span class="card-errors"></span>
-            <div class="form-grid-2" style="margin-bottom:16px;">
-              <div class="form-group">
-                <label class="form-label">Nombre del tarjetahabiente</label>
-                <input type="text" class="form-control" placeholder="Como aparece en la tarjeta" data-conekta="card[name]">
-              </div>
-              <div class="form-group">
-                <label class="form-label">Número de tarjeta</label>
-                <input type="text" class="form-control" placeholder="0000 0000 0000 0000" data-conekta="card[number]">
-              </div>
-            </div>
-            <div class="form-grid-3" style="margin-bottom:16px;">
-              <div class="form-group">
-                <label class="form-label">CCV</label>
-                <input type="text" class="form-control" placeholder="123" data-conekta="card[cvc]">
-              </div>
-              <div class="form-group">
-                <label class="form-label">Mes de expiración (MM)</label>
-                <input type="text" class="form-control" placeholder="MM" data-conekta="card[exp_month]">
-              </div>
-              <div class="form-group">
-                <label class="form-label">Año de expiración (AAAA)</label>
-                <input type="text" class="form-control" placeholder="AAAA" data-conekta="card[exp_year]">
-              </div>
-            </div>
-            <button class="btn btn-success btn-sm" id="submit-card" type="button">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-              Añadir tarjeta
-            </button>
-          </form>
-        </div>
-
       </div>
     </div>
 
@@ -391,32 +334,13 @@
     <div class="tab-pane" id="account-vertical-purchases">
       <div class="settings-panel-header">
         <p class="settings-panel-title">Mis pagos</p>
-        <p class="settings-panel-subtitle">Historial de transacciones realizadas</p>
+        <p class="settings-panel-subtitle">Historial de pagos y facturas</p>
       </div>
       <div class="settings-panel-body">
-        {% if purchases %}
-        <div class="purchases-list">
-          {% for item in purchases %}
-          <div class="purchase-row">
-            <div class="purchase-header">
-              <img src="/static/app-assets/images/logo/{{item.brand}}.png" alt="{{item.brand}}" class="purchase-logo">
-              <div>
-                <p class="purchase-name">{{item.name}}</p>
-                <p class="purchase-card-meta">{{item.brand}} · terminación <strong>{{item.last4}}</strong> · vence {{item.exp_month}}/{{item.exp_year}}</p>
-              </div>
-            </div>
-            <p class="purchase-amount">${{item.amount}}.00 MXN</p>
-            <ul class="purchase-products">
-              {% for prod in item.products %}
-              <li>{{prod.name}} <span style="color:var(--text-muted)">· {{prod.quantity}} empleados</span></li>
-              {% endfor %}
-            </ul>
-          </div>
-          {% endfor %}
+        <div class="empty-note">
+          <p>Consulta tu historial completo de pagos y facturas en Stripe.</p>
+          <a class="btn btn-primary" href="{% url 'stripe_portal' %}">Consultar pagos en Stripe</a>
         </div>
-        {% else %}
-        <div class="empty-note">Aún no has realizado ningún pago.</div>
-        {% endif %}
       </div>
     </div>
 
@@ -426,8 +350,6 @@
 {% endblock %}
 
 {% block scripts %}
-<script type="text/javascript" src="https://cdn.conekta.io/js/latest/conekta.js"></script>
-
 <script type="text/javascript">
 $(document).ready(function(){
     $('[data-toggle="tooltip"]').tooltip();
@@ -454,49 +376,6 @@ $(function(){
         $("#" + target).addClass("active");
     });
 
-    // ── Add card toggle ───────────────────────────────────────
-    $("#toggleAddCard").click(function(){
-        $("#addCardForm").toggleClass("open");
-    });
-
-    // ── Conekta ───────────────────────────────────────────────
-    // Conekta.setPublicKey('key_dnJ39sQFbLVZQR7epkiiCEg');//prod
-    Conekta.setPublicKey('key_AhXYuQnj8pMv4UEmsEz8Hsw');//testing
-
-    var conektaSuccessResponseHandler = function(token){
-        $("#submit-card").prop("disabled", true);
-        $.ajax({
-            url: "/api/addCard/",
-            method: 'POST',
-            contentType: "application/json",
-            data: JSON.stringify({"card_token": token.id}),
-            dataType: 'json',
-            success: function(data){
-                toastr.success('Tu tarjeta fue registrada con éxito', "ok");
-                $("#card-form").trigger("reset");
-                function myTimer() { location.replace("{% url 'edit_profile' %}?d=credit-card"); }
-                var myVar = setInterval(myTimer, 1000);
-            },
-            error: function(xhr, ajaxOptions, thrownError){
-                console.log(xhr.status);
-                if (xhr.status != 201) {
-                    toastr.success('Ha ocurrido un error ' + xhr.responseText, "Error");
-                }
-            }
-        });
-    };
-    var conektaErrorResponseHandler = function(response) {
-        var $form = $("#card-form");
-        $form.find(".card-errors").text(response.message_to_purchaser);
-        $("#submit-card").prop("disabled", false);
-    };
-    $("#submit-card").click(function(){
-        var $form = $("#card-form");
-        $("#submit-card").prop("disabled", true);
-        Conekta.Token.create($form, conektaSuccessResponseHandler, conektaErrorResponseHandler);
-        return false;
-    });
-
     // ── Avatar preview ────────────────────────────────────────
     function readURL(input) {
         if (input.files && input.files[0]) {
@@ -508,29 +387,6 @@ $(function(){
         }
     }
     $("#account-upload").change(function(){ readURL(this); });
-
-    // ── Delete card ───────────────────────────────────────────
-    $(".delete-card").click(function(){
-        var token = $(this).attr("data-token");
-        $.ajax({
-            url: "/api/addCard/",
-            method: 'DELETE',
-            contentType: "application/json",
-            data: JSON.stringify({"card_token": token}),
-            dataType: 'json',
-            success: function(data){
-                toastr.success('Tu tarjeta fue eliminada', "ok");
-                function myTimer() { location.replace("{% url 'edit_profile' %}?d=credit-card"); }
-                var myVar = setInterval(myTimer, 1000);
-            },
-            error: function(xhr, ajaxOptions, thrownError){
-                console.log(xhr.status);
-                if (xhr.status != 201) {
-                    toastr.success('Ha ocurrido un error ' + xhr.responseText, "Error");
-                }
-            }
-        });
-    });
 
     // ── Clean avatar ──────────────────────────────────────────
     $("#clean_preview").click(function(){

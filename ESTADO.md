@@ -824,3 +824,147 @@ A, C1, C2, D, E, F, G, H, I, J, K -- todos fusionados a auditoria-local.
 3. CLM-INT-001, PN-01 a 06 -- pendientes Media/Baja
 4. SEC-006 (PasswordRecover bypass) -- ULTIMO PASO antes de produccion real
 5. Actualizar MATRIZ_CONSOLIDADA_POST_REMEDIACION.md: agregar CONFIG-001/002 y SEC-008 como CORREGIDOS, agregar el hallazgo nuevo de Conekta activo (severidad ALTA/CRITICA a definir) como pendiente para Lote L
+
+# ============================================================
+# LOTE L (eliminacion de Conekta) — INCIDENTE DE SEGURIDAD Y REINICIO LIMPIO (sesion 16, cont.)
+# Fecha: 16 Jul 2026
+# ============================================================
+
+## INCIDENTE DE SEGURIDAD OCURRIDO Y RESUELTO — LEER ANTES DE CONTINUAR
+
+Durante la primera implementacion del Lote L, se uso `git add -A` para el commit final. Esto agrego accidentalmente al repo (PUBLICO en ese momento) una gran cantidad de archivos ajenos al lote que estaban sueltos sin trackear en el working directory de Jorge:
+- `db_test.sqlite3` (base de datos de prueba completa)
+- Archivos de evidencia de pruebas de seguridad con nombres reveladores (`...traversal.png`, `...extension.exe`, `...contenido-invalido.pdf`) dentro de `media/results/27/1/`
+- La carpeta `qa_tests/` COMPLETA — un framework de pruebas QA/auditoria de Jorge con reportes que incluyen `INFORME_EJECUTIVO_NORMAIA_QA.md`, `MATRIZ_FINAL_HALLAZGOS.md`, `ROADMAP_REMEDIACION.md` — documentos que detallan vulnerabilidades de seguridad del sistema, incluyendo (potencialmente) el detalle de SEC-006 (bypass de PasswordRecover) que **sigue sin corregir**
+
+Esto se subio a `github.com/jorgereynaga/nom035`, que en ese momento era PUBLICO. Riesgo: cualquiera pudo haber visto documentacion detallada de una vulnerabilidad critica activa y explotable.
+
+### Acciones de remediacion ya ejecutadas (en orden)
+1. Repo cambiado a PRIVADO en GitHub Settings (Jorge confirmo el cambio) — esto es lo mas importante, corta el acceso publico de inmediato
+2. Rama remota `fix/lote-l-conekta` eliminada (`git push origin --delete`)
+3. Rama local eliminada tambien (`git branch -D`)
+4. Rama recreada limpia desde `auditoria-local` (que NUNCA tuvo estos archivos, el problema fue exclusivo del commit de Lote L)
+5. `.gitignore` actualizado agregando `qa_tests/` explicitamente (commit `bcb6ded9`, ya pusheado, limpio, solo 3 lineas)
+6. NO fue necesario usar `git filter-repo` — como el commit contaminado era el UNICO commit exclusivo de esa rama por encima de `auditoria-local`, simplemente borrar y recrear la rama fue suficiente y mas simple
+
+### PENDIENTE DE ESTE INCIDENTE (importante, no cerrar hasta hacer esto)
+1. **Confirmar que `media/` y `db_test.sqlite3` ya estan en `.gitignore` de forma robusta** — al revisar el `git status` post-limpieza, estos NO aparecieron como untracked (sugiere que ya estaban ignorados), pero vale la pena confirmarlo explicitamente con `cat .gitignore` para asegurar que el patron cubre bien todas las subcarpetas de media/ y no fue una coincidencia
+2. **Evaluar con Jorge si se contacta a soporte de GitHub** para solicitud de purga de cache/indices de contenido sensible, dado que el repo estuvo publico con esos archivos por un tiempo indeterminado (breve, pero no confirmado con certeza que nadie accedio — "0 stars/watchers" no es garantia de que nadie vio archivos por URL directa)
+3. **Considerar adelantar la prioridad de SEC-006** (bypass de PasswordRecover) dado que su documentacion pudo haber estado expuesta publicamente, aunque sea brevemente — ya no se siente tan seguro dejarlo como "ultimo paso antes de produccion", el nivel de riesgo pudo haber cambiado
+4. **Regla nueva OBLIGATORIA para todos los commits futuros de cualquier lote**: NUNCA usar `git add -A` ni `git add .` — siempre agregar archivos EXPLICITAMENTE por nombre (`git add archivo1.py archivo2.html`). Revisar `git status` ANTES de cada `git add` para confirmar que no aparezca nada inesperado (carpetas de pruebas, bases de datos locales, archivos sueltos de trabajo)
+
+## ESTADO ACTUAL DE LA RAMA fix/lote-l-conekta (limpia, lista para reimplementar)
+- Rama creada limpia desde auditoria-local, con SOLO el commit del .gitignore (bcb6ded9)
+- El codigo de Conekta ESTA DE VUELTA en su estado original (se revirtio al recrear la rama) — confirmado: `grep -c "conekta" surveys/views.py` = 16, `surveys/templates/payments.html` sigue existiendo
+- El archivo `LOTE_L_especificacion_conekta.md` SI sigue presente (viene de auditoria-local, nunca se toco)
+- PENDIENTE: pedirle a Codex que reimplemente la especificacion completa desde cero en esta rama (el trabajo que ya habia hecho una vez, con buena calidad segun el diff revisado, se perdio al descartar la rama contaminada — hay que rehacerlo, pero la especificacion ya esta escrita y no cambia)
+- Cuando Codex termine: NO usar `git add -A`, agregar archivos explicitos: `nom035/urls.py`, `requirements.txt`, `surveys/models.py`, `surveys/stripe_views.py`, `surveys/templates/edit_profile.html`, `surveys/views.py`, y el `git rm surveys/templates/payments.html` para el archivo eliminado
+
+## CAMBIO DE HERRAMIENTA: Jorge empieza a usar Claude Code
+A partir de este punto, Jorge va a trabajar con Claude Code (la app de escritorio) apuntando directo a la carpeta del repo (`C:\NormaIA-Pruebas\nom035`), en vez de copiar/pegar comandos y resultados entre la terminal y el chat de Claude.ai. Esto deberia agilizar mucho el trabajo, especialmente revisar diffs completos y archivos grandes sin las limitaciones de copiar/pegar por chat.
+
+El flujo de trabajo cambia ligeramente:
+- Claude Code puede leer archivos, correr comandos, y ver resultados directamente sin que Jorge tenga que copiar/pegar
+- Los principios siguen siendo los mismos: Jorge revisa y aprueba antes de cada commit/push, nunca se actua de forma completamente autonoma sin su confirmacion en pasos criticos (deploys, cambios de rama en Railway, merges)
+- La regla de NUNCA usar git add -A aplica igual, sin importar la herramienta usada para ejecutar los comandos
+- Verificar que Claude Code tambien tenga acceso de lectura a este ESTADO.md al iniciar, ya que es el puente de contexto entre sesiones (y ahora entre herramientas tambien)
+
+## PENDIENTE INMEDIATO PARA RETOMAR (con Claude Code o la cuenta que continue)
+1. Reimplementar Lote L en la rama limpia fix/lote-l-conekta (spec ya escrita, solo falta que Codex/Claude Code la aplique de nuevo)
+2. Al commitear: SOLO archivos explicitos, jamas git add -A, revisar git status antes de cada add
+3. Confirmar .gitignore cubre bien media/ y db_test.sqlite3 de forma robusta (no solo por casualidad)
+4. Decidir con Jorge si se contacta a soporte de GitHub por el incidente de exposicion breve
+5. Reevaluar prioridad de SEC-006 (PasswordRecover bypass) dado el incidente
+6. Una vez reimplementado y validado en staging: merge de fix/lote-l-conekta a auditoria-local, cambiar Source de Railway de vuelta si se habia cambiado
+7. INFRA-001 (Volume persistente Railway) sigue sin resolver
+8. CLM-INT-001, PN-01 a 06 -- pendientes Media/Baja sin atacar aun
+
+# ============================================================
+# LOTE L (Eliminacion de Conekta) — IMPLEMENTADO EN RAMA (sesion 14)
+# Fecha: 16 Jul 2026
+# ============================================================
+
+## RESULTADO: LOTE L COMPLETADO, PENDIENTE DE VALIDAR EN STAGING Y MERGE
+
+Rama: fix/lote-l-conekta (a partir de auditoria-local, recreada limpia tras el
+incidente de seguridad documentado en la sesion anterior). Implementado por
+Codex siguiendo LOTE_L_especificacion_conekta.md. Commit: a80c3aef.
+
+### Cambios implementados
+1. surveys/stripe_views.py — StripePortalView.get() ahora crea el customer de
+   Stripe al vuelo si userapp.stripe_customer_id esta vacio (mismo patron que
+   StripeCheckoutView), guarda el id, y ya no redirige nunca a /payments/
+   (ni en el flujo normal ni en el catch de error)
+2. surveys/views.py — eliminado por completo: import conekta, la llave de
+   API de PRODUCCION hardcodeada (key_qfCtN8NqwJRTTJR23wdcqA), get_price(),
+   PaymentView, PaymentList, AddCardList
+3. nom035/urls.py — eliminadas las rutas /payments/, /api/payments/,
+   /api/addCard/ (stripe_portal no se toco, sigue igual)
+4. surveys/templates/edit_profile.html — pestanas "Metodos de pago" y
+   "Mis pagos" reemplazadas por mensaje + boton a {% url 'stripe_portal' %};
+   eliminado el script de cdn.conekta.io y todos los handlers JS huerfanos
+   (toggleAddCard, submit-card, delete-card)
+5. surveys/templates/payments.html — archivo eliminado
+6. surveys/models.py — Userapp.client_id conservado (sin migracion), marcado
+   con comentario "# DEPRECATED - Conekta ya no se usa..."; eliminado el
+   bloque comentado ConektaWebhook (codigo muerto)
+7. requirements.txt — eliminada la linea conekta==6.0.4
+
+### Revision de diff (Claude, antes del commit)
+- Confirmado con grep que solo quedan referencias a "conekta" en el
+  comentario de deprecacion de models.py y en las migraciones historicas
+  0001/0010 (correcto, no se tocan por especificacion)
+- Tags Django balanceados en edit_profile.html (if/endif, block/endblock)
+- Sin referencias colgantes a payments.html, PaymentView, PaymentList,
+  AddCardList, /api/addCard/ en ningun otro archivo del repo
+- python -m py_compile OK en los 4 archivos .py tocados (verificado dos
+  veces, por Codex con Python 3.10 y de forma independiente por Claude)
+- Detalle cosmetico no bloqueante: StripePortalView usa return_url con
+  string hardcodeado "/edit_profile/" en el flujo normal pero
+  reverse('edit_profile') en el catch de error — ambos resuelven al mismo
+  lugar, es solo inconsistencia de estilo, no bug
+
+### HALLAZGO NUEVO SIN RELACION AL LOTE (anotado, no corregido)
+db.sqlite3 (raiz del repo) y toda la carpeta media/ (incluye PDFs reales de
+resultados de clientes) estan TRACKEADOS en git desde antes de esta sesion,
+y .gitignore no tiene *.sqlite3 ni media/. No es parte del incidente de
+seguridad ya documentado (no aparecio en git status, no fue agregado ahora),
+es contenido preexistente en el historial. PENDIENTE: decidir si se trata
+como un lote de remediacion aparte (limpieza de historial de git, dato
+sensible de clientes reales expuesto si el repo alguna vez fue o vuelve a
+ser publico).
+
+## PENDIENTE INMEDIATO
+1. Validar en staging: iniciar sesion con cuenta SIN stripe_customer_id
+   previo, click en "Metodos de pago", confirmar que crea el customer de
+   Stripe al vuelo y redirige al Portal sin caer en 404 ni en /payments/
+2. Confirmar visualmente que ambas pestanas de edit_profile.html se ven
+   correctas sin resto visual del formulario viejo de tarjetas
+3. Confirmar que /payments/, /api/payments/ y /api/addCard/ devuelven 404
+4. Decidir si se hace merge de fix/lote-l-conekta a auditoria-local ahora
+   o se espera a acumular mas lotes
+5. Nuevo pendiente (no bloqueante para este lote): evaluar lote de limpieza
+   para db.sqlite3/media/ trackeados en git (ver hallazgo arriba)
+
+## VALIDACION EN STAGING COMPLETADA — LOTE L CERRADO (sesion 14, cont.)
+Fecha: 17 Jul 2026
+
+Validado por Claude en nom035-staging.up.railway.app con la cuenta pruebaB@test.com
+(sin stripe_customer_id previo):
+
+1. Deploy limpio tras git push origin fix/lote-l-conekta (commits a80c3aef, badc3558) --
+   NOTA IMPORTANTE: el primer intento de validacion fallo porque se habia cambiado el
+   Source de Railway a la rama SIN empujar los commits a GitHub primero -- Railway seguia
+   sirviendo la version vieja (con Conekta activo). LECCION: siempre confirmar
+   `git log origin/<rama>` coincide con local antes de asumir que un cambio de Source
+   en Railway ya refleja el ultimo commit.
+2. /payments/, /api/payments/, /api/addCard/ -- los 3 devuelven 404 (confirmado con
+   fetch({redirect:'manual'/'follow'}) desde el navegador, no solo visualmente)
+3. edit_profile.html -- pestanas "Metodos de pago" y "Mis pagos" confirmadas sin ningun
+   resto visual del formulario viejo de tarjetas, ambas con link a stripe_portal
+4. Flujo completo probado: login sin stripe_customer_id -> click "Metodos de pago" ->
+   StripePortalView crea el customer de Stripe al vuelo -> redirige correctamente a
+   billing.stripe.com con el Portal real (metodo de pago, datos de facturacion con el
+   email correcto, historial de facturas) -- sin caer en 404 ni en /payments/
+
+## LOTE L: COMPLETADO Y VALIDADO EN STAGING -- LISTO PARA MERGE A auditoria-local

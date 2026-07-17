@@ -39,10 +39,7 @@ from math import ceil
 from django.template.loader import get_template
 from django.core.mail import EmailMultiAlternatives
 
-import logging, requests,uuid, conekta,time,os,base64,json
-conekta.api_key="key_qfCtN8NqwJRTTJR23wdcqA"
-conekta.api_version = "2.0.0"
-conekta.locale="es"
+import logging, requests,uuid,time,os,base64,json
 
 import stripe
 
@@ -142,32 +139,6 @@ def send_mail(to_emails,ctx,template='email-template.html',subject='Tu registro 
 	msg.attach_alternative(html_content, "text/html")
 	return msg.send()
 
-def get_price(workplace):
-	workplace_type=workplace.survey_type()
-	if workplace.employee_num>=1 and workplace.employee_num<=5:
-		product=Product.objects.filter(id=6)
-		base_emp=5
-		type_price=750
-	elif workplace.employee_num>=6 and workplace.employee_num<=15:
-		product=Product.objects.filter(id=1)
-		base_emp=6
-		type_price=750
-	elif workplace.employee_num>=16 and workplace.employee_num<=50:
-		product=Product.objects.filter(id=2)
-		base_emp=16
-		type_price=700
-	elif workplace.employee_num>50:
-		base_emp=51
-		type_price=650
-		product=Product.objects.filter(id=3)
-	price=None
-	if product:
-		base_price=product.last().price
-		if product.last().id==6:
-			price=base_price
-		else:
-			price=base_price+((workplace.employee_num-base_emp)*type_price)
-	return price
 class TACView(View):
 	def get(self, request, *args, **kwargs):
 		return render(request, 'tyc.html')
@@ -284,26 +255,6 @@ class Index(LoginRequiredMixin,View):
 			ctx['psico_plan_activo']=None
 		return render(request, 'index.html',ctx)
 		
-class PaymentView(LoginRequiredMixin,View):
-	login_url = reverse_lazy('login')
-	redirect_field_name = 'redirect_to'
-	def get(self, request, *args, **kwargs):
-		ctx={"workplaces":[{"id":item.id,"name":item.name,"employee_count":item.employee_num
-		} for item in Workplace.objects.filter(user_id=self.request.user.id)]}
-		ctx['workplaces_available']=request.user.userapp.workplaces_available
-		ctx["cards"]=[{"last4":item.last4,"exp_month":item.exp_month,"exp_year":item.exp_year,
-			"brand":item.brand,"name":item.name,"card_token":item.card_token
-			} for item in PaymentCard.objects.filter(user_id=self.request.user.id)]
-		ctx['productA']=[{'name':item.name,'desc':item.description,'price':item.price}for item in Product.objects.filter(id=1)][0]
-		ctx['productB']=[{'name':item.name,'desc':item.description,'price':item.price}for item in Product.objects.filter(id=2)][0]
-		ctx['productC']=[{'name':item.name,'desc':item.description,'price':item.price}for item in Product.objects.filter(id=3)][0]
-		ctx['productD']=[{'name':item.name,'desc':item.description,'price':item.price}for item in Product.objects.filter(id=4)][0]
-		ctx['workplaces']=[{"id":item.id,"type":item.survey_type(),"name":item.name,
-		"emp_num":item.employee_num,"address":item.address,"business":item.user.userapp.name,
-		"total_price":get_price(item)} for item in Workplace.objects.filter(user_id=self.request.user.id,paid=False)]
-
-		return render(request, 'payments.html',ctx)
-	
 class SaveAnswers(generics.GenericAPIView):
 	serializer_class = WorkplaceSerializer
 	def post(self, request, *args, **kwargs):
@@ -2417,180 +2368,6 @@ class PDFCreate(APIView):
 			# 	response=f"https://035.ihes.mx/files/tmp/{self.request.user.id}/{template}.pdf"
 		return Response({"pdf":f"https://035.ihes.mx/files/tmp/{self.request.user.id}/{template}.pdf"})
 
-class PaymentList(generics.ListCreateAPIView):
-	serializer_class = PaymentSerializer
-	permission_classes = (IsAuthenticated,)
-	authentication_classes = (TokenAuthentication,SessionAuthentication)
-	def get(self,request):
-		pass
-	def post(self, request):
-		prods=[]
-		card=None
-		print(request.data)
-		if 'card_token' in request.data:
-			card=PaymentCard.objects.filter(card_token=request.data['card_token']).last()
-			if not card:
-				return Response("No has seleccionado una tarjeta", status=status.HTTP_400_BAD_REQUEST)
-		else:
-			return Response("No has seleccionado una tarjeta", status=status.HTTP_400_BAD_REQUEST)
-		# if 'employee_num' in request.data:
-		# 	if request.data['employee_num']!=0:
-		# 		choices=((0,'1 a 15 empleados'),(1,'16 a 50 empleados'),(2,'Más de 50 empleados'))
-		# 		if request.data['employee_num']>=1 and request.data['employee_num']<=5:
-		# 			prod= Product.objects.get(id=6)
-		# 		elif request.data['employee_num']>=6 and request.data['employee_num']<=15:
-		# 			prod= Product.objects.get(id=1)
-		# 		elif request.data['employee_num']>=16 and request.data['employee_num']<=50:
-		# 			prod= Product.objects.get(id=2)
-		# 		elif request.data['employee_num']>=51 and request.data['employee_num']<=100:
-		# 			prod= Product.objects.get(id=3)
-		# 		elif request.data['employee_num']>100:
-		# 			prod= Product.objects.get(id=4)
-		# 		prods.append({'name':prod.name, 'unit_price': prod.price*100,'quantity':request.data['employee_num']} )
-		# if 'workplace_a' in request.data:
-		# 	if request.data['workplace_a']!=0:
-		# 		prod= Product.objects.get(id=1)
-		# 		prods.append({'name':prod.name, 'unit_price': prod.price*100,'quantity':request.data['workplace_a']} )
-		# if 'workplace_b' in request.data:
-		# 	if request.data['workplace_b']!=0:
-		# 		prod= Product.objects.get(id=2)
-		# 		prods.append({'name':prod.name, 'unit_price': prod.price*100,'quantity':request.data['workplace_b']} )
-		# if 'workplace_c' in request.data:
-		# 	if request.data['workplace_c']!=0:
-		# 		prod= Product.objects.get(id=3)
-		# 		prods.append({'name':prod.name, 'unit_price': prod.price*100,'quantity':request.data['workplace_c']} )
-		_total=0
-		if 'workplaces' in request.data:
-			for item in request.data['workplaces']:
-				if isinstance(item,dict):
-					item=list(item.values())
-				p_.error(item)
-				workplace=Workplace.objects.filter(id=item[0]).last()
-				if not workplace:
-					p_.error("no workplace")
-					return Response("Ha ocurrido un error", status=status.HTTP_400_BAD_REQUEST)
-				price=get_price(workplace)
-				_total=_total+price
-				if price!=int(item[1]):
-					p_.error(f"{price}--{item[1]}")
-					p_.error("bad price")
-					return Response("Ha ocurrido un error", status=status.HTTP_400_BAD_REQUEST)
-				prods.append({'name':workplace.name, 'unit_price': price*100,'quantity':1} )
-		user=Userapp.objects.filter(user_id=request.data['user']).last()
-		if card.user!=user.user:
-			p_.error("bad user")
-			return Response("Ha ocurrido un error", status=status.HTTP_400_BAD_REQUEST)
-		order=None
-		if len(request.data['workplaces'])==0:
-			p_.error("bad workplaces length")
-			return Response("Ha ocurrido un error", status=status.HTTP_400_BAD_REQUEST)
-		else:
-			try:
-
-				customer = conekta.Customer.find(user.client_id)
-				src=""
-				for source in customer.payment_sources:
-					if source.id==card.card_token:
-						src=source.id
-				if src!="":
-					customer.update({'default_payment_source_id': src})
-				else:
-					return Response("Ha ocurrido un error", status=status.HTTP_400_BAD_REQUEST)
-				order_data={
-					"currency": "MXN",
-					"customer_info": {
-						"customer_id": user.client_id
-					},
-					"line_items": prods,
-					"charges": [{
-						"payment_method": {
-							"type": "default",
-						}
-					}]
-				}
-				print(order_data)
-				order = conekta.Order.create(order_data)
-			except conekta.ConektaError as e:
-				# print(f'Pago fallido {e} {user.user.username}')
-				print(f'Pago fallido {e.message} {user.user.username}')
-				if isinstance(e, conekta.ParameterValidationError):
-					return Response("No se ha podido procesar la tarjeta, intente de nuevo.", status=status.HTTP_422_UNPROCESSABLE_ENTITY)
-				print(conekta.ParameterValidationError)
-				print(conekta.ProcessingError)
-				if isinstance(e, conekta.ProcessingError):
-					return Response("Su pago no ha podido ser completado, consulte a su banco o intente de nuevo.", status=status.HTTP_402_PAYMENT_REQUIRED)
-
-				# print (conekta.getConektaMessage())
-		if order is not None:
-			# 	if request.data['payment_method']=='spei':
-			# 		r_data["is_paid"]=f"CLABE: {order.charges[0].payment_method.receiving_account_number} - Banco: {order.charges[0].payment_method.receiving_account_bank}"
-			# 	elif request.data['payment_method']=='oxxo_cash':
-			# 		r_data["is_paid"]=order.charges[0].payment_method.reference
-			# 	elif request.data['payment_method']=='card':
-			# 		r_data["is_paid"]=None
-			r_data={"user":user.user.id,
-				"payment_id":order.id,
-				"is_paid":"",
-				"payer_email":user.user.email}
-			serializer = PaymentSerializer(data=r_data)
-			if serializer.is_valid():
-				payment=serializer.save()
-				email_list=[]
-				for item in request.data['workplaces']:
-					if isinstance(item,dict):
-						item=list(item.values())
-					workplace=Workplace.objects.filter(id=item[0]).last()
-					if workplace.employee_num>=1 and workplace.employee_num<=5:
-						prod=6
-					elif workplace.employee_num>=6 and workplace.employee_num<=15:
-						prod=1
-					elif workplace.employee_num>=16 and workplace.employee_num<=50:
-						prod=2
-					elif workplace.employee_num>=51 and workplace.employee_num<=100:
-						prod=3
-					elif workplace.employee_num>100:
-						prod=4
-					workplace.paid=True
-					workplace.save()
-					email_list.append({"name":workplace.name,"price":get_price(workplace),"emp_num":workplace.employee_num})
-					prodA=PurchasedProducts.objects.create(**{"product_id":prod,
-						"workplace":workplace,
-						"payment":payment,
-						"payment_method":card,
-						"quantity":1,})
-				# if 'workplace_b' in request.data:
-				# 	if request.data["workplace_b"]!=0:
-				# 		B={"product_id":2,
-				# 		"payment":payment,
-				# 		"payment_method":card,
-				# 		"quantity":request.data['workplace_b'],}
-				# 		prodB=PurchasedProducts.objects.create(**B)
-				# 		user.workplaces_availableB=user.workplaces_availableB+int(request.data['workplace_b'])
-				# 		user.save()
-				# if 'workplace_c' in request.data:
-				# 	if request.data["workplace_c"]!=0:
-				# 		C={"product_id":3,
-				# 		"payment":payment,
-				# 		"payment_method":card,
-				# 		"quantity":request.data['workplace_c'],}
-				# 		prodB=PurchasedProducts.objects.create(**C)
-				# 		user.workplaces_availableC=user.workplaces_availableC+int(request.data['workplace_c'])
-				# 		user.save()
-				ctx={"username":user.user.username,"phone":user.phone,"email":user.user.email,"name":user.name,"title":"Gracias por tu compra.","payment_id":payment.payment_id, "workplaces":email_list,
-					"type":"payment_confirmed","date_today":datetime.now().strftime('%d/%m/%Y')}
-				send_mail([user.user.email,"erick.fcm.0@gmail.com"],ctx=ctx,template="register-template.html",subject="Gracias por tu compra en IHES")
-			
-				return Response({"user":user.user.id,
-				"payment_id":order.id,
-				"total":_total,
-				"last4":card.last4,
-				"card_name":card.name,
-				"payer_email":user.user.email}, status=status.HTTP_201_CREATED)
-			else:
-				return Response({'errors':serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-		# p_.error("error 2")
-		return Response({'errors':serializer_errors}, status=status.HTTP_400_BAD_REQUEST)
-
 class EndEvaluation(APIView):
 	http_method_names = ['get',]
 	permission_classes = (IsAuthenticated,)
@@ -2607,72 +2384,6 @@ class EndEvaluation(APIView):
 			return Response({'status':'ok'})
 		except Exception as e:
 			return Response({'status':'error', 'error':f"error::{e}"})
-class AddCardList(APIView):
-	serializer_class = CardSerializer
-	http_method_names = ['get', 'post', 'delete']
-	permission_classes = (IsAuthenticated,)
-	authentication_classes = (TokenAuthentication,SessionAuthentication)
-	def get_queryset(self):
-		if 'user' in self.request.query_params:
-			queryset = PaymentCard.objects.filter(user_id=self.request.query_params['user'])
-		else:
-			queryset = PaymentCard.objects.none()
-		return queryset
-	def get(self, request, format=None):
-		serializer = self.serializer_class(self.get_queryset(), many=True)
-		return Response(serializer.data)
-	def post(self, request):
-		# data=request.data.copy()
-		token=request.data['card_token']
-		user= request.user
-		if user.userapp.client_id is None:
-			#crear cliente en conecta
-			try:
-				user_data={'name': user.userapp.name,
-					'email':user.email,'phone': user.userapp.phone,
-					'payment_sources': [{'token_id':token,'type': 'card',}]}
-				print(user_data)
-				customer = conekta.Customer.create(user_data)
-			except conekta.ConektaError as e:
-				return Response(e.message, status=status.HTTP_400_BAD_REQUEST)
-			source = customer.payment_sources[len(customer.payment_sources)-1]
-			customer.update({'default_payment_source_id': source.id})
-			user.userapp.client_id=customer.id
-			user.userapp.save()
-		else:
-			customer = conekta.Customer.find(user.userapp.client_id)
-			source = customer.createPaymentSource({"type": "card","token_id":token,})
-			# source = customer.payment_sources[len(customer.payment_sources)-1]
-			customer.update({'default_payment_source_id': source.id})
-		# customer.delete()
-		data={"user":user.id,"last4":source.last4,
-			"exp_month":source.exp_month,"exp_year":source.exp_year,
-			"brand":source.brand,"name":source.name,"card_token":source.id,
-		}
-		serializer=CardSerializer(data=data)
-		if serializer.is_valid():
-			serializer.save()
-			return Response(data, status=status.HTTP_201_CREATED)
-		print(serializer.errors)
-		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-	def delete(self, request):
-		# data=request.data.copy()
-		token=request.data['card_token']
-		user= request.user
-		if user.userapp.client_id is not None:
-			customer = conekta.Customer.find(user.userapp.client_id)
-			sources = customer.payment_sources
-			for source in sources:
-				if source.id==token:
-					source.delete()
-					user_cards=user.user_cards.filter(card_token=token)
-					for card in user_cards:
-						card.delete()
-					return Response("ok", status=200)
-				print(source.id)
-				print(token)
-			return Response("No se encontró la tarjeta", status=status.HTTP_400_BAD_REQUEST)
-		return Response("Ocurrió un error intenta de nuevo", status=status.HTTP_400_BAD_REQUEST)
 # Views Web Page
 class WebIndex(View):
 	def get(self, request, *args, **kwargs):
