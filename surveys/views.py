@@ -763,24 +763,34 @@ class PasswordRecover(View):
 			else:
 				messages.success(request, "email_error")
 				# messages.success(request, "not_user_found")
-		elif "new_password1" in request.POST and "new_password1" in request.POST and "user-email" in request.POST:
-			email=request.POST.get('user-email','')
-			if email!="":
-				user=User.objects.filter(username=email).last()
-				if user:
-					form =SetPasswordForm(user,request.POST)
-					if form.is_valid():
-						f=form.save()
-						messages.success(request, "password_recovered")
-					else:
-						print(form.errors)
-						messages.success(request, "form_error")
+		elif "new_password1" in request.POST and "new_password2" in request.POST:
+			valid_code=False
+			user=None
+			if 'code' in kwargs and 'iv' in kwargs:
+				code=f"0x{kwargs['code']}"
+				iv=f"0x{kwargs['iv']}"
+				try:
+					text=decript(hex(int(code, 16))[2:],hex(int(iv, 16))[2:])
+					data=text.decode().split('<->')
+					if datetime.now()<(datetime.fromtimestamp(float(data[1]))+timedelta(hours=1)):
+						userapp=Userapp.objects.filter(user_id=data[0],record_create=datetime.fromtimestamp(float(data[2]))).last()
+						if userapp:
+							valid_code=True
+							user=userapp.user
+				except:
+					valid_code=False
+			if valid_code and user:
+				form =SetPasswordForm(user,request.POST)
+				if form.is_valid():
+					f=form.save()
+					messages.success(request, "password_recovered")
 				else:
-					messages.success(request, "error_changing_pass")
+					print(form.errors)
+					messages.success(request, "form_error")
 			else:
 				messages.success(request, "error_changing_pass")
 			ct["send_mail"]=False
-			ct["valid_code"]=True
+			ct["valid_code"]=valid_code
 		else:
 			messages.success(request, "email_not_provided")
 		return render(request, 'password_recover.html',ct)
