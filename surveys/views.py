@@ -132,7 +132,7 @@ def download_evidencia_fase_c(request, evidencia_id):
 	return FileResponse(open(evidencia.archivo.path, 'rb'))
 
 def send_mail(to_emails,ctx,template='email-template.html',subject='Tu registro a nuestra plataforma IHES 035 está completo',text_content='Gracias por tu registro con nosotros.'):
-	from_email='IHES <n035.ihes@gmail.com>'
+	from_email=f'NormaIA <{settings.DEFAULT_FROM_EMAIL}>'
 	htmly=get_template(template)
 	html_content=htmly.render(ctx)
 	msg=EmailMultiAlternatives(subject, text_content, from_email, to_emails)
@@ -700,7 +700,8 @@ class EmailVerification(View):
 					try:
 						send_mail([user],ctx=ctx,template="register-template.html",subject="Verificación de Correo IHES")
 						messages.success(request, "email_sent")
-					except:
+					except Exception as e:
+						p_.error(f"Error enviando correo de verificacion a {user.email}: {e}")
 						messages.success(request, "email_error")
 				else:
 					messages.success(request, "already_valid")
@@ -758,7 +759,8 @@ class PasswordRecover(View):
 					# print(iv)
 					send_mail([user],ctx=ctx,template="register-template.html",subject="Recuperación de contraseña IHES")
 					messages.success(request, "email_sent")
-				except:
+				except Exception as e:
+					p_.error(f"Error enviando correo de recuperacion a {user.email}: {e}")
 					messages.success(request, "email_error")
 			else:
 				messages.success(request, "email_error")
