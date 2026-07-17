@@ -5,3 +5,4 @@ __pycache__/
 
 # QA/testing suite local de Jorge - no debe subirse al repo
 qa_tests/
+venv/

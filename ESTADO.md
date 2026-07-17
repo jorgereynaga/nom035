@@ -50,6 +50,19 @@
 - **BUG que rompió el primer deploy (ya resuelto):** `InstrumentosCatalogoView` se creó en psico_views.py pero no se agregó al import explícito en nom035/urls.py (línea 24-27, `from surveys.psico_views import (...)`) → NameError en Railway al arrancar (migrate/gunicorn crasheaban en loop). Fix: agregar `InstrumentosCatalogoView` a esa lista de imports. Commit y push separados, deploy confirmado exitoso (gunicorn arriba, sin errores)
 - **Nota técnica:** el log de Railway mostró advertencia "models in app(s) 'surveys' have changes not yet reflected in a migration" — viene de agregar 2 choices nuevos ('competencias', 'comercial') a PsychoInstrument.TIPOS. Como es un CharField con choices (no cambia tipo/tamaño de columna), no debería requerir migración real, pero queda pendiente confirmar/generar la migración manual si se decide ser estrictos con esto
 
+### Link "¿Olvidaste tu contraseña?" en auth-login.html — COMPLETADO ✅ (rama auditoria-local)
+- `surveys/templates/auth-login.html` línea 207: `href="/forgot-password/"` (URL inexistente en nom035/urls.py, 404) → `href="{% url 'password_recover' %}"`, que resuelve a la ruta real `path('password_recover', PasswordRecover.as_view(), name='password_recover')`
+- Confirmado visualmente con servidor local: clic en el link ya no da 404, carga correctamente la página "Recuperar contraseña" (formulario de email + botón "Enviar correo de recuperación")
+- No requirió tocar views.py ni urls.py, cambio de una sola línea en el template
+
+### Venv local reconstruido (worktree C:\NormaIA-Pruebas\nom035) — para no repetir la investigación
+- Problema encontrado: `venv/Scripts/` existía pero estaba vacío (sin python.exe, pip.exe, activate) — venv corrupto, imposible levantar el servidor Django para pruebas visuales
+- El sistema tiene Python 3.14 instalado (además del stub roto de Microsoft Store), pero Django 3.2 NO es compatible con Python 3.14 — hay que usar 3.10
+- Solución: `py -3.10 -m venv venv` (lanzador `py` de Windows, seleccionando explícitamente 3.10.11) en vez de `python -m venv venv` a secas, que habría tomado la versión equivocada
+- Después de recrear el venv, Git Bash seguía apuntando al python.exe viejo (cacheado) — hubo que correr `hash -r` para que bash resolviera de nuevo la ruta y encontrara el binario nuevo
+- Ruta final correcta del intérprete: `C:\NormaIA-Pruebas\nom035\venv\Scripts\python.exe`
+- `requirements.txt` se instaló limpio sin errores en el venv reconstruido; se confirmó que ya no incluye `conekta` (retirado en el Lote L)
+
 ### Sidebar — link "Evaluaciones" corregido en todos los templates — COMPLETADO Y DESPLEGADO ✅ (sesión 10, parte 2)
 - Antes: "Evaluaciones" apuntaba a `{% url 'candidatos' %}` (duplicado con "Candidatos") en index.html, o a `href="#"` (no hacía nada) en psico_candidatos.html, psico_candidato_detalle.html y psico_instrumentos.html
 - Fix aplicado en los 4 templates via content.replace() con marcadores verificados (content.count()==1 antes de escribir):
