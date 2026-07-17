@@ -1139,12 +1139,17 @@ class SurveyView(View):
 def employees_dt(request,workplace_id,t,evaluation):
 	if not Workplace.objects.filter(id=workplace_id, user=request.user).exists():
 		return JsonResponse({'draw':0,'recordsTotal':0,'recordsFiltered':0,'data':[]}, status=403)
-	draw = int(request.GET.get('draw'))
-	start = int(request.GET.get('start'))
-	length = int(request.GET.get('length'))
+	try:
+		draw = int(request.GET.get('draw'))
+		start = int(request.GET.get('start'))
+		length = int(request.GET.get('length'))
+		order = int(request.GET.get('order[0][column]'))
+	except (TypeError, ValueError):
+		return JsonResponse({'draw':0,'recordsTotal':0,'recordsFiltered':0,'data':[]}, status=400)
+	if length <= 0:
+		return JsonResponse({'draw':0,'recordsTotal':0,'recordsFiltered':0,'data':[]}, status=400)
 	search = request.GET.get('search[value]')
 	order_direction=request.GET.get('order[0][dir]')
-	order=int(request.GET.get('order[0][column]'))
 	query= Employee.objects.filter(workplace_id=workplace_id).order_by('-record_create')
 	if not query:
 		return JsonResponse({'draw':draw,'recordsTotal':0,'recordsFiltered':0,'data':[],})
@@ -1153,7 +1158,7 @@ def employees_dt(request,workplace_id,t,evaluation):
 	records_total = query.count()
 	records_filtered = records_total
 	ordering={0:"name",1:"gender",2:"ocupation",3:"department"}
-	if order>3:
+	if order not in ordering:
 		order=0
 	order_direction='' if order_direction=='asc' else '-'
 	if search:
@@ -1162,7 +1167,7 @@ def employees_dt(request,workplace_id,t,evaluation):
 		records_filtered = records_total
 	if not query.exists():
 		return JsonResponse({'draw':draw,'recordsTotal':records_total,'recordsFiltered':records_filtered,'data':[],})
-	page=(start/length)+1
+	page=(start//length)+1
 	paginator = Paginator(query.order_by("{}{}".format(order_direction, ordering[order])), length)
 	try:
 		workplaces = paginator.page(page).object_list
