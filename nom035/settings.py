@@ -190,12 +190,16 @@ DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default=EMAIL_HOST_USER)
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
+# PERSISTENT_STORAGE_ROOT: en Railway apunta al mount path del Volume (ej. /data),
+# para que MEDIA_ROOT y PROTECTED_MEDIA_ROOT sobrevivan a los redeploys. Default=BASE_DIR
+# preserva el comportamiento actual en cualquier ambiente sin la variable configurada.
+PERSISTENT_STORAGE_ROOT = config('PERSISTENT_STORAGE_ROOT', default=BASE_DIR)
+MEDIA_ROOT = os.path.join(PERSISTENT_STORAGE_ROOT, 'media/')
 MEDIA_URL = '/media/'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static/'),
 ]
-PROTECTED_MEDIA_ROOT=os.path.join(BASE_DIR, 'files')
+PROTECTED_MEDIA_ROOT=os.path.join(PERSISTENT_STORAGE_ROOT, 'files')
 STATIC_ROOT = "/static/"
 STATIC_URL = '/static/'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
