@@ -1,6 +1,8 @@
 import uuid
+import logging
 from datetime import timedelta
 from django.utils import timezone
+from django.utils.dateparse import parse_datetime
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views import View
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -10,6 +12,8 @@ from .models import Candidate, TestSession, PsychoInstrument, TestResponse, Test
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 import json
+
+p_ = logging.getLogger(__name__)
 
 
 class CandidateListView(LoginRequiredMixin, View):
@@ -434,6 +438,9 @@ class TestResultView(LoginRequiredMixin, View):
 
 class GenerarPerfilNarrativoView(LoginRequiredMixin, View):
     login_url = reverse_lazy('login')
+    MAX_REGENERACIONES = 5
+    COOLDOWN_SEGUNDOS = 60
+    MODELO_IA = 'claude-haiku-4-5-20251001'
 
     def post(self, request, session_id):
         import os
@@ -446,37 +453,55 @@ class GenerarPerfilNarrativoView(LoginRequiredMixin, View):
             status='completada'
         )
         result = get_object_or_404(TestResult, session=session)
+        historial = result.perfil_narrativo_historial or []
+        if len(historial) >= self.MAX_REGENERACIONES:
+            return JsonResponse(
+                {'error': 'Se alcanzó el límite de regeneraciones para este perfil.'},
+                status=429
+            )
+        if historial:
+            ultimo_timestamp = parse_datetime(historial[-1].get('timestamp', ''))
+            if ultimo_timestamp is not None:
+                if timezone.is_naive(ultimo_timestamp):
+                    ultimo_timestamp = timezone.make_aware(ultimo_timestamp)
+                segundos_desde_ultima_generacion = (
+                    timezone.now() - ultimo_timestamp
+                ).total_seconds()
+                if segundos_desde_ultima_generacion < self.COOLDOWN_SEGUNDOS:
+                    return JsonResponse(
+                        {'error': 'Espera un momento antes de generar el perfil de nuevo.'},
+                        status=429
+                    )
         scores = result.scores
         tipo = session.instrumento.tipo
-        candidato = session.candidate.nombre
         puesto = session.candidate.puesto or 'no especificado'
         if tipo == 'disc':
             dominante = max(scores, key=scores.get)
             nombres = {'D': 'Dominancia', 'I': 'Influencia', 'S': 'Estabilidad', 'C': 'Cumplimiento'}
             detalle = ', '.join([f"{nombres[k]}: {v}" for k, v in scores.items()])
-            prompt = f"Eres un psicologo organizacional experto en evaluaciones de personal para empresas mexicanas. Genera un perfil narrativo profesional para Recursos Humanos sobre el candidato {candidato} que aplica al puesto de {puesto}. Resultados DISC: {detalle}. Dimension dominante: {nombres[dominante]}. Escribe 3 parrafos: 1) Perfil general, 2) Fortalezas laborales, 3) Areas de desarrollo y recomendacion. Tono profesional, objetivo, tercera persona. Sin numeros ni porcentajes."
+            prompt = f"Eres un psicologo organizacional experto en evaluaciones de personal para empresas mexicanas. Genera un perfil narrativo profesional para Recursos Humanos sobre un candidato que aplica al puesto de {puesto}. Resultados DISC: {detalle}. Dimension dominante: {nombres[dominante]}. Escribe 3 parrafos: 1) Perfil general, 2) Fortalezas laborales, 3) Areas de desarrollo y recomendacion. Tono profesional, objetivo, tercera persona. Sin numeros ni porcentajes."
         elif tipo == 'moss':
             total = scores.get('total', 0)
             pct = round((total / 90) * 100)
-            prompt = f"Eres un psicologo organizacional experto en evaluaciones de personal para empresas mexicanas. Genera un perfil narrativo profesional para Recursos Humanos sobre el candidato {candidato} que aplica al puesto de {puesto}. Test Moss: {pct}% de habilidades de supervision. Escribe 2 parrafos: 1) Nivel de liderazgo y supervision, 2) Recomendacion para puestos de gestion. Tono profesional, objetivo, tercera persona."
+            prompt = f"Eres un psicologo organizacional experto en evaluaciones de personal para empresas mexicanas. Genera un perfil narrativo profesional para Recursos Humanos sobre un candidato que aplica al puesto de {puesto}. Test Moss: {pct}% de habilidades de supervision. Escribe 2 parrafos: 1) Nivel de liderazgo y supervision, 2) Recomendacion para puestos de gestion. Tono profesional, objetivo, tercera persona."
         elif tipo == 'raven':
             pct = scores.get('porcentaje', 0)
-            prompt = f"Eres un psicologo organizacional experto en evaluaciones de personal para empresas mexicanas. Genera un perfil narrativo profesional para Recursos Humanos sobre el candidato {candidato} que aplica al puesto de {puesto}. Test Raven: percentil {pct}%. Escribe 2 parrafos: 1) Aptitud intelectual y aprendizaje, 2) Recomendacion segun el puesto. Tono profesional, objetivo, tercera persona."
+            prompt = f"Eres un psicologo organizacional experto en evaluaciones de personal para empresas mexicanas. Genera un perfil narrativo profesional para Recursos Humanos sobre un candidato que aplica al puesto de {puesto}. Test Raven: percentil {pct}%. Escribe 2 parrafos: 1) Aptitud intelectual y aprendizaje, 2) Recomendacion segun el puesto. Tono profesional, objetivo, tercera persona."
         elif tipo == 'zavic':
             escalas = {'M': 'Moral', 'L': 'Legal', 'I': 'Indiferente', 'C': 'Corrupcion'}
             detalle = ', '.join([f"{escalas[k]}: {v}" for k, v in scores.items()])
             alerta = scores.get('C', 0) > scores.get('M', 0)
             alerta_txt = 'IMPORTANTE: El indice de Corrupcion supera al de Moral.' if alerta else ''
-            prompt = f"Eres un psicologo organizacional experto en evaluaciones de personal para empresas mexicanas. Genera un perfil narrativo profesional para Recursos Humanos sobre el candidato {candidato} que aplica al puesto de {puesto}. Test Zavic: {detalle}. {alerta_txt} Escribe 2 parrafos: 1) Perfil de valores e integridad, 2) Compatibilidad con la cultura organizacional. Tono profesional, objetivo, tercera persona."
+            prompt = f"Eres un psicologo organizacional experto en evaluaciones de personal para empresas mexicanas. Genera un perfil narrativo profesional para Recursos Humanos sobre un candidato que aplica al puesto de {puesto}. Test Zavic: {detalle}. {alerta_txt} Escribe 2 parrafos: 1) Perfil de valores e integridad, 2) Compatibilidad con la cultura organizacional. Tono profesional, objetivo, tercera persona."
         elif tipo in ('competencias', 'comercial'):
             nombre_inst = 'Competencias Laborales' if tipo == 'competencias' else 'Perfil Comercial y Servicio al Cliente'
             detalle = ', '.join([f"{k}: {v}/25" for k, v in scores.items()])
-            prompt = f"Eres un psicologo organizacional experto en evaluaciones de personal para empresas mexicanas. Genera un perfil narrativo profesional para Recursos Humanos sobre el candidato {candidato} que aplica al puesto de {puesto}. Resultados de {nombre_inst} (escala 0-25 por dimension): {detalle}. Escribe 3 parrafos: 1) Perfil general de competencias, 2) Fortalezas destacadas, 3) Areas de desarrollo y recomendacion. Tono profesional, objetivo, tercera persona. Sin numeros ni porcentajes."
+            prompt = f"Eres un psicologo organizacional experto en evaluaciones de personal para empresas mexicanas. Genera un perfil narrativo profesional para Recursos Humanos sobre un candidato que aplica al puesto de {puesto}. Resultados de {nombre_inst} (escala 0-25 por dimension): {detalle}. Escribe 3 parrafos: 1) Perfil general de competencias, 2) Fortalezas destacadas, 3) Areas de desarrollo y recomendacion. Tono profesional, objetivo, tercera persona. Sin numeros ni porcentajes."
         else:
             return JsonResponse({'error': 'Instrumento no soportado'}, status=400)
         api_key = os.environ.get('ANTHROPIC_API_KEY', '')
         payload = json.dumps({
-            'model': 'claude-haiku-4-5-20251001',
+            'model': self.MODELO_IA,
             'max_tokens': 600,
             'messages': [{'role': 'user', 'content': prompt}]
         }).encode('utf-8')
@@ -494,11 +519,28 @@ class GenerarPerfilNarrativoView(LoginRequiredMixin, View):
             with urllib.request.urlopen(req, timeout=30) as resp:
                 data = json.loads(resp.read().decode('utf-8'))
                 texto = data["content"][0]["text"]
+                if not isinstance(texto, str) or not texto.strip():
+                    return JsonResponse(
+                        {'error': 'El proveedor de IA devolvió una respuesta vacía, intenta de nuevo.'},
+                        status=502
+                    )
                 result.perfil_narrativo = texto
+                if not result.perfil_narrativo_historial:
+                    result.perfil_narrativo_historial = []
+                result.perfil_narrativo_historial.append({
+                    'texto': texto,
+                    'timestamp': timezone.now().isoformat(),
+                    'usuario_id': request.user.id,
+                    'modelo': self.MODELO_IA,
+                })
                 result.save()
                 return JsonResponse({'perfil': texto})
         except Exception as e:
-            return JsonResponse({'error': str(e)}, status=500)
+            p_.error(f"Error generando perfil narrativo para session_id={session_id}: {e}")
+            return JsonResponse(
+                {'error': 'No se pudo generar el perfil narrativo, intenta de nuevo más tarde.'},
+                status=500
+            )
 
 
 class ReporteUnificadoView(LoginRequiredMixin, View):

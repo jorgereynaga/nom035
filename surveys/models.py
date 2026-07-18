@@ -622,6 +622,7 @@ class TestResult(models.Model):
 	scores = models.JSONField(u'Puntuaciones (JSON)', default=dict)
 	interpretacion = models.TextField(u'Interpretación', blank=True)
 	perfil_narrativo = models.TextField(u'Perfil narrativo (IA)', blank=True)
+	perfil_narrativo_historial = models.JSONField(u'Historial de perfiles narrativos (IA)', default=list)
 	record_create = models.DateTimeField(auto_now_add=True)
 
 	def __str__(self):
