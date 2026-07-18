@@ -1342,3 +1342,37 @@ fix/lote-s-credenciales-en-logs, pusheada, pendiente de merge.
 
 ## LOTE R: COMPLETADO Y VALIDADO EN STAGING CONTRA EL PROVEEDOR DE IA REAL -- LISTO
 ## PARA MERGE A auditoria-local
+
+# ============================================================
+# LOTE S (CWE-532, credenciales en logs) — IMPLEMENTADO Y VALIDADO (sesion 19, cont.)
+# Fecha: 18 Jul 2026
+# ============================================================
+
+## RESULTADO: LOTE S COMPLETO Y VALIDADO EN STAGING
+
+Rama fix/lote-s-credenciales-en-logs (a partir de auditoria-local). Fix implementado
+directamente por Claude (autorizado explicitamente por Jorge dado lo trivial y de bajo
+riesgo del cambio), no via Codex -- unico lote de esta sesion con esa excepcion.
+
+### Hallazgo
+Encontrado por accidente durante la validacion del Lote R: LoginView.post()
+(surveys/views.py, lineas 480-481) imprimia usuario Y CONTRASENA EN TEXTO PLANO en cada
+intento de login exitoso via print(us)/print(pw). Confirmado en los logs reales de
+Railway durante las pruebas de este lote -- aparecieron las credenciales de
+pruebaA@test.com literalmente. CWE-532, presente desde siempre en el codigo original,
+sin relacion con ningun lote anterior. ApiLoginView (la otra vista de login) confirmada
+limpia, sin el mismo problema.
+
+### Cambio implementado
+Eliminadas las 2 lineas print(us)/print(pw) en LoginView.post(). Sin ningun otro
+cambio -- el resto del flujo de autenticacion (authenticate(), login(), validacion de
+email) queda identico.
+
+### Validacion en staging
+- Deploy limpio, gunicorn arriba sin errores
+- Login confirmado funcionando exactamente igual que antes (POST a /login/ con
+  pruebaA@test.com -> 200, redirige a /main) -- sin regresion de comportamiento
+- grep confirmo que no queda ningun otro print() de credenciales en el resto del
+  proyecto
+
+## LOTE S: COMPLETADO Y VALIDADO EN STAGING -- LISTO PARA MERGE A auditoria-local
