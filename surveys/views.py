@@ -477,8 +477,6 @@ class LoginView(View):
 		if form.is_valid():
 			us = form.cleaned_data['username']
 			pw = form.cleaned_data['password']
-			print(us)
-			print(pw)
 			user = authenticate(username=us, password=pw)
 			if user is not None and user.is_active:
 				if user.userapp.validated_email:
