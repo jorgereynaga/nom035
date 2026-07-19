@@ -1,6 +1,8 @@
 import uuid
+import logging
 from datetime import timedelta
 from django.utils import timezone
+from django.utils.dateparse import parse_datetime
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views import View
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -10,6 +12,8 @@ from .models import Candidate, TestSession, PsychoInstrument, TestResponse, Test
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 import json
+
+p_ = logging.getLogger(__name__)
 
 
 class CandidateListView(LoginRequiredMixin, View):
@@ -169,18 +173,42 @@ class TestCompleteView(View):
         except Exception:
             return JsonResponse({'error': 'Datos inválidos'}, status=400)
 
+        if not isinstance(respuestas, list):
+            return JsonResponse({'error': 'Datos inválidos'}, status=400)
+
+        items_instrumento = {
+            item.id: item for item in session.instrumento.items.all()
+        }
+        total_items = len(items_instrumento)
+        respuestas_validas = {}
+
         for r in respuestas:
+            if not isinstance(r, dict):
+                return JsonResponse({'error': 'Datos inválidos'}, status=400)
             item_id = r.get('item_id')
             respuesta = r.get('respuesta')
-            try:
-                item = PsychoItem.objects.get(id=item_id, instrumento=session.instrumento)
-                TestResponse.objects.update_or_create(
-                    session=session,
-                    item=item,
-                    defaults={'respuesta': respuesta}
-                )
-            except PsychoItem.DoesNotExist:
+            item = items_instrumento.get(item_id)
+            if item is None:
                 continue
+            valido, error = self._validar_respuesta(item, respuesta)
+            if not valido:
+                return JsonResponse({
+                    'error': f'Respuesta invalida en item {item_id}: {error}'
+                }, status=400)
+            respuestas_validas[item_id] = respuesta
+
+        if len(respuestas_validas) != total_items:
+            faltantes = total_items - len(respuestas_validas)
+            return JsonResponse({
+                'error': f'Cuestionario incompleto: faltan {faltantes} de {total_items} respuestas'
+            }, status=400)
+
+        for item_id, respuesta in respuestas_validas.items():
+            TestResponse.objects.update_or_create(
+                session=session,
+                item=items_instrumento[item_id],
+                defaults={'respuesta': respuesta}
+            )
 
         session.status = 'completada'
         session.fecha_completado = timezone.now()
@@ -194,6 +222,52 @@ class TestCompleteView(View):
         )
 
         return JsonResponse({'status': 'ok', 'redirect': f'/psico/test/{token}/'})
+
+    def _validar_respuesta(self, item, respuesta):
+        """Valida el formato y contenido de una respuesta psicométrica."""
+        tipo_instrumento = item.instrumento.tipo
+
+        if tipo_instrumento == 'disc':
+            if not isinstance(respuesta, dict):
+                return False, 'formato invalido, se esperaba objeto con mas/menos'
+            mas = respuesta.get('mas')
+            menos = respuesta.get('menos')
+            if not mas or not menos:
+                return False, 'faltan mas o menos'
+            if mas == menos:
+                return False, 'mas y menos no pueden ser iguales'
+            dimensiones_validas = {op.get('dimension') for op in item.opciones}
+            if mas not in dimensiones_validas or menos not in dimensiones_validas:
+                return False, 'mas o menos no son dimensiones validas para este item'
+            return True, None
+
+        if tipo_instrumento in ('moss', 'competencias', 'comercial', 'raven'):
+            if not isinstance(respuesta, str) or not respuesta:
+                return False, 'se esperaba una letra de respuesta'
+            letras_validas = {op.get('letra') for op in item.opciones}
+            if respuesta not in letras_validas:
+                return False, 'letra de respuesta no valida para este item'
+            return True, None
+
+        if tipo_instrumento == 'zavic':
+            if not isinstance(respuesta, dict):
+                return False, 'formato invalido, se esperaba objeto con distribucion'
+            distribucion = respuesta.get('distribucion')
+            if not isinstance(distribucion, dict) or not distribucion:
+                return False, 'falta distribucion'
+            escalas_validas = {op.get('escala') for op in item.opciones}
+            suma = 0
+            for escala, puntos in distribucion.items():
+                if escala not in escalas_validas:
+                    return False, f'escala {escala} no valida para este item'
+                if type(puntos) is not int or puntos < 0:
+                    return False, 'los puntos deben ser enteros no negativos'
+                suma += puntos
+            if suma != 5:
+                return False, f'la suma debe ser exactamente 5, se recibio {suma}'
+            return True, None
+
+        return True, None
 
     def _calcular_scores(self, session):
         tipo = session.instrumento.tipo
@@ -364,6 +438,9 @@ class TestResultView(LoginRequiredMixin, View):
 
 class GenerarPerfilNarrativoView(LoginRequiredMixin, View):
     login_url = reverse_lazy('login')
+    MAX_REGENERACIONES = 5
+    COOLDOWN_SEGUNDOS = 60
+    MODELO_IA = 'claude-haiku-4-5-20251001'
 
     def post(self, request, session_id):
         import os
@@ -376,37 +453,55 @@ class GenerarPerfilNarrativoView(LoginRequiredMixin, View):
             status='completada'
         )
         result = get_object_or_404(TestResult, session=session)
+        historial = result.perfil_narrativo_historial or []
+        if len(historial) >= self.MAX_REGENERACIONES:
+            return JsonResponse(
+                {'error': 'Se alcanzó el límite de regeneraciones para este perfil.'},
+                status=429
+            )
+        if historial:
+            ultimo_timestamp = parse_datetime(historial[-1].get('timestamp', ''))
+            if ultimo_timestamp is not None:
+                if timezone.is_naive(ultimo_timestamp):
+                    ultimo_timestamp = timezone.make_aware(ultimo_timestamp)
+                segundos_desde_ultima_generacion = (
+                    timezone.now() - ultimo_timestamp
+                ).total_seconds()
+                if segundos_desde_ultima_generacion < self.COOLDOWN_SEGUNDOS:
+                    return JsonResponse(
+                        {'error': 'Espera un momento antes de generar el perfil de nuevo.'},
+                        status=429
+                    )
         scores = result.scores
         tipo = session.instrumento.tipo
-        candidato = session.candidate.nombre
         puesto = session.candidate.puesto or 'no especificado'
         if tipo == 'disc':
             dominante = max(scores, key=scores.get)
             nombres = {'D': 'Dominancia', 'I': 'Influencia', 'S': 'Estabilidad', 'C': 'Cumplimiento'}
             detalle = ', '.join([f"{nombres[k]}: {v}" for k, v in scores.items()])
-            prompt = f"Eres un psicologo organizacional experto en evaluaciones de personal para empresas mexicanas. Genera un perfil narrativo profesional para Recursos Humanos sobre el candidato {candidato} que aplica al puesto de {puesto}. Resultados DISC: {detalle}. Dimension dominante: {nombres[dominante]}. Escribe 3 parrafos: 1) Perfil general, 2) Fortalezas laborales, 3) Areas de desarrollo y recomendacion. Tono profesional, objetivo, tercera persona. Sin numeros ni porcentajes."
+            prompt = f"Eres un psicologo organizacional experto en evaluaciones de personal para empresas mexicanas. Genera un perfil narrativo profesional para Recursos Humanos sobre un candidato que aplica al puesto de {puesto}. Resultados DISC: {detalle}. Dimension dominante: {nombres[dominante]}. Escribe 3 parrafos: 1) Perfil general, 2) Fortalezas laborales, 3) Areas de desarrollo y recomendacion. Tono profesional, objetivo, tercera persona. Sin numeros ni porcentajes."
         elif tipo == 'moss':
             total = scores.get('total', 0)
             pct = round((total / 90) * 100)
-            prompt = f"Eres un psicologo organizacional experto en evaluaciones de personal para empresas mexicanas. Genera un perfil narrativo profesional para Recursos Humanos sobre el candidato {candidato} que aplica al puesto de {puesto}. Test Moss: {pct}% de habilidades de supervision. Escribe 2 parrafos: 1) Nivel de liderazgo y supervision, 2) Recomendacion para puestos de gestion. Tono profesional, objetivo, tercera persona."
+            prompt = f"Eres un psicologo organizacional experto en evaluaciones de personal para empresas mexicanas. Genera un perfil narrativo profesional para Recursos Humanos sobre un candidato que aplica al puesto de {puesto}. Test Moss: {pct}% de habilidades de supervision. Escribe 2 parrafos: 1) Nivel de liderazgo y supervision, 2) Recomendacion para puestos de gestion. Tono profesional, objetivo, tercera persona."
         elif tipo == 'raven':
             pct = scores.get('porcentaje', 0)
-            prompt = f"Eres un psicologo organizacional experto en evaluaciones de personal para empresas mexicanas. Genera un perfil narrativo profesional para Recursos Humanos sobre el candidato {candidato} que aplica al puesto de {puesto}. Test Raven: percentil {pct}%. Escribe 2 parrafos: 1) Aptitud intelectual y aprendizaje, 2) Recomendacion segun el puesto. Tono profesional, objetivo, tercera persona."
+            prompt = f"Eres un psicologo organizacional experto en evaluaciones de personal para empresas mexicanas. Genera un perfil narrativo profesional para Recursos Humanos sobre un candidato que aplica al puesto de {puesto}. Test Raven: percentil {pct}%. Escribe 2 parrafos: 1) Aptitud intelectual y aprendizaje, 2) Recomendacion segun el puesto. Tono profesional, objetivo, tercera persona."
         elif tipo == 'zavic':
             escalas = {'M': 'Moral', 'L': 'Legal', 'I': 'Indiferente', 'C': 'Corrupcion'}
             detalle = ', '.join([f"{escalas[k]}: {v}" for k, v in scores.items()])
             alerta = scores.get('C', 0) > scores.get('M', 0)
             alerta_txt = 'IMPORTANTE: El indice de Corrupcion supera al de Moral.' if alerta else ''
-            prompt = f"Eres un psicologo organizacional experto en evaluaciones de personal para empresas mexicanas. Genera un perfil narrativo profesional para Recursos Humanos sobre el candidato {candidato} que aplica al puesto de {puesto}. Test Zavic: {detalle}. {alerta_txt} Escribe 2 parrafos: 1) Perfil de valores e integridad, 2) Compatibilidad con la cultura organizacional. Tono profesional, objetivo, tercera persona."
+            prompt = f"Eres un psicologo organizacional experto en evaluaciones de personal para empresas mexicanas. Genera un perfil narrativo profesional para Recursos Humanos sobre un candidato que aplica al puesto de {puesto}. Test Zavic: {detalle}. {alerta_txt} Escribe 2 parrafos: 1) Perfil de valores e integridad, 2) Compatibilidad con la cultura organizacional. Tono profesional, objetivo, tercera persona."
         elif tipo in ('competencias', 'comercial'):
             nombre_inst = 'Competencias Laborales' if tipo == 'competencias' else 'Perfil Comercial y Servicio al Cliente'
             detalle = ', '.join([f"{k}: {v}/25" for k, v in scores.items()])
-            prompt = f"Eres un psicologo organizacional experto en evaluaciones de personal para empresas mexicanas. Genera un perfil narrativo profesional para Recursos Humanos sobre el candidato {candidato} que aplica al puesto de {puesto}. Resultados de {nombre_inst} (escala 0-25 por dimension): {detalle}. Escribe 3 parrafos: 1) Perfil general de competencias, 2) Fortalezas destacadas, 3) Areas de desarrollo y recomendacion. Tono profesional, objetivo, tercera persona. Sin numeros ni porcentajes."
+            prompt = f"Eres un psicologo organizacional experto en evaluaciones de personal para empresas mexicanas. Genera un perfil narrativo profesional para Recursos Humanos sobre un candidato que aplica al puesto de {puesto}. Resultados de {nombre_inst} (escala 0-25 por dimension): {detalle}. Escribe 3 parrafos: 1) Perfil general de competencias, 2) Fortalezas destacadas, 3) Areas de desarrollo y recomendacion. Tono profesional, objetivo, tercera persona. Sin numeros ni porcentajes."
         else:
             return JsonResponse({'error': 'Instrumento no soportado'}, status=400)
         api_key = os.environ.get('ANTHROPIC_API_KEY', '')
         payload = json.dumps({
-            'model': 'claude-haiku-4-5-20251001',
+            'model': self.MODELO_IA,
             'max_tokens': 600,
             'messages': [{'role': 'user', 'content': prompt}]
         }).encode('utf-8')
@@ -424,11 +519,28 @@ class GenerarPerfilNarrativoView(LoginRequiredMixin, View):
             with urllib.request.urlopen(req, timeout=30) as resp:
                 data = json.loads(resp.read().decode('utf-8'))
                 texto = data["content"][0]["text"]
+                if not isinstance(texto, str) or not texto.strip():
+                    return JsonResponse(
+                        {'error': 'El proveedor de IA devolvió una respuesta vacía, intenta de nuevo.'},
+                        status=502
+                    )
                 result.perfil_narrativo = texto
+                if not result.perfil_narrativo_historial:
+                    result.perfil_narrativo_historial = []
+                result.perfil_narrativo_historial.append({
+                    'texto': texto,
+                    'timestamp': timezone.now().isoformat(),
+                    'usuario_id': request.user.id,
+                    'modelo': self.MODELO_IA,
+                })
                 result.save()
                 return JsonResponse({'perfil': texto})
         except Exception as e:
-            return JsonResponse({'error': str(e)}, status=500)
+            p_.error(f"Error generando perfil narrativo para session_id={session_id}: {e}")
+            return JsonResponse(
+                {'error': 'No se pudo generar el perfil narrativo, intenta de nuevo más tarde.'},
+                status=500
+            )
 
 
 class ReporteUnificadoView(LoginRequiredMixin, View):

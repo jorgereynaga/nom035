@@ -50,6 +50,19 @@
 - **BUG que rompió el primer deploy (ya resuelto):** `InstrumentosCatalogoView` se creó en psico_views.py pero no se agregó al import explícito en nom035/urls.py (línea 24-27, `from surveys.psico_views import (...)`) → NameError en Railway al arrancar (migrate/gunicorn crasheaban en loop). Fix: agregar `InstrumentosCatalogoView` a esa lista de imports. Commit y push separados, deploy confirmado exitoso (gunicorn arriba, sin errores)
 - **Nota técnica:** el log de Railway mostró advertencia "models in app(s) 'surveys' have changes not yet reflected in a migration" — viene de agregar 2 choices nuevos ('competencias', 'comercial') a PsychoInstrument.TIPOS. Como es un CharField con choices (no cambia tipo/tamaño de columna), no debería requerir migración real, pero queda pendiente confirmar/generar la migración manual si se decide ser estrictos con esto
 
+### Link "¿Olvidaste tu contraseña?" en auth-login.html — COMPLETADO ✅ (rama auditoria-local)
+- `surveys/templates/auth-login.html` línea 207: `href="/forgot-password/"` (URL inexistente en nom035/urls.py, 404) → `href="{% url 'password_recover' %}"`, que resuelve a la ruta real `path('password_recover', PasswordRecover.as_view(), name='password_recover')`
+- Confirmado visualmente con servidor local: clic en el link ya no da 404, carga correctamente la página "Recuperar contraseña" (formulario de email + botón "Enviar correo de recuperación")
+- No requirió tocar views.py ni urls.py, cambio de una sola línea en el template
+
+### Venv local reconstruido (worktree C:\NormaIA-Pruebas\nom035) — para no repetir la investigación
+- Problema encontrado: `venv/Scripts/` existía pero estaba vacío (sin python.exe, pip.exe, activate) — venv corrupto, imposible levantar el servidor Django para pruebas visuales
+- El sistema tiene Python 3.14 instalado (además del stub roto de Microsoft Store), pero Django 3.2 NO es compatible con Python 3.14 — hay que usar 3.10
+- Solución: `py -3.10 -m venv venv` (lanzador `py` de Windows, seleccionando explícitamente 3.10.11) en vez de `python -m venv venv` a secas, que habría tomado la versión equivocada
+- Después de recrear el venv, Git Bash seguía apuntando al python.exe viejo (cacheado) — hubo que correr `hash -r` para que bash resolviera de nuevo la ruta y encontrara el binario nuevo
+- Ruta final correcta del intérprete: `C:\NormaIA-Pruebas\nom035\venv\Scripts\python.exe`
+- `requirements.txt` se instaló limpio sin errores en el venv reconstruido; se confirmó que ya no incluye `conekta` (retirado en el Lote L)
+
 ### Sidebar — link "Evaluaciones" corregido en todos los templates — COMPLETADO Y DESPLEGADO ✅ (sesión 10, parte 2)
 - Antes: "Evaluaciones" apuntaba a `{% url 'candidatos' %}` (duplicado con "Candidatos") en index.html, o a `href="#"` (no hacía nada) en psico_candidatos.html, psico_candidato_detalle.html y psico_instrumentos.html
 - Fix aplicado en los 4 templates via content.replace() con marcadores verificados (content.count()==1 antes de escribir):
@@ -303,3 +316,1127 @@ Jorge confirmo visualmente en produccion: el selector "Centro de trabajo" ya se 
 
 ## SESION 10 CERRADA POR COMPLETO — TODO CONFIRMADO EN PRODUCCION ✅
 Ningun pendiente activo de bugs visuales o funcionales conocidos. Los unicos pendientes restantes son menores (migracion Railway, division float en employees_dt) y la revision preventiva opcional de workplace_detail.html/workplace_results.html por el mismo patron de Bug B (no urgente, no hay sintomas reportados ahi).
+
+# ============================================================
+# LOTE A (IDOR NOM-035) — INVESTIGACION EN CURSO (sesion 12)
+# Fecha: 14 Jul 2026
+# ============================================================
+
+## N35-SEC-001 CONFIRMADO EN CODIGO REAL
+Archivo: surveys/views.py, clase WorkplaceResultView (linea 636), metodo get() linea 639.
+Linea exacta del bug: linea 644 -> `wk=Workplace.objects.filter(id=kwargs['workplace_id']).last()` -- NO filtra por user=request.user.
+URLs afectadas (nom035/urls.py lineas 77-78): `workplace_result` y `workplace_result2`.
+
+**HALLAZGO IMPORTANTE:** el control de ownership correcto SI fue escrito en su momento pero quedo COMENTADO deliberadamente (lineas 657-658):
+Esto no es una omision de diseno, es una regresion -- alguien desactivo la proteccion (probablemente durante debugging) y nunca se reactivo. Referencia para el fix: reactivar esta logica (ajustando el nombre del related_name si `workplaces` no es el correcto, verificar en el modelo).
+
+## HALLAZGO NUEVO — NO ESTABA EN LOS 22 DE LA AUDITORIA ORIGINAL
+
+### Llave AES hardcodeada (CWE-798)
+surveys/views.py lineas 667-676, funciones encript()/decript():
+key="test1234test1234"
+Se usa para generar/validar codigos de verificacion de email y recuperacion de contrasena (formato user.id<->timestamp<->record_create_timestamp cifrado con AES-CBC). Cualquiera con acceso al codigo fuente puede forjar codigos validos para cualquier usuario.
+
+### CRITICO — Posible bypass completo de recuperacion de contrasena (severidad: CRITICA, mayor que N35-SEC-001)
+Archivo: surveys/views.py, clase PasswordRecover (linea 729, endpoint PUBLICO, sin LoginRequiredMixin).
+Metodo post() tiene 2 bloques:
+1. Primer bloque (if email != ""): solicita el link de recuperacion, genera codigo cifrado, envia por correo. Este bloque esta bien.
+2. Segundo bloque (elif "new_password1" in request.POST...): cambia la contrasena real via SetPasswordForm(user, request.POST), usando email = request.POST.get('user-email', '') tomado DIRECTO del POST -- sin verificar en ningun momento que el codigo de recuperacion (code/iv) haya sido validado. El flag valid_code que se calcula en el GET solo controla que se muestra en el template, no viaja como token de sesion ni se revalida en este POST.
+
+Implicacion: si esto se confirma (pendiente de verificar el template password_recover.html para descartar que el codigo viaje oculto en el form y se revise en otro punto no visto aun), cualquiera podria hacer POST directo a este endpoint con user-email=<email de la victima> + nueva contrasena, y tomar control total de cualquier cuenta SIN necesitar el codigo de verificacion ni acceso al correo de la victima.
+
+IMPORTANTE - aclaracion de Jorge: el sistema hoy no tiene SMTP configurado ni dominio publico real (sigue en desarrollo). PERO este bug NO depende de que SMTP funcione -- el endpoint vulnerable no necesita que el correo se haya enviado, se puede explotar posteando directo a la URL sin pasar nunca por el flujo de correo. Es decir, es explotable HOY MISMO si alguien tiene acceso a la URL del ambiente de staging/produccion actual, independientemente del estado de SMTP.
+
+DECISION DE JORGE: no corregir ahora mismo (no bloquea el trabajo actual del Lote A), pero se registra como PENDIENTE BLOQUEANTE ANTES DE SALIR A PRODUCCION REAL CON DOMINIO Y CLIENTES, sin importar si SMTP esta configurado o no para ese momento.
+
+## PENDIENTE INMEDIATO DE INVESTIGACION (antes de escribir la especificacion de correccion)
+1. Verificar surveys/templates/password_recover.html: grep -n "code\|iv\|token" surveys/templates/password_recover.html -- confirmar si el codigo/iv viaja oculto en el form y se revisa en otro punto de la vista no visto aun, o si el hallazgo de bypass de contrasena queda confirmado al 100%
+2. Confirmar el related_name correcto en el modelo Workplace para reactivar el ownership check comentado (verificar si es request.user.workplaces o algun otro nombre)
+3. Ubicar TODOS los demas usos de .filter(id=...) sin user= en surveys/views.py (patron sistemico, no exclusivo de WorkplaceResultView) -- probablemente EmployeeList, WorkplaceList, y otras vistas mencionadas en el roadmap (get_results, get_chart_data, employees_dt)
+4. Confirmar alcance completo del IDOR antes de escribir la especificacion final del Lote A (tal como establecio el plan: "antes de ampliar la bateria, conviene identificar el alcance de la vulnerabilidad en modo lectura")
+
+## HALLAZGOS NUEVOS A AGREGAR A LA MATRIZ FORMAL (fuera de los 22 originales)
+- Llave AES hardcodeada en surveys/views.py (CWE-798) - severidad ALTA
+- Posible bypass total de autenticacion via PasswordRecover sin verificacion de codigo - severidad CRITICA, pendiente de confirmar con el template antes de darlo por cerrado, pero con evidencia fuerte de codigo Python ya revisada
+
+## ACTUALIZACION: PasswordRecover bypass — CONFIRMADO AL 100% (ya no es hipotesis)
+Se verifico surveys/templates/password_recover.html lineas 90-113: el formulario de "cambiar contrasena" (mostrado solo cuando valid_code==True, proteccion de frontend unicamente) envia UNICAMENTE user-email (hidden), new_password1, new_password2 -- NO existe ningun campo con el codigo/iv de verificacion. Confirmado en el Python (surveys/views.py, PasswordRecover.post(), bloque elif "new_password1" in request.POST) que jamas se revalida el codigo en este punto.
+
+CONFIRMADO EXPLOTABLE: un POST directo a la URL de PasswordRecover con user-email=<victima> + new_password1/new_password2 cambia la contrasena de cualquier cuenta sin necesitar codigo de verificacion, sin acceso al correo de la victima, y sin importar si SMTP esta configurado. No requiere autenticacion previa (vista publica).
+
+Sigue siendo PENDIENTE BLOQUEANTE ANTES DE PRODUCCION REAL (decision de Jorge), no se corrige en esta sesion, pero el hallazgo ya no tiene ninguna duda pendiente de verificacion -- es hallazgo confirmado, severidad CRITICA, listo para entrar al roadmap de remediacion (Fase 0) en cuanto se decida atacarlo.
+
+## MAPEO COMPLETO DEL ALCANCE DEL IDOR (N35-SEC-001 y mas alla) — sesion 12, cont.
+
+Se completo el mapeo de TODAS las vistas relacionadas con el patron IDOR mencionado en el roadmap. Hallazgo mucho mas amplio y grave de lo reportado originalmente en la auditoria de 22 hallazgos.
+
+### Vistas CBV afectadas (surveys/views.py)
+- WorkplaceResultView (linea 636): ownership check COMENTADO (lineas 657-658). Requiere login (LoginRequiredMixin) pero cualquier usuario autenticado accede a cualquier workplace. Related_name correcto confirmado: request.user.workplaces
+- WorkplaceDetailView (linea 607): ownership check SI ACTIVO (linea 627) -- esta vista es el patron de referencia correcto, sirve de plantilla para el fix
+- EmployeeList (DRF, linea 2062): si se pasa workplace_id, no valida dueno (linea 2069). MAS GRAVE: si NO se pasa workplace_id, devuelve Employee.objects.all() (linea 2071) -- CUALQUIER usuario autenticado obtiene la lista COMPLETA de empleados de TODAS las empresas de la plataforma, no solo cruzando una cuenta especifica
+- WorkplaceList (DRF, linea 2005): esta SI filtra correctamente por user_id=self.request.user.id (linea 2010) -- control efectivo, no tocar
+
+### Vistas function-based SIN NINGUNA PROTECCION DE LOGIN (mas grave que N35-SEC-001 original)
+Confirmado que NINGUNA de estas 5 funciones tiene @login_required ni proteccion equivalente, Y sus URLs en nom035/urls.py son path() planos sin middleware de proteccion:
+- employees_dt (linea 1154, urls.py linea 83-84) -- recibe workplace_id de la URL, sin validar dueno, SIN LOGIN REQUERIDO
+- get_results (linea 1244, urls.py linea 88) -- recibe workplace_id de GET, sin validar dueno, SIN LOGIN REQUERIDO
+- get_workplaces (linea 1252, urls.py linea 90) -- recibe user_id DIRECTO del GET (linea 1253), permite ENUMERAR los centros de trabajo de CUALQUIER usuario con solo cambiar el user_id, SIN LOGIN REQUERIDO
+- get_departments (linea 1259, urls.py linea 81) -- recibe workplace_id de GET, sin validar dueno, SIN LOGIN REQUERIDO
+- get_chart_data (linea 1329, urls.py linea 87) -- recibe workplace_id de GET, sin validar dueno, SIN LOGIN REQUERIDO. Esta es la vista que calcula todos los niveles de riesgo psicosocial (dimensionA, etc.) -- expone el detalle completo de riesgo NOM-035 de cualquier empresa
+
+CONCLUSION DEL MAPEO: el problema es sistemico y MAS GRAVE que N35-SEC-001 tal como se reporto originalmente. No es solo "un usuario autenticado puede ver datos de otro usuario" -- son 5 endpoints COMPLETAMENTE PUBLICOS (sin necesidad de cuenta ni login) que exponen: lista completa de empleados de toda la plataforma (sin filtro), datos de riesgo psicosocial NOM-035 completos por empresa, y permiten enumerar que centros de trabajo tiene cualquier usuario. Se recomienda elevar la severidad reportada y ampliar el hallazgo original en la matriz formal de la auditoria.
+
+### Patron de referencia para el fix (ya existe en el codigo, usar como plantilla)
+WorkplaceDetailView (linea 607-627) tiene el patron correcto:
+if not request.user.workplaces.filter(id=kwargs['workplace_id']).exists():
+        return HttpResponseRedirect(reverse_lazy('workplaces'))
+
+Para las vistas function-based (que no son parte de una clase con LoginRequiredMixin), el fix debe: (1) agregar @login_required como decorador, (2) agregar el filtro de ownership equivalente (Workplace.objects.filter(id=workplace_id, user=request.user) en vez de solo id=workplace_id) antes de usar el dato.
+
+## SIGUIENTE PASO
+Con el alcance completo ya mapeado, el siguiente paso es escribir la especificacion de correccion del Lote A completa (todas las vistas listadas arriba), para que Codex la implemente. Se debe seguir el patron: no mezclar en el mismo lote autorizacion con otros temas (llave AES, PasswordRecover, archivos de /media/, etc. van en lotes separados segun el plan original).
+
+# ============================================================
+# LOTE A (IDOR NOM-035) — IMPLEMENTADO Y VALIDADO EN STAGING (sesion 13)
+# Fecha: 15 Jul 2026
+# ============================================================
+
+## RESULTADO: LOTE A COMPLETAMENTE VALIDADO EN STAGING
+
+Rama: fix/lote-a-idor-nom035 (a partir de auditoria-local), implementada por Codex siguiendo la especificacion LOTE_A_especificacion_IDOR.md.
+
+### Cambios implementados (surveys/views.py + nom035/settings.py)
+1. WorkplaceResultView: ownership check descomentado (lineas 657-658)
+2. EmployeeList.get_queryset(): ambas ramas (con/sin workplace_id) ahora filtran por workplace__user=self.request.user; eliminado el Employee.objects.all() sin filtro
+3. employees_dt: agregado @login_required + validacion de ownership
+4. get_results: agregado @login_required + validacion de ownership
+5. get_workplaces: eliminada dependencia de user_id externo, ahora usa request.user.id directo; quitada linea de debug p_.error(data)
+6. get_departments: agregado @login_required + validacion de ownership
+7. get_chart_data: agregado @login_required + validacion de ownership, sin tocar la inicializacion de cat/domains/dimensions
+8. AGREGADO (no estaba en la spec original, encontrado durante pruebas): LOGIN_URL = 'login' en nom035/settings.py -- sin esto, @login_required redirigia al default de Django /accounts/login/, que no existe en este proyecto (causaba 404 tras la redireccion). Ahora redirige correctamente a /login/ (name="login" en urls.py)
+
+### Validacion completa en ambiente de staging (con 2 cuentas sinteticas)
+Se crearon 2 usuarios de prueba en staging (pruebaA@test.com / pruebaB@test.com, password Prueba2026!), cada uno con 1 Workplace y 1 Employee sintetico. Se confirmaron las 7 vistas corregidas + comportamiento sin sesion (redirige a login, HTTP 302), todas con resultado correcto. Ningun caso de exposicion cruzada detectado tras el fix.
+
+### Commits en la rama fix/lote-a-idor-nom035
+1. "Fix IDOR: ownership en WorkplaceResultView, EmployeeList, employees_dt, get_results, get_workplaces, get_departments, get_chart_data"
+2. "Fix IDOR Lote A: agregar LOGIN_URL para que @login_required redirija correctamente"
+
+## HALLAZGOS NUEVOS ENCONTRADOS DURANTE EL PROCESO (fuera de los 22 originales, para agregar a la matriz)
+
+1. Llave AES hardcodeada en encript()/decript() (surveys/views.py ~667-676): key="test1234test1234" -- severidad ALTA, usada para codigos de verificacion de email y recuperacion de contrasena
+2. CRITICO CONFIRMADO -- bypass total de PasswordRecover: el endpoint publico que cambia la contrasena (surveys/views.py, clase PasswordRecover, bloque elif "new_password1" in request.POST) nunca revalida el codigo de verificacion -- confirmado 100% contra el template (password_recover.html no incluye campo hidden de codigo/iv). Explotable HOY MISMO independientemente de si SMTP esta configurado. PENDIENTE BLOQUEANTE ANTES DE PRODUCCION REAL (decision de Jorge, no corregido en esta sesion)
+3. Secret key de reCAPTCHA hardcodeada (surveys/views.py linea ~1873): secret_key="6Le3XCEtAAAAAFDF0__aZfnj9DQjwe6lkzdylREY" -- mismo patron CWE-798 que la llave AES. Encontrado al intentar registrar cuentas de prueba en staging (el site key tambien esta hardcodeado en auth-register.html, sin usar variables de entorno)
+4. CSRF_TRUSTED_ORIGINS y CORS_ALLOWED_ORIGINS hardcodeados en nom035/settings.py (no usan variable de entorno, a diferencia de ALLOWED_HOSTS que si la usa) -- inconsistencia de patron, mismo tipo de deuda tecnica ya documentada. CORS_ALLOWED_ORIGINS ademas tiene un dominio placeholder sin usar ("https://tu-frontend.com") que deberia limpiarse
+5. Procfile confirmado una vez mas (DEP-002): no incluye cargar_competencias ni cargar_comercial en el arranque automatico
+
+## PROCEDIMIENTO OPERATIVO CONSOLIDADO (para repetir en lotes futuros)
+1. Crear rama nueva desde auditoria-local: git checkout auditoria-local && git pull && git checkout -b fix/lote-X
+2. Escribir especificacion de correccion como archivo .md, con seccion de instrucciones operativas al inicio (repo, rama, venv, que NO hacer)
+3. Pasarsela a Codex con instruccion EXPLICITA de "implementa la especificacion completa" (Codex no asume la accion solo con recibir el archivo)
+4. Revisar git diff (git status + git diff, usar git --no-pager diff para evitar que el pager corte la salida)
+5. Cambiar el Source/Branch del servicio de staging en Railway a la rama del lote (Settings -> Source -> seleccionar rama)
+6. Si hace falta correr comandos directos contra la DB de staging (crear superusuario, datos de prueba, etc.): reactivar TCP Proxy en Postgres de staging (Settings -> Networking -> "+ New"), ESPERAR 1-2 MINUTOS a que propague (los intentos inmediatos fallan con "server closed the connection unexpectedly"), usar DATABASE_URL sobreescrita en el comando (nunca railway run, que usa el host interno no resoluble desde la maquina local). ELIMINAR el proxy despues de cada uso
+7. Variables de entorno especificas de staging que pueden requerir ajuste temporal para pruebas: ALLOWED_HOSTS (agregar dominio de staging), CSRF_TRUSTED_ORIGINS (hardcodeado en settings.py, requiere cambio de codigo temporal sin commit final, o commit temporal a revertir)
+8. Para acelerar creacion de usuarios/datos de prueba: pasarle a Codex el comando completo con DATABASE_URL ya armada, evitando ida y vuelta -- Codex puede ejecutar python manage.py shell con scripts de creacion de datos directamente
+9. Una vez validado en staging, hacer merge de la rama del lote a auditoria-local, y decidir si se aplica a produccion real
+
+## PENDIENTE INMEDIATO
+1. Confirmar con Jorge si se hace merge de fix/lote-a-idor-nom035 a auditoria-local ahora, o se espera a acumular mas lotes
+2. Revertir el Source del servicio de staging en Railway de vuelta a auditoria-local (o a la rama que se decida) despues del merge
+3. Definir el siguiente lote a atacar: llave AES + secret key de reCAPTCHA hardcodeadas (mismo patron CWE-798, podrian ir juntas en un lote), o el bypass critico de PasswordRecover (mas grave pero Jorge decidio dejarlo para antes de produccion real, no ahora)
+4. Seguir pendiente: EVI-SEC-001 (archivos /media/ sin autenticacion), aun no investigado en codigo real
+
+# ============================================================
+# LOTE C (EVI-SEC-001 — archivos /media/ sin autenticacion) — INVESTIGACION (sesion 14)
+# Fecha: 15 Jul 2026
+# ============================================================
+
+## MAPEO COMPLETO DEL PROBLEMA
+
+### Causa raiz confirmada
+nom035/urls.py linea 128: urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) -- sirve TODO el contenido de MEDIA_ROOT (carpeta media/) directo del disco, sin ninguna vista intermedia, sin autenticacion, sin validacion de ownership. Cualquiera con la URL exacta (o que adivine la ruta) descarga el archivo.
+
+### 3 campos de FileField que se sirven via /media/ sin proteccion (surveys/models.py)
+1. Linea 45, Userapp: image (logo de empresa) -- upload_to=user_directory_path -> ruta logos/<user_id>/<filename>
+2. Linea 81, ResultFiles (o modelo similar): image (archivo de resultados/evidencias) -- upload_to=result_directory_path -> ruta results/<workplace_id>/<evaluation>/<filename>
+3. Linea 1040, EvidenciaFaseC: archivo (evidencias NOM-035 Fase C: canalizaciones de trauma, examenes medicos, medidas de control, difusion) -- upload_to='evidencias_fase_c/%Y/%m/' -- EL MAS SENSIBLE, contiene documentos de canalizacion de trauma severo y examenes medicos/psicologicos
+
+### AGRAVANTE: las rutas usan IDs secuenciales predecibles (surveys/models.py lineas 15-18)
+def user_directory_path(instance, filename):
+        return 'logos/{0}/{1}'.format(instance.user.id, filename)
+def result_directory_path(instance, filename):
+        return 'results/{0}/{1}/{2}'.format(instance.workplace.id,instance.evaluation,filename)
+
+Como user_id/workplace_id son autoincrementales desde 1, es trivial ITERAR secuencialmente (/media/results/1/1/..., /media/results/2/1/..., etc.) sin necesitar conocer ningun nombre de archivo real -- ampliacion del alcance de EVI-SEC-001 mas alla de lo reportado originalmente (que asumia "URL conocida", aqui ademas se puede enumerar sin conocerla).
+
+## HALLAZGO NUEVO — bug adicional en el patron de "archivos protegidos" ya existente
+
+El proyecto SI tiene un patron de archivos protegidos separado (PROTECTED_MEDIA_ROOT, carpeta files/ fuera de media/), con 2 vistas custom:
+- download_file (surveys/views.py ~linea 60, URL files/tmp/<int:user_id>/<str:file_name>): CORRECTO, valida request.user.id != user_id cuando no hay token, bloquea con Http404
+- download_file2 (surveys/views.py ~linea 85, URL files/charts/<int:workplace_id>/<str:evaluation>/<str:file_name>): BUG -- el bloque if "_-_Token " in file_name: NO TIENE rama else que valide ownership cuando NO hay token en el nombre de archivo. Si se accede sin token, la funcion continua SIN VALIDAR QUIEN ES EL USUARIO -- descarga directa del PDF de resultados generales de CUALQUIER empresa conociendo workplace_id/evaluation/file_name, sin sesion siquiera necesariamente (dependiendo si la vista tiene @login_required, verificar).
+
+Este bug es de la MISMA FAMILIA que EVI-SEC-001 pero en el sistema de archivos "protegidos", no en /media/ -- se agrega al mismo lote por ser el mismo tipo de correccion (servir archivos con validacion de ownership).
+
+## PENDIENTE ANTES DE ESCRIBIR LA ESPECIFICACION DEL LOTE C
+1. Confirmar si download_file y download_file2 tienen @login_required o algun control de autenticacion a nivel de vista (ademas del check interno de ownership)
+2. Decidir la estrategia de fix para /media/: la solucion robusta es reemplazar static() con vistas custom que validen ownership antes de servir cada tipo de archivo (siguiendo el patron ya usado en download_file), pero esto es un cambio de arquitectura mayor (cambiar como se generan los templates que referencian estas URLs, no solo el backend). Evaluar alternativa mas simple: mover estos 3 campos especificos a PROTECTED_MEDIA_ROOT y crear vistas de descarga dedicadas para cada uno, en vez de tocar el mecanismo general de /media/ (que podria tener otros usos no sensibles, ej. staticfiles del admin)
+3. Confirmar que ningun otro campo/modelo use /media/ para contenido sensible que no hayamos mapeado (revisar todos los FileField/ImageField del proyecto completo, no solo surveys/models.py)
+
+# ============================================================
+# LOTE C1 (download_file2) — IMPLEMENTADO Y VALIDADO (sesion 14, cont.)
+# Fecha: 15 Jul 2026
+# ============================================================
+
+## RESULTADO: LOTE C1 COMPLETO
+
+Rama: fix/lote-c1-download-file2 (a partir de auditoria-local con Lote A ya incluido). Fusionada a auditoria-local.
+
+### Cambios implementados en download_file2 (surveys/views.py)
+1. Agregada la rama else faltante (cuando NO hay token en file_name): valida request.user.is_authenticated y Workplace.objects.filter(id=workplace_id, user=request.user).exists(), lanza Http404 si falla cualquiera de las dos
+2. BUG PREEXISTENTE encontrado y corregido de paso (no relacionado con seguridad): habia un from django.http import HttpResponse LOCAL dentro de la funcion (en el bloque de "modo demo"), que hacia que Python tratara HttpResponse como variable local a TODA la funcion -- esto causaba UnboundLocalError en el flujo de descarga EXITOSA (cuando el usuario si es dueno), es decir, esta funcion probablemente nunca funciono correctamente para descargas legitimas. Se elimino el import local redundante (HttpResponse ya estaba importado globalmente al inicio del archivo)
+
+### Validacion (con RequestFactory, sin necesitar contenedor de Railway)
+Se uso django.test.RequestFactory para simular 3 peticiones directas a la funcion (con archivo dummy creado en PROTECTED_MEDIA_ROOT/charts/<workplace_id>/<evaluation>/ via DATABASE_URL sobreescrita + TCP proxy temporal):
+- Usuario A (propietario) -> PASS, HTTP 200 con el PDF
+- Usuario B (no propietario) -> PASS, Http404
+- Usuario anonimo -> PASS, Http404
+
+### Commits en fix/lote-c1-download-file2
+1. "Fix: agregar validacion de ownership faltante en download_file2 (rama sin token)"
+2. "Fix: eliminar import local redundante de HttpResponse en download_file2 (causaba UnboundLocalError en descargas exitosas)"
+
+## TECNICA NUEVA DE VALIDACION (util para futuros lotes que involucren archivos)
+Cuando el fix requiere probar contra archivos en el filesystem del contenedor (PROTECTED_MEDIA_ROOT, MEDIA_ROOT), no hace falta desplegar y navegar manualmente -- se puede usar django.test.RequestFactory en un script temporal corrido localmente (con DATABASE_URL apuntando al proxy de staging), crear el archivo dummy directo en el filesystem LOCAL (ya que RequestFactory ejecuta la vista en el proceso local, no en el contenedor remoto), simular las peticiones con distintos request.user, y borrar todo al terminar. Mas rapido que desplegar y probar por navegador para validar solo la logica de autorizacion de una vista.
+
+## SIGUIENTE PASO
+Continuar con Lote C2: proteger los 3 campos de FileField que se sirven sin autenticacion via /media/ (logos de empresa, resultados/evidencias, EvidenciaFaseC). Requiere: crear vistas de descarga protegidas + actualizar templates que hoy enlazan directo a /media/... . Cambio de arquitectura mas grande que C1, pendiente de escribir la especificacion.
+
+# ============================================================
+# LOTE C2 (EVI-SEC-001 — archivos /media/) — IMPLEMENTADO Y VALIDADO (sesion 14, cont.)
+# Fecha: 15 Jul 2026
+# ============================================================
+
+## RESULTADO: LOTE C2 COMPLETO Y VALIDADO EN STAGING
+
+Rama: fix/lote-c2-media-protegido (a partir de auditoria-local, incluye Lote A + C1).
+
+### Cambios implementados
+1. surveys/models.py: agregado protected_storage = FileSystemStorage(location=settings.PROTECTED_MEDIA_ROOT). Los 3 campos afectados (Userapp.image, ResultFiles.image, EvidenciaFaseC.archivo) ahora usan storage=protected_storage -- las funciones user_directory_path/result_directory_path NO cambiaron (siguen devolviendo rutas relativas, el storage custom es quien las resuelve fuera de MEDIA_ROOT)
+2. CONFIRMADO EXPERIMENTALMENTE (por Codex, antes de implementar): en Django 3.2.25 upload_to con ruta absoluta NO funciona (lanza SuspiciousFileOperation) -- FileSystemStorage personalizado es la unica via correcta, confirmado antes de tocar codigo real
+3. Migracion manual 0037_protected_file_storage.py: AlterField en los 3 campos, solo cambia storage, dependencia correcta a 0036
+4. 3 vistas nuevas en surveys/views.py: download_logo, download_result_image, download_evidencia_fase_c -- las 3 con @login_required + validacion de ownership (Workplace/EvidenciaFaseC filtrados por request.user), usando FileResponse (no HttpResponse con content_type invalido -- ver leccion abajo)
+5. 3 rutas nuevas en nom035/urls.py: /descargar/logo/, /descargar/resultado/<workplace_id>/<result_id>/, /descargar/evidencia/<evidencia_id>/
+6. Templates actualizados (edit_profile.html x2, index.html, evidencia_fase_c_form.html) para usar {% url %} de las nuevas vistas en vez de /media/... directo
+7. get_results (views.py) actualizado: el JSON ahora devuelve reverse('download_result_image', ...) en vez de item.image.url
+
+### LECCION TECNICA: bug de content_type invalido encontrado durante implementacion
+Primera version de las 3 vistas nuevas uso HttpResponse(fh.read(), content_type="image/*") -- "image/*" NO es un content-type valido (los navegadores esperan algo especifico como image/jpeg). Corregido reemplazando por FileResponse(open(path, 'rb')), que detecta el tipo correctamente y es ademas mas eficiente que leer todo el archivo con .read(). Patron a preferir en futuras vistas de descarga de archivos.
+
+### Validacion en staging
+- Logo: subido por Cuenta A, se muestra correctamente via /descargar/logo/. Confirmado que la ruta VIEJA /media/logos/1/logo.jpg ahora da 404 (el archivo ya NO esta en MEDIA_ROOT)
+- EvidenciaFaseC: Cuenta A subio evidencia, la vio correctamente. Cuenta B intento /descargar/evidencia/<id>/ de la evidencia de A -> BLOQUEADO (no pudo verla). Fix de seguridad CONFIRMADO funcionando
+
+### Ajuste temporal para pruebas (mismo patron que en lotes anteriores)
+CSRF_TRUSTED_ORIGINS necesito agregar temporalmente el dominio de staging (no depende de variable de entorno, hardcodeado en settings.py) -- se hizo como commit temporal en esta rama, DEBE REVERTIRSE antes de mergear a auditoria-local (recordatorio explicito, ya paso una vez que se olvido en un lote anterior -- Lote A tambien tuvo este mismo ajuste temporal y si se revirtio correctamente)
+
+## HALLAZGO NUEVO DE ARQUITECTURA (importante, no es bug de codigo sino de infraestructura Railway)
+
+El servicio de staging (y probablemente produccion tambien) NO tiene ningun Volume persistente asignado. Confirmado revisando Settings del servicio -- no existe seccion de Volumes configurada. Esto significa:
+- Cualquier archivo guardado en MEDIA_ROOT o PROTECTED_MEDIA_ROOT (disco local del contenedor) SE PIERDE en cada redeploy
+- Esto aplica a TODOS los archivos subidos por usuarios: logos, evidencias NOM-035, resultados -- no solo los que tocamos en el Lote C2
+- Se confirmo en vivo durante esta sesion: un logo/evidencia subidos antes de un redeploy (disparado por el commit temporal de CSRF) ya no estaban disponibles despues del redeploy
+
+Implicacion para produccion real: antes de operar con clientes reales, el proyecto DEBE resolver esto -- ya sea con un Volume persistente de Railway, o (mejor practica a largo plazo) migrando el almacenamiento de archivos a un servicio tipo S3/object storage, que ademas resolveria de forma mas robusta el problema de servir archivos protegidos (URLs firmadas con expiracion, en vez de vistas Django leyendo del disco local).
+
+PENDIENTE: agregar este hallazgo a la matriz formal de la auditoria -- no estaba en los 22 originales ni en los encontrados en sesiones anteriores. Severidad: ALTA para produccion (perdida de datos), aunque no es una vulnerabilidad de seguridad per se.
+
+## EVENTO OBSERVADO SIN CONFIRMAR CAUSA RAIZ (vigilar, no bloqueante)
+Durante las pruebas de este lote, una subida de archivo tardo varios minutos y mostro "upstream error" antes de eventualmente completarse exitosamente. Se investigo con Codex:
+- Descartado: creacion de carpetas faltantes en PROTECTED_MEDIA_ROOT (Django 3.2 las crea automaticamente via os.makedirs en FileSystemStorage._save(), sin reintentos por esta causa)
+- Descartado: "Serverless" (scale to zero) en Railway -- confirmado DESACTIVADO en el servicio de staging
+- Hipotesis mas probable, sin confirmar 100%: efecto del redeploy reciente (arranque en frio + reconexion de Postgres) coincidiendo con el intento de subida, no un bug del codigo de este lote
+- El problema NO se repitio en intentos posteriores inmediatos
+- PENDIENTE: si se repite en sesiones futuras, investigar con mas profundidad (revisar metricas de CPU/memoria del contenedor en el momento exacto, o revisar si el filesystem efimero de Railway tiene latencia de I/O variable)
+
+## SIGUIENTE PASO
+Lote C2 listo para merge a auditoria-local -- PERO PRIMERO revertir el cambio temporal de CSRF_TRUSTED_ORIGINS (confirmar que no quede en el commit final, igual que se hizo correctamente en el Lote A).
+
+# ============================================================
+# LOTE D (llaves hardcodeadas) — IMPLEMENTADO Y FUSIONADO (sesion 14, cierre)
+# Fecha: 15 Jul 2026
+# ============================================================
+
+## RESULTADO: LOTE D COMPLETO
+
+Rama fix/lote-d-llaves-hardcodeadas fusionada a auditoria-local.
+
+### Cambios
+1. nom035/settings.py: 3 variables nuevas via config() (python-decouple, mismo patron ya usado para SECRET_KEY/ALLOWED_HOSTS): AES_ENCRYPTION_KEY, RECAPTCHA_SECRET_KEY, RECAPTCHA_SITE_KEY -- todas con default= al valor actual (NO se roto ningun valor real, solo se movio la fuente)
+2. surveys/views.py: encript()/decript() usan settings.AES_ENCRYPTION_KEY; UserappList (verificacion recaptcha backend) usa settings.RECAPTCHA_SECRET_KEY; NewUserView pasa recaptcha_site_key al contexto del template
+3. surveys/templates/auth-register.html: las 2 ocurrencias hardcodeadas de la site key reemplazadas por {{ recaptcha_site_key }}
+
+### Validacion
+Probado en staging: la pagina /newuser/ sigue mostrando el mismo error de reCAPTCHA que YA CONOCIAMOS de sesiones anteriores (dominio de staging no autorizado en la consola de Google para esa site key) -- esto CONFIRMA que el fix funciona correctamente (el valor real se esta leyendo bien desde la variable), no es un bug nuevo. Comportamiento identico al de antes del lote, que es exactamente el objetivo (mover sin alterar comportamiento).
+
+### PENDIENTE (no bloqueante, anotado para cuando se vaya a produccion real)
+Jorge debe configurar las 3 variables de entorno reales en Railway (produccion Y staging) en algun momento. Mientras no se configuren, el sistema sigue funcionando igual que antes (usa los default= que son los valores viejos). Rotar la llave AES a un valor nuevo (distinto del actual) invalidara cualquier link de verificacion de email o recuperacion de contrasena ya emitido y no usado -- hacerlo con cuidado, idealmente en una ventana de mantenimiento.
+
+## RESUMEN COMPLETO DE LA SESION 14 (para continuidad)
+
+4 lotes completados y fusionados a auditoria-local en esta sesion:
+- Lote A: IDOR NOM-035 (7 vistas)
+- Lote C1: download_file2 (ownership + bug UnboundLocalError)
+- Lote C2: archivos /media/ protegidos (logos, resultados, evidencias Fase C) + hallazgo critico de Volume persistente faltante en Railway
+- Lote D: llaves hardcodeadas (AES + reCAPTCHA) movidas a variables de entorno
+
+Documento de continuidad creado: MATRIZ_CONSOLIDADA_POST_REMEDIACION.md (en la raiz del repo, rama auditoria-local) -- consolida el estado de los 22 hallazgos originales + 12 hallazgos nuevos encontrados durante la remediacion.
+
+## PENDIENTES PARA LA SIGUIENTE SESION
+1. INFRA-001 (Volume persistente en Railway) -- resolver directamente en el dashboard de Railway, no requiere lote de Codex, puede hacerse en paralelo sin bloquear
+2. Definir siguiente lote de seguridad: N35-INT-001/002/003 (creditos y duplicados NOM-035), EVI-SEC-002 (archivos EXE aceptados), o PSI-VAL-001 a 006 (validacion backend de los 6 instrumentos psicometricos)
+3. SEC-006 (PasswordRecover bypass) sigue como ULTIMO PASO antes de produccion real, decision ya tomada por Jorge
+4. Recordar SIEMPRE: revertir CSRF_TRUSTED_ORIGINS temporal antes de mergear cualquier lote que requiera probar formularios POST en staging
+
+# ============================================================
+# LOTE E (N35-INT-001, creditos NOM-035) — IMPLEMENTADO Y VALIDADO (sesion 14, cont.)
+# Fecha: 15 Jul 2026
+# ============================================================
+
+## RESULTADO: LOTE E COMPLETO Y FUSIONADO
+
+Rama fix/lote-e-creditos-nom035, fusionada a auditoria-local.
+
+### Cambio implementado en SaveAnswers.post() (surveys/views.py)
+- Antes: serializer.save() ocurria PRIMERO, la validacion de es_demo/creditos ocurria DESPUES (con try/except que silenciaba errores con solo un print) -- si fallaba la validacion, el registro ya se habia guardado en BD a pesar de responder 403
+- Ahora: para las ramas risksurveya/risksurveyb/traumasurvey, se valida es_demo y nom035_creditos<=0 ANTES de guardar nada; el guardado + descuento de credito quedan dentro de transaction.atomic(); se elimino el try/except que silenciaba errores
+- Import agregado: from django.db import IntegrityError, transaction
+
+### Validacion en staging (con Cuenta A, workplace_id=1)
+- Sin creditos (forzado a 0): HTTP 403, CERO registros RiskSurveyA creados -- CONFIRMADO que ya no persiste nada indebido
+- Con creditos (restaurados a 5): HTTP 201, 1 registro creado, creditos bajaron correctamente a 4
+- Rama form=='employee' no se toco en el diff, riesgo de regresion minimo
+
+## RESUMEN ACTUALIZADO DE LOTES COMPLETADOS (sesion 14)
+A (IDOR), C1 (download_file2), C2 (media protegido), D (llaves hardcodeadas), E (creditos NOM-035 atomicos) -- 5 lotes en una sola sesion, todos validados en staging y fusionados a auditoria-local.
+
+## PENDIENTES ACTUALIZADOS PARA SIGUIENTE SESION
+1. INFRA-001 (Volume persistente Railway) -- sigue sin resolver, no bloquea nada
+2. Candidatos para siguiente lote: N35-INT-002 (duplicados/consumo repetido, relacionado con lo que ya se toco en Lote E), N35-INT-003 (.last() silencioso), EVI-SEC-002 (archivos EXE aceptados), PSI-VAL-001 a 006 (validacion backend de los 6 instrumentos)
+3. SEC-006 (PasswordRecover bypass) sigue como ULTIMO PASO antes de produccion real
+4. Actualizar MATRIZ_CONSOLIDADA_POST_REMEDIACION.md con el cierre de Lote E (agregar fila N35-INT-001 como CORREGIDO)
+
+# ============================================================
+# LOTE F (N35-INT-002, duplicados NOM-035) — IMPLEMENTADO Y VALIDADO (sesion 14, cont.)
+# Fecha: 15 Jul 2026
+# ============================================================
+
+## RESULTADO: LOTE F COMPLETO Y VALIDADO
+
+Rama fix/lote-f-duplicados-nom035, lista para merge a auditoria-local.
+
+### Cambios
+1. surveys/models.py: unique_together = ('employee', 'evaluation') agregado a la Meta existente de RiskSurveyA, TraumaSurvey, RiskSurveyB
+2. Migracion manual 0038_unique_survey_per_evaluation.py: 3x AlterUniqueTogether, dependencia correcta a 0037
+3. surveys/views.py, SaveAnswers.post(): doble proteccion contra duplicados --
+   - El try/except alrededor del transaction.atomic() (ya existente del Lote E) ahora captura IntegrityError especificamente (condicion de carrera / colision concurrente), responde 409
+   - ADEMAS (hallazgo de Codex durante implementacion): DRF ModelSerializer genera automaticamente un validador de unique_together, asi que el caso MAS COMUN de duplicado se detecta antes, en serializer.is_valid()==False -- se agrego un chequeo explicito despues del if serializer.is_valid() para responder 409 en vez del 400 generico en ese caso tambien
+
+### Validacion en staging
+- Migracion 0038 aplicada correctamente durante el deploy
+- Intento de duplicado (mismo employee+evaluation que ya tenia 1 RiskSurveyA del Lote E): respuesta 409, conteo de RiskSurveyA se mantuvo en 1 (no subio a 2), creditos se mantuvieron en 4 (no bajaron de nuevo)
+
+## PENDIENTE IMPORTANTE ANTES DE PRODUCCION REAL
+Esta migracion (0038) NO debe aplicarse contra una base de datos con datos reales sin antes auditar y resolver duplicados existentes (employee+evaluation repetidos) -- si existieran, la migracion fallaria al no poder crear la restriccion de unicidad sobre datos que ya la violan. Como el proyecto aun no tiene datos reales de produccion, esto no es bloqueante hoy, pero DEBE recordarse antes de cualquier paso a produccion real con datos existentes.
+
+## RESUMEN ACTUALIZADO DE LOTES DE LA SESION 14
+A, C1, C2, D, E, F -- 6 lotes completados, validados en staging, y fusionados a auditoria-local en una sola sesion.
+
+## PENDIENTES PARA SIGUIENTE SESION
+1. INFRA-001 (Volume persistente Railway) -- sin resolver
+2. Candidatos siguiente lote: N35-INT-003 (.last() silencioso), EVI-SEC-002 (archivos EXE), PSI-VAL-001 a 006 (validacion backend instrumentos psicometricos)
+3. SEC-006 (PasswordRecover bypass) -- ULTIMO PASO antes de produccion real
+4. Actualizar MATRIZ_CONSOLIDADA_POST_REMEDIACION.md: agregar N35-INT-002 como CORREGIDO
+5. Recordar: auditar duplicados existentes antes de aplicar migracion 0038 en cualquier BD con datos reales
+
+# ============================================================
+# LOTE G (PSI-VAL-001 a 006, validacion psicometrica) — COMPLETADO Y FUSIONADO (sesion 14, cont.)
+# Fecha: 15 Jul 2026
+# ============================================================
+
+## RESULTADO: LOTE G COMPLETO, FUSIONADO A auditoria-local
+
+Rama fix/lote-g-validacion-psicometrica. Merge fast-forward, sin conflictos.
+
+### Cambio implementado en TestCompleteView.post() (surveys/psico_views.py)
+Reestructurado en 2 pasadas:
+1. Primera pasada: valida CADA respuesta (formato + coherencia) SIN guardar nada en BD. Si algo es invalido, responde 400 inmediatamente, la sesion permanece en su estado original (pendiente/en_proceso), CERO TestResponse creados
+2. Segunda pasada (solo si TODO paso la validacion): guarda todas las TestResponse, marca sesion completada, calcula scores (via _calcular_scores, sin cambios)
+
+Nuevo metodo _validar_respuesta(self, item, respuesta) con reglas especificas por tipo de instrumento:
+- disc: respuesta debe ser dict con 'mas'/'menos', ambos deben ser dimensiones validas presentes en item.opciones, y mas != menos
+- moss/competencias/comercial/raven: respuesta debe ser string no vacio, debe existir como 'letra' en item.opciones
+- zavic: respuesta debe ser dict con 'distribucion' (dict), cada escala debe ser valida para ese item, cada valor debe ser entero >=0 (type(puntos) is not int para excluir booleanos), y la SUMA debe ser exactamente 5
+
+Tambien se agrego: verificacion de completitud (numero de respuestas validas debe igualar el total de items del instrumento) y validaciones defensivas de tipo (respuestas debe ser lista, cada item debe ser dict).
+
+### Validacion (RequestFactory, aislado, sin necesitar contenedor)
+Los 6 instrumentos probados con 3 escenarios cada uno (18 verificaciones total):
+- Envio completo y valido -> 200, guarda correctamente (sin regresion)
+- Envio incompleto -> 400, CERO TestResponse guardados, sesion no completada
+- Formato invalido especifico del tipo (DISC mas==menos, Zavic suma!=5, letra inexistente en Moss/Raven/Competencias/Comercial) -> 400, CERO guardados
+
+Todos los 18 casos PASS.
+
+## RESUMEN FINAL DE LA SESION 14 — 7 LOTES COMPLETADOS
+
+A (IDOR NOM-035), C1 (download_file2), C2 (media protegido), D (llaves hardcodeadas), E (creditos NOM-035 atomicos), F (duplicados NOM-035), G (validacion psicometrica 6 instrumentos) -- todos implementados, validados en staging o con RequestFactory aislado, y fusionados a auditoria-local.
+
+## PENDIENTES PARA SIGUIENTE SESION
+1. INFRA-001 (Volume persistente Railway) -- sin resolver, no bloqueante
+2. Candidatos siguiente lote: N35-INT-003 (.last() silencioso), EVI-SEC-002 (archivos EXE en evidencias), DEP-001/002 (fix definitivo de migraciones/Procfile, ya mitigados manualmente)
+3. Hallazgos "Media/Baja" pendientes: CLM-INT-001 (Clima Laboral reenvios), PN-01 a PN-06 (Perfil Narrativo, IA aun no conectada realmente), CONFIG-001/002, SEC-008 (llaves Conekta comentadas)
+4. SEC-006 (PasswordRecover bypass) -- ULTIMO PASO antes de produccion real, decision ya tomada
+5. Actualizar MATRIZ_CONSOLIDADA_POST_REMEDIACION.md: agregar PSI-VAL-001 a 006 como CORREGIDOS (6 filas), y corregir el conteo total de hallazgos (revisar bien SEC-005/007 que ya se movieron a Lote D, evitar doble conteo)
+
+# ============================================================
+# LOTE H (EVI-SEC-002, validacion de contenido de archivos) — COMPLETADO Y FUSIONADO
+# Fecha: 15 Jul 2026 (sesion 15)
+# ============================================================
+
+## RESULTADO: LOTE H COMPLETO, FUSIONADO A auditoria-local
+
+Rama fix/lote-h-validacion-archivos. Merge fast-forward, sin conflictos.
+
+### Cambios
+1. surveys/models.py: nueva funcion validar_contenido_archivo(archivo, extensiones_permitidas) -- valida magic bytes reales (PDF: %PDF-, JPG: \xff\xd8\xff, PNG: \x89PNG\r\n\x1a\n) contra la extension declarada, mas validacion adicional con Pillow para JPG/PNG (Image.open().verify()). Deja el puntero del archivo en posicion 0 al terminar
+2. validate_file_extension (usado por Userapp.image, el logo) reescrito para usar la funcion nueva -- IMPORTANTE: el primer intento de Codex perdio la validacion de tamano de 2.5MB que tenia la funcion original, se detecto en revision de diff y se corrigio antes de comitear (ahora conserva ambas: limite de tamano Y validacion de contenido)
+3. surveys/forms.py: EvidenciaFaseCForm.clean_archivo ahora llama a validar_contenido_archivo despues de las validaciones existentes (tamano 10MB, extension)
+4. Sin dependencias nuevas -- solo se uso Pillow (ya instalado) y verificacion manual de magic bytes, evitando requerir python-magic/libmagic en el build de Railway
+
+### Validacion (local, sin necesitar staging)
+Probado con SimpleUploadedFile: PDF falso rechazado, PDF minimo valido aceptado, JPG real aceptado, PNG real aceptado, JPG falso rechazado, formulario completo con PDF falso rechazado, formulario con PDF valido aceptado. Todos los casos PASS.
+
+## LECCION: revisar diffs de refactors con cuidado especial cuando reemplazan una funcion completa
+Al reescribir validate_file_extension de cero, el primer intento omitio silenciosamente la validacion de tamano de 2.5MB que ya existia. Cuando se pide reescribir/refactorizar una funcion existente (no solo agregar codigo nuevo), revisar el diff linea por linea contra el ORIGINAL para confirmar que ningun comportamiento previo se perdio, no solo que el nuevo comportamiento funcione.
+
+## RESUMEN ACTUALIZADO: 8 LOTES COMPLETADOS (sesiones 14-15)
+A, C1, C2, D, E, F, G, H -- todos fusionados a auditoria-local.
+
+## PENDIENTES PARA SIGUIENTE SESION
+1. INFRA-001 (Volume persistente Railway) -- sin resolver
+2. Candidatos siguiente lote: N35-INT-003 (.last() silencioso), DEP-001/002 (fix definitivo migraciones/Procfile)
+3. Hallazgos Media/Baja pendientes: CLM-INT-001, PN-01 a 06, CONFIG-001/002, SEC-008
+4. SEC-006 (PasswordRecover bypass) -- ULTIMO PASO antes de produccion real
+5. Actualizar MATRIZ_CONSOLIDADA_POST_REMEDIACION.md: agregar EVI-SEC-002 como CORREGIDO
+
+# ============================================================
+# LOTE I (N35-INT-003, .last() sin filtro de evaluation) — COMPLETADO Y FUSIONADO
+# Fecha: 15 Jul 2026 (sesion 15, cont.)
+# ============================================================
+
+## RESULTADO: LOTE I COMPLETO, FUSIONADO A auditoria-local
+
+Rama fix/lote-i-evaluacion-actual. Merge fast-forward, sin conflictos.
+
+### Cambio implementado en EmployeeList.get() (surveys/views.py, ~linea 2135)
+emp.surveyB.last() / emp.surveyA.last() (SIN filtro de evaluation, inconsistente con el resto del archivo que si filtra) ahora filtran por emp.workplace.evaluation antes de .last(), guardando el resultado en variables survey_b_actual/survey_a_actual reutilizadas (evita doble consulta ademas de corregir el bug).
+
+### Decision de diseno confirmada
+Se evaluo si debia usarse el patron eval_to_check (usado en Portafolio de Evidencias para el "ultimo ciclo cerrado") en vez de emp.workplace.evaluation directo. Se confirmo que NO aplica aqui: esta vista (EmployeeList) representa el ESTADO OPERATIVO DEL CICLO VIGENTE (ya usaba emp.workplace.evaluation para el chequeo de trauma en la misma vista), mientras que eval_to_check es especifico para mostrar resultados de una evaluacion ya finalizada en el Portafolio. Contextos distintos, decision correcta de mantener consistencia con el resto de la vista.
+
+### Alcance de N35-INT-003 en el proyecto (hallazgo importante)
+Se investigo el patron completo de .last() en surveys/views.py (mas de 25 ocurrencias). La gran mayoria (filter(evaluation=X).last()) YA quedaron mitigadas indirectamente por el Lote F (unique_together employee+evaluation en RiskSurveyA/TraumaSurvey/RiskSurveyB) -- como ya no pueden existir duplicados por empleado+evaluacion, esos .last() ya no "eligen entre varios" registros, solo devuelven el unico posible. El UNICO caso genuinamente problematico (sin filtro de evaluation) era el corregido en este lote. N35-INT-003 se considera CERRADO para el modulo NOM-035.
+
+## RESUMEN: 9 LOTES COMPLETADOS (sesiones 14-15)
+A, C1, C2, D, E, F, G, H, I -- todos fusionados a auditoria-local.
+
+## PENDIENTES PARA SIGUIENTE SESION
+1. INFRA-001 (Volume persistente Railway) -- sin resolver
+2. DEP-001/002 (fix definitivo de migraciones 0022/0023 y Procfile) -- unicos hallazgos "Alta" originales que faltan por atacar con codigo real (ya mitigados manualmente, falta el fix definitivo)
+3. Hallazgos Media/Baja pendientes: CLM-INT-001, PN-01 a 06, CONFIG-001/002, SEC-008
+4. SEC-006 (PasswordRecover bypass) -- ULTIMO PASO antes de produccion real
+5. Actualizar MATRIZ_CONSOLIDADA_POST_REMEDIACION.md: agregar N35-INT-003 como CORREGIDO, y EVI-SEC-002 (Lote H) que quedo pendiente de sesion anterior
+6. Nota menor: git detecto nombre/email de commit automaticamente en esta maquina -- no urgente, configurar con git config --global si Jorge quiere
+
+# ============================================================
+# LOTE J (DEP-001/DEP-002, fix definitivo migraciones+Procfile) — COMPLETADO Y FUSIONADO
+# Fecha: 15 Jul 2026 (sesion 15, cont.)
+# ============================================================
+
+## RESULTADO: LOTE J COMPLETO, FUSIONADO A auditoria-local, DEPLOY LIMPIO CONFIRMADO
+
+Rama fix/lote-j-migraciones-procfile.
+
+### Cambios
+1. surveys/migrations/0023_perfil_narrativo.py: vaciada de operaciones (quedo operations = []), conserva dependencia a 0022_psicometria. El campo perfil_narrativo ya lo crea 0022 (confirmado leyendo su codigo -- el CreateModel de TestResult ya incluye el campo)
+2. Procfile: agregados cargar_competencias y cargar_comercial a la cadena de comandos del arranque, antes de gunicorn
+
+### Validacion — LA MAS FUERTE DE TODA LA SESION
+Codex probo una INSTALACION 100% LIMPIA con PostgreSQL LOCAL (no staging, base nueva de verdad):
+- Las 38 migraciones (0001 a 0038) se aplicaron TODAS sin error y SIN NECESITAR --fake en ningun punto
+- Los 6 instrumentos (disc, moss, raven, zavic, competencias, comercial) se cargaron automaticamente en el primer arranque, sin intervencion manual
+- makemigrations --check --dry-run solo senala el pendiente YA CONOCIDO y ajeno a este lote: PsychoInstrument.tipo sin migracion formal para los choices 'competencias'/'comercial' (documentado desde sesiones anteriores, no bloqueante, de baja prioridad)
+
+DEP-001 y DEP-002 quedan CERRADOS DEFINITIVAMENTE -- ya no son solo "mitigados manualmente", tienen el fix de codigo real, probado desde cero.
+
+## RESUMEN: 10 LOTES COMPLETADOS (sesiones 14-15)
+A, C1, C2, D, E, F, G, H, I, J -- todos fusionados a auditoria-local. Deploy en staging confirmado limpio tras el Lote J.
+
+## ESTADO DE LOS HALLAZGOS "ALTA" ORIGINALES: TODOS CERRADOS
+De los 12 hallazgos "Alta" de la auditoria original (22 totales), los que aplicaban a codigo real (N35-INT-001, N35-INT-002, N35-INT-003, PSI-VAL-001 a 006, EVI-SEC-002, DEP-001, DEP-002) estan TODOS corregidos. Los 2 "Critica" tambien estan corregidos (N35-SEC-001, EVI-SEC-001).
+
+## PENDIENTES PARA SIGUIENTE SESION
+1. INFRA-001 (Volume persistente Railway) -- sin resolver, infraestructura no codigo
+2. Hallazgos Media/Baja restantes de la auditoria original: CLM-INT-001 (Clima Laboral reenvios ilimitados), PN-01 a PN-06 (Perfil Narrativo, modulo de IA aun sin proveedor real conectado)
+3. Hallazgos nuevos menores: CONFIG-001/002 (CSRF/CORS hardcodeados, dominio placeholder), SEC-008 (llaves Conekta comentadas en codigo)
+4. SEC-006 (PasswordRecover bypass) -- ULTIMO PASO antes de produccion real, sigue siendo la unica pieza critica pendiente, decision ya tomada por Jorge de dejarla para el final
+5. Pendiente menor conocido: PsychoInstrument.tipo sin migracion formal para choices 'competencias'/'comercial' (bajo riesgo, Django detecta la diferencia pero no rompe nada)
+6. Actualizar MATRIZ_CONSOLIDADA_POST_REMEDIACION.md con el cierre completo: agregar DEP-001, DEP-002, N35-INT-003, EVI-SEC-002 como CORREGIDOS -- consolidar conteo final
+
+# ============================================================
+# LOTE K (CONFIG-001/002, SEC-008) — COMPLETADO Y FUSIONADO
+# Fecha: 16 Jul 2026 (sesion 16)
+# ============================================================
+
+## RESULTADO: LOTE K COMPLETO, FUSIONADO A auditoria-local
+
+Rama fix/lote-k-config-limpieza.
+
+### Cambios
+1. nom035/settings.py: CORS_ALLOWED_ORIGINS y CSRF_TRUSTED_ORIGINS movidos a variables de entorno via config(), mismo patron que ALLOWED_HOSTS, con default = valores actuales de produccion. El dominio placeholder "https://tu-frontend.com" desaparecio (CONFIG-002 resuelto como efecto secundario)
+2. surveys/views.py: eliminadas 4 lineas de comentarios con llaves de Conekta (3 originales "pulica"/"publica" de prueba + 1 encontrada durante la revision, la de "produccion" sin calificar)
+
+### MEJORA DE PROCESO IMPORTANTE
+Con CORS_ALLOWED_ORIGINS/CSRF_TRUSTED_ORIGINS ahora via variable de entorno, YA NO sera necesario hacer el ajuste temporal de codigo (commit temporal + revertir) que tuvimos que hacer en varios lotes anteriores (A, C2) para poder probar formularios POST en staging -- de aqui en adelante basta con agregar el dominio de staging a la variable de entorno en Railway, sin tocar codigo.
+
+## HALLAZGO NUEVO IMPORTANTE — Conekta activo y con llave privada expuesta (para Lote L futuro)
+
+Durante la limpieza de comentarios de Conekta, Codex encontro que la integracion de Conekta NO es solo codigo muerto comentado -- esta ACTIVA:
+- conekta.api_key = "key_qfCtN8NqwJRTTJR23wdcqA" HARDCODEADA Y ACTIVA en surveys/views.py linea ~43 (llave privada de PRODUCCION, no de pruebas)
+- Vistas activas PaymentList y AddCardList (surveys/views.py) usan el SDK de Conekta para crear/buscar clientes, crear ordenes, manejar tarjetas
+- 2 templates (edit_profile.html, payments.html) cargan el SDK de Conekta y tokenizan tarjetas con una llave PUBLICA de pruebas (esta si esta bien que sea publica, no es el problema)
+- Dependencia conekta==6.0.4 en requirements.txt
+- Campo Userapp.client_id en models.py (historico, relacionado a Conekta)
+- Webhook comentado en models.py
+- Referencias en migraciones 0001 y 0010 (estas SI deben conservarse, no tocar historial de migraciones)
+
+CONTEXTO DE JORGE: Conekta era el proveedor de pagos ANTES de que el sistema fuera solo NOM-035; ya NO se va a usar, Stripe es el proveedor definitivo de aqui en adelante. Jorge NO tiene acceso a la cuenta de Conekta para revocar la llave desde su lado.
+
+RIESGO: la llave privada de produccion sigue expuesta en el codigo Y funcionalmente activa (el SDK realmente se usa). Como no se puede revocar desde Conekta (sin acceso a la cuenta), la unica mitigacion posible por ahora es eliminar el codigo que la usa y quitarla del repositorio -- aunque la llave en si podria seguir siendo valida en el lado de Conekta indefinidamente si nadie la revoca ahi.
+
+## PENDIENTE INMEDIATO — LOTE L (nuevo, alta prioridad)
+Limpieza completa de Conekta: eliminar llave hardcodeada, deshabilitar/eliminar PaymentList y AddCardList (o las partes que dependen de Conekta especificamente), quitar SDK de los 2 templates, remover dependencia de requirements.txt, decidir que hacer con Userapp.client_id (deprecar el campo o dejarlo por compatibilidad historica sin usarlo), NO tocar migraciones 0001/0010 (historial). Requiere mas cuidado que un lote tipico porque toca flujo de pagos -- confirmar con Jorge si PaymentList/AddCardList tienen alguna otra funcion ademas de Conekta antes de eliminarlas o si son 100% especificas de ese proveedor.
+
+## RESUMEN: 11 LOTES COMPLETADOS (sesiones 14-16)
+A, C1, C2, D, E, F, G, H, I, J, K -- todos fusionados a auditoria-local.
+
+## PENDIENTES PARA SIGUIENTE SESION
+1. LOTE L (Conekta completo) -- nueva prioridad alta, llave privada de produccion expuesta y activa
+2. INFRA-001 (Volume persistente Railway) -- CONFIRMADO que sigue sin resolver (Jorge reviso, no aparece seccion de Volumes)
+3. CLM-INT-001, PN-01 a 06 -- pendientes Media/Baja
+4. SEC-006 (PasswordRecover bypass) -- ULTIMO PASO antes de produccion real
+5. Actualizar MATRIZ_CONSOLIDADA_POST_REMEDIACION.md: agregar CONFIG-001/002 y SEC-008 como CORREGIDOS, agregar el hallazgo nuevo de Conekta activo (severidad ALTA/CRITICA a definir) como pendiente para Lote L
+
+# ============================================================
+# LOTE L (eliminacion de Conekta) — INCIDENTE DE SEGURIDAD Y REINICIO LIMPIO (sesion 16, cont.)
+# Fecha: 16 Jul 2026
+# ============================================================
+
+## INCIDENTE DE SEGURIDAD OCURRIDO Y RESUELTO — LEER ANTES DE CONTINUAR
+
+Durante la primera implementacion del Lote L, se uso `git add -A` para el commit final. Esto agrego accidentalmente al repo (PUBLICO en ese momento) una gran cantidad de archivos ajenos al lote que estaban sueltos sin trackear en el working directory de Jorge:
+- `db_test.sqlite3` (base de datos de prueba completa)
+- Archivos de evidencia de pruebas de seguridad con nombres reveladores (`...traversal.png`, `...extension.exe`, `...contenido-invalido.pdf`) dentro de `media/results/27/1/`
+- La carpeta `qa_tests/` COMPLETA — un framework de pruebas QA/auditoria de Jorge con reportes que incluyen `INFORME_EJECUTIVO_NORMAIA_QA.md`, `MATRIZ_FINAL_HALLAZGOS.md`, `ROADMAP_REMEDIACION.md` — documentos que detallan vulnerabilidades de seguridad del sistema, incluyendo (potencialmente) el detalle de SEC-006 (bypass de PasswordRecover) que **sigue sin corregir**
+
+Esto se subio a `github.com/jorgereynaga/nom035`, que en ese momento era PUBLICO. Riesgo: cualquiera pudo haber visto documentacion detallada de una vulnerabilidad critica activa y explotable.
+
+### Acciones de remediacion ya ejecutadas (en orden)
+1. Repo cambiado a PRIVADO en GitHub Settings (Jorge confirmo el cambio) — esto es lo mas importante, corta el acceso publico de inmediato
+2. Rama remota `fix/lote-l-conekta` eliminada (`git push origin --delete`)
+3. Rama local eliminada tambien (`git branch -D`)
+4. Rama recreada limpia desde `auditoria-local` (que NUNCA tuvo estos archivos, el problema fue exclusivo del commit de Lote L)
+5. `.gitignore` actualizado agregando `qa_tests/` explicitamente (commit `bcb6ded9`, ya pusheado, limpio, solo 3 lineas)
+6. NO fue necesario usar `git filter-repo` — como el commit contaminado era el UNICO commit exclusivo de esa rama por encima de `auditoria-local`, simplemente borrar y recrear la rama fue suficiente y mas simple
+
+### PENDIENTE DE ESTE INCIDENTE (importante, no cerrar hasta hacer esto)
+1. **Confirmar que `media/` y `db_test.sqlite3` ya estan en `.gitignore` de forma robusta** — al revisar el `git status` post-limpieza, estos NO aparecieron como untracked (sugiere que ya estaban ignorados), pero vale la pena confirmarlo explicitamente con `cat .gitignore` para asegurar que el patron cubre bien todas las subcarpetas de media/ y no fue una coincidencia
+2. **Evaluar con Jorge si se contacta a soporte de GitHub** para solicitud de purga de cache/indices de contenido sensible, dado que el repo estuvo publico con esos archivos por un tiempo indeterminado (breve, pero no confirmado con certeza que nadie accedio — "0 stars/watchers" no es garantia de que nadie vio archivos por URL directa)
+3. **Considerar adelantar la prioridad de SEC-006** (bypass de PasswordRecover) dado que su documentacion pudo haber estado expuesta publicamente, aunque sea brevemente — ya no se siente tan seguro dejarlo como "ultimo paso antes de produccion", el nivel de riesgo pudo haber cambiado
+4. **Regla nueva OBLIGATORIA para todos los commits futuros de cualquier lote**: NUNCA usar `git add -A` ni `git add .` — siempre agregar archivos EXPLICITAMENTE por nombre (`git add archivo1.py archivo2.html`). Revisar `git status` ANTES de cada `git add` para confirmar que no aparezca nada inesperado (carpetas de pruebas, bases de datos locales, archivos sueltos de trabajo)
+
+## ESTADO ACTUAL DE LA RAMA fix/lote-l-conekta (limpia, lista para reimplementar)
+- Rama creada limpia desde auditoria-local, con SOLO el commit del .gitignore (bcb6ded9)
+- El codigo de Conekta ESTA DE VUELTA en su estado original (se revirtio al recrear la rama) — confirmado: `grep -c "conekta" surveys/views.py` = 16, `surveys/templates/payments.html` sigue existiendo
+- El archivo `LOTE_L_especificacion_conekta.md` SI sigue presente (viene de auditoria-local, nunca se toco)
+- PENDIENTE: pedirle a Codex que reimplemente la especificacion completa desde cero en esta rama (el trabajo que ya habia hecho una vez, con buena calidad segun el diff revisado, se perdio al descartar la rama contaminada — hay que rehacerlo, pero la especificacion ya esta escrita y no cambia)
+- Cuando Codex termine: NO usar `git add -A`, agregar archivos explicitos: `nom035/urls.py`, `requirements.txt`, `surveys/models.py`, `surveys/stripe_views.py`, `surveys/templates/edit_profile.html`, `surveys/views.py`, y el `git rm surveys/templates/payments.html` para el archivo eliminado
+
+## CAMBIO DE HERRAMIENTA: Jorge empieza a usar Claude Code
+A partir de este punto, Jorge va a trabajar con Claude Code (la app de escritorio) apuntando directo a la carpeta del repo (`C:\NormaIA-Pruebas\nom035`), en vez de copiar/pegar comandos y resultados entre la terminal y el chat de Claude.ai. Esto deberia agilizar mucho el trabajo, especialmente revisar diffs completos y archivos grandes sin las limitaciones de copiar/pegar por chat.
+
+El flujo de trabajo cambia ligeramente:
+- Claude Code puede leer archivos, correr comandos, y ver resultados directamente sin que Jorge tenga que copiar/pegar
+- Los principios siguen siendo los mismos: Jorge revisa y aprueba antes de cada commit/push, nunca se actua de forma completamente autonoma sin su confirmacion en pasos criticos (deploys, cambios de rama en Railway, merges)
+- La regla de NUNCA usar git add -A aplica igual, sin importar la herramienta usada para ejecutar los comandos
+- Verificar que Claude Code tambien tenga acceso de lectura a este ESTADO.md al iniciar, ya que es el puente de contexto entre sesiones (y ahora entre herramientas tambien)
+
+## PENDIENTE INMEDIATO PARA RETOMAR (con Claude Code o la cuenta que continue)
+1. Reimplementar Lote L en la rama limpia fix/lote-l-conekta (spec ya escrita, solo falta que Codex/Claude Code la aplique de nuevo)
+2. Al commitear: SOLO archivos explicitos, jamas git add -A, revisar git status antes de cada add
+3. Confirmar .gitignore cubre bien media/ y db_test.sqlite3 de forma robusta (no solo por casualidad)
+4. Decidir con Jorge si se contacta a soporte de GitHub por el incidente de exposicion breve
+5. Reevaluar prioridad de SEC-006 (PasswordRecover bypass) dado el incidente
+6. Una vez reimplementado y validado en staging: merge de fix/lote-l-conekta a auditoria-local, cambiar Source de Railway de vuelta si se habia cambiado
+7. INFRA-001 (Volume persistente Railway) sigue sin resolver
+8. CLM-INT-001, PN-01 a 06 -- pendientes Media/Baja sin atacar aun
+
+# ============================================================
+# LOTE L (Eliminacion de Conekta) — IMPLEMENTADO EN RAMA (sesion 14)
+# Fecha: 16 Jul 2026
+# ============================================================
+
+## RESULTADO: LOTE L COMPLETADO, PENDIENTE DE VALIDAR EN STAGING Y MERGE
+
+Rama: fix/lote-l-conekta (a partir de auditoria-local, recreada limpia tras el
+incidente de seguridad documentado en la sesion anterior). Implementado por
+Codex siguiendo LOTE_L_especificacion_conekta.md. Commit: a80c3aef.
+
+### Cambios implementados
+1. surveys/stripe_views.py — StripePortalView.get() ahora crea el customer de
+   Stripe al vuelo si userapp.stripe_customer_id esta vacio (mismo patron que
+   StripeCheckoutView), guarda el id, y ya no redirige nunca a /payments/
+   (ni en el flujo normal ni en el catch de error)
+2. surveys/views.py — eliminado por completo: import conekta, la llave de
+   API de PRODUCCION hardcodeada (key_qfCtN8NqwJRTTJR23wdcqA), get_price(),
+   PaymentView, PaymentList, AddCardList
+3. nom035/urls.py — eliminadas las rutas /payments/, /api/payments/,
+   /api/addCard/ (stripe_portal no se toco, sigue igual)
+4. surveys/templates/edit_profile.html — pestanas "Metodos de pago" y
+   "Mis pagos" reemplazadas por mensaje + boton a {% url 'stripe_portal' %};
+   eliminado el script de cdn.conekta.io y todos los handlers JS huerfanos
+   (toggleAddCard, submit-card, delete-card)
+5. surveys/templates/payments.html — archivo eliminado
+6. surveys/models.py — Userapp.client_id conservado (sin migracion), marcado
+   con comentario "# DEPRECATED - Conekta ya no se usa..."; eliminado el
+   bloque comentado ConektaWebhook (codigo muerto)
+7. requirements.txt — eliminada la linea conekta==6.0.4
+
+### Revision de diff (Claude, antes del commit)
+- Confirmado con grep que solo quedan referencias a "conekta" en el
+  comentario de deprecacion de models.py y en las migraciones historicas
+  0001/0010 (correcto, no se tocan por especificacion)
+- Tags Django balanceados en edit_profile.html (if/endif, block/endblock)
+- Sin referencias colgantes a payments.html, PaymentView, PaymentList,
+  AddCardList, /api/addCard/ en ningun otro archivo del repo
+- python -m py_compile OK en los 4 archivos .py tocados (verificado dos
+  veces, por Codex con Python 3.10 y de forma independiente por Claude)
+- Detalle cosmetico no bloqueante: StripePortalView usa return_url con
+  string hardcodeado "/edit_profile/" en el flujo normal pero
+  reverse('edit_profile') en el catch de error — ambos resuelven al mismo
+  lugar, es solo inconsistencia de estilo, no bug
+
+### HALLAZGO NUEVO SIN RELACION AL LOTE (anotado, no corregido)
+db.sqlite3 (raiz del repo) y toda la carpeta media/ (incluye PDFs reales de
+resultados de clientes) estan TRACKEADOS en git desde antes de esta sesion,
+y .gitignore no tiene *.sqlite3 ni media/. No es parte del incidente de
+seguridad ya documentado (no aparecio en git status, no fue agregado ahora),
+es contenido preexistente en el historial. PENDIENTE: decidir si se trata
+como un lote de remediacion aparte (limpieza de historial de git, dato
+sensible de clientes reales expuesto si el repo alguna vez fue o vuelve a
+ser publico).
+
+## PENDIENTE INMEDIATO
+1. Validar en staging: iniciar sesion con cuenta SIN stripe_customer_id
+   previo, click en "Metodos de pago", confirmar que crea el customer de
+   Stripe al vuelo y redirige al Portal sin caer en 404 ni en /payments/
+2. Confirmar visualmente que ambas pestanas de edit_profile.html se ven
+   correctas sin resto visual del formulario viejo de tarjetas
+3. Confirmar que /payments/, /api/payments/ y /api/addCard/ devuelven 404
+4. Decidir si se hace merge de fix/lote-l-conekta a auditoria-local ahora
+   o se espera a acumular mas lotes
+5. Nuevo pendiente (no bloqueante para este lote): evaluar lote de limpieza
+   para db.sqlite3/media/ trackeados en git (ver hallazgo arriba)
+
+## VALIDACION EN STAGING COMPLETADA — LOTE L CERRADO (sesion 14, cont.)
+Fecha: 17 Jul 2026
+
+Validado por Claude en nom035-staging.up.railway.app con la cuenta pruebaB@test.com
+(sin stripe_customer_id previo):
+
+1. Deploy limpio tras git push origin fix/lote-l-conekta (commits a80c3aef, badc3558) --
+   NOTA IMPORTANTE: el primer intento de validacion fallo porque se habia cambiado el
+   Source de Railway a la rama SIN empujar los commits a GitHub primero -- Railway seguia
+   sirviendo la version vieja (con Conekta activo). LECCION: siempre confirmar
+   `git log origin/<rama>` coincide con local antes de asumir que un cambio de Source
+   en Railway ya refleja el ultimo commit.
+2. /payments/, /api/payments/, /api/addCard/ -- los 3 devuelven 404 (confirmado con
+   fetch({redirect:'manual'/'follow'}) desde el navegador, no solo visualmente)
+3. edit_profile.html -- pestanas "Metodos de pago" y "Mis pagos" confirmadas sin ningun
+   resto visual del formulario viejo de tarjetas, ambas con link a stripe_portal
+4. Flujo completo probado: login sin stripe_customer_id -> click "Metodos de pago" ->
+   StripePortalView crea el customer de Stripe al vuelo -> redirige correctamente a
+   billing.stripe.com con el Portal real (metodo de pago, datos de facturacion con el
+   email correcto, historial de facturas) -- sin caer en 404 ni en /payments/
+
+## LOTE L: COMPLETADO Y VALIDADO EN STAGING -- LISTO PARA MERGE A auditoria-local
+
+# ============================================================
+# LOTE M (CLM-INT-001, reenvios ilimitados Clima Laboral) — IMPLEMENTADO Y VALIDADO (sesion 17)
+# Fecha: 17 Jul 2026
+# ============================================================
+
+## RESULTADO: LOTE M COMPLETO Y VALIDADO EN STAGING
+
+Rama fix/lote-m-clima-reenvios (a partir de auditoria-local), implementada por Codex
+siguiendo LOTE_M_especificacion_clima_reenvios.md. Commit: c531016f.
+
+### Cambio implementado en ClimaLaboralView (surveys/views.py, ~linea 2733-2760)
+Bloqueo de reenvios via sesion de Django (sin requerir login, la encuesta sigue siendo
+anonima por diseno):
+- POST: despues de validar que el workplace existe y tiene plan/creditos activos, se
+  verifica request.session.get(f'clima_submitted_{wk.id}'); si ya existe, se devuelve
+  clima_gracias.html sin crear un WorkEnvironmentSurvey nuevo. Si es la primera vez, se
+  crea el registro y se marca request.session[f'clima_submitted_{wk.id}'] = True
+- GET: mismo chequeo -- si la sesion ya envio, se muestra clima_gracias.html directo en
+  vez del formulario vacio
+- Se eligio bloqueo por SESION (no por IP) deliberadamente: varios empleados de un mismo
+  centro de trabajo suelen compartir la misma IP de oficina (NAT), bloquear por IP
+  afectaria a empleados legitimos distintos. Mitigacion proporcional a la severidad Media
+  del hallazgo, consistente con que la encuesta es intencionalmente anonima
+- Indentacion de 4 espacios de la clase (distinta al resto del archivo) respetada
+- ClimaResultadosView (vista del empleador) sin cambios
+
+### Validacion en staging (Claude, navegador embebido)
+Con Workplace de pruebaA@test.com (4 creditos NOM-035 disponibles), access_code
+203503421f294e83b2305e5d85a7ed53:
+1. Envio completo valido (POST directo con los 40 campos vs fetch, csrftoken real) ->
+   200, 1 WorkEnvironmentSurvey creado, confirmado via ClimaResultadosView (1 respuesta)
+2. Reenvio inmediato desde la MISMA sesion -> 200 (misma plantilla gracias) pero CERO
+   registros nuevos -- confirmado que el conteo se mantuvo en 1, no subio a 2
+3. GET de vuelta al formulario en la misma sesion -> ya no muestra el formulario vacio,
+   redirige directo a clima_gracias.html (titulo de pagina cambio a "Gracias")
+4. Sesion distinta (logout de Django para forzar sesion nueva, request.session.flush())
+   -> SI pudo enviar una respuesta nueva -- conteo subio correctamente a 2, promedio de
+   las 8 dimensiones recalculado de 4.0 a 3.5 (consistente con valores 4 y 3 enviados)
+5. NOTA METODOLOGICA: pestanas nuevas del mismo navegador comparten cookies (no son
+   sesiones distintas) -- para probar el caso 4 hubo que forzar logout explicito, no
+   bastaba con abrir una pestana nueva
+6. ClimaResultadosView confirmada sin cambios de comportamiento (calculo de dimensiones
+   correcto)
+
+## LOTE M: COMPLETADO Y VALIDADO EN STAGING -- LISTO PARA MERGE A auditoria-local
+
+# ============================================================
+# LOTE N (N35-FUN-004, employees_dt devuelve 500 en casos limite) — IMPLEMENTADO Y VALIDADO (sesion 17, cont.)
+# Fecha: 17 Jul 2026
+# ============================================================
+
+## RESULTADO: LOTE N COMPLETO Y VALIDADO EN STAGING
+
+Rama fix/lote-n-employees-dt-500 (a partir de auditoria-local), implementada por Codex
+siguiendo LOTE_N_especificacion_employees_dt_500.md. Commit: f4c76359.
+
+### Causas raiz confirmadas (surveys/views.py, employees_dt, linea ~1139)
+1. ZeroDivisionError: Paginator(query, length).page(page) con length=0 (controlable via
+   query string) -- la excepcion no era ni PageNotAnInteger ni EmptyPage, se propagaba
+   sin control -> 500
+2. TypeError: int(request.GET.get('draw'/'start'/'length')) sin validar que el parametro
+   existiera -> int(None) -> 500 si faltaba cualquiera de los 3 en la peticion
+3. KeyError: el chequeo `if order>3: order=0` no cubria valores negativos de
+   order[0][column] -- ordering[order] con order=-1 crasheaba (ordering es un dict con
+   llaves 0-3, no una lista)
+4. Menor: page=(start/length)+1 usaba division de punto flotante en vez de entera
+
+### Cambio implementado
+- draw/start/length/order[0][column] ahora se leen dentro de un try/except
+  (TypeError, ValueError) -- si falta cualquiera o no es entero valido, responde 400
+  con el mismo formato JSON vacio que ya usaba el 403 de ownership
+- length<=0 se rechaza explicitamente con 400 (variante elegida: rechazar en vez de
+  forzar un default)
+- `if order>3: order=0` reemplazado por `if order not in ordering: order=0` -- cubre
+  negativos y fuera de rango por arriba, sigue corrigiendo silenciosamente (no rechaza)
+- page=(start//length)+1, division entera, solo ejecuta despues de garantizar length>0
+- Ownership check y logica de negocio (armado de arr, badges, WhatsApp) sin cambios
+
+### Validacion en staging (Claude, navegador embebido, fetch directo con sesion real)
+Con pruebaA@test.com, workplace_id=1 (1 empleado registrado), endpoint
+/employees_dt/1/0/1/:
+- Peticion normal (draw/start/length/order completos) -> 200, datos correctos
+- length=0 -> 400 (antes: 500 ZeroDivisionError)
+- Falta draw -> 400 (antes: 500 TypeError)
+- Falta start -> 400
+- Falta length -> 400
+- order[0][column]=-1 -> 200, corregido a columna 0 (antes: 500 KeyError)
+- order[0][column]=99 -> 200, corregido a columna 0 (comportamiento preexistente, sin
+  regresion)
+- DataTable real de workplace_detail.html confirmado renderizando correctamente en
+  pantalla (1 empleado, paginacion "pagina 1 de 1")
+
+## HALLAZGO MENOR ADICIONAL, ANOTADO PERO NO CORREGIDO EN ESTE LOTE
+nom035/urls.py linea 81: path('employees_dt/<int:workplace_id>/<int:t>/', ...) sin
+evaluation en la URL -- si se invoca directamente (nadie lo hace hoy, confirmado con
+grep que ningun template usa esta variante de 2 segmentos) causaria
+TypeError: missing 1 required positional argument: 'evaluation'. No explotable por el
+flujo normal de la app, se deja anotado para decidir despues si se cierra (opcion mas
+simple: agregar evaluation=0 como default en la firma de la funcion).
+
+## LOTE N: COMPLETADO Y VALIDADO EN STAGING -- LISTO PARA MERGE A auditoria-local
+
+# ============================================================
+# LOTE O (SEC-006, bypass total de PasswordRecover) — IMPLEMENTADO Y VALIDADO (sesion 18)
+# Fecha: 17 Jul 2026
+# ============================================================
+
+## RESULTADO: LOTE O COMPLETO -- HALLAZGO MAS GRAVE DE TODA LA AUDITORIA, CERRADO
+
+Rama fix/lote-o-password-recover-bypass (a partir de auditoria-local), implementada
+por Codex siguiendo LOTE_O_especificacion_password_recover_bypass.md. Commit de codigo:
+fix aplicado exclusivamente en PasswordRecover.post() (surveys/views.py, ~linea 766).
+
+### Cambio implementado
+- Condicion de la rama de cambio de contrasena corregida: antes comprobaba
+  "new_password1" dos veces (nunca comprobaba new_password2), ahora comprueba ambos
+- El POST ahora exige 'code' e 'iv' en kwargs (la URL) -- estos ya viajaban ahi porque
+  el <form method="POST"> de password_recover.html no tiene action, se somete a la
+  misma URL /password_recover/<code>/<iv> desde donde se cargo, NO fue necesario tocar
+  el template
+- Se replica exactamente la misma logica de desencriptacion+validacion de 1 hora que ya
+  usaba get() (mismo patron, mismo Userapp.objects.filter(user_id=..., record_create=...))
+- El usuario a modificar se deriva del token desencriptado (userapp.user), el campo
+  user-email del POST YA NO se usa para identidad en ningun punto
+- Codigo ausente/invalido/expirado -> no se ejecuta SetPasswordForm, mensaje
+  error_changing_pass, contrasena NO se toca
+- ct["valid_code"] ahora refleja la validacion real (antes hardcodeado a True)
+
+### Validacion en staging (Claude, navegador embebido)
+1. ATAQUE ORIGINAL (debia fallar): POST directo a /password_recover (sin code/iv en la
+   URL) con new_password1/new_password2 y user-email=pruebaB@test.com -> 200, pagina
+   "No pudimos verificar tu cuenta", CONFIRMADO que la contrasena de pruebaB NO cambio
+   (login posterior con la contrasena ORIGINAL de pruebaB exitoso)
+2. ATAQUE CON CODE/IV FORJADOS: POST a /password_recover/AAAA/BBBB (valores inventados)
+   con los mismos campos -> 200, misma pagina de rechazo, SIN 500 (excepcion de
+   desencriptacion manejada con gracia)
+3. FLUJO LEGITIMO: NO se pudo validar end-to-end porque el envio de correo (SMTP) no
+   esta configurado en este ambiente -- CONFIRMADO POR JORGE que es una limitacion
+   PREEXISTENTE del sistema original, sin relacion con este lote (el codigo de envio de
+   correo, PasswordRecover.post() rama `if email!="":`, no se toco en este lote). Se
+   confirmo en su lugar que solicitar el link no crashea (responde con gracia el mensaje
+   "no pudimos enviarte un correo de confirmacion"), y se confirmo por revision de
+   codigo que la logica de validacion nueva en post() es identica byte a byte al patron
+   ya usado y probado en get() desde hace meses (mismo decript(), misma ventana de 1
+   hora, misma consulta a Userapp)
+4. Confirmado tambien: el campo "user-email" ya no tiene ningun efecto sobre que cuenta
+   se modifica -- la unica fuente de verdad es el codigo desencriptado
+
+## HALLAZGO MENOR NUEVO, FUERA DE ALCANCE, ANOTADO PARA OTRA SESION
+Durante la validacion se encontro que el link "¿Olvidaste tu contraseña?" en la pantalla
+de login (surveys/templates/auth-login.html) apunta a href="/forgot-password/", una URL
+que NUNCA existio en nom035/urls.py (la ruta real es 'password_recover'). Bug preexistente,
+sin relacion con SEC-006. Se dejo una tarea aparte anotada (no parte de este lote).
+
+## PENDIENTE DE INFRAESTRUCTURA (preexistente, confirmado por Jorge, no bloqueante para
+## este lote pero SI bloqueante para que el flujo de recuperacion de contrasena funcione
+## de verdad en cualquier ambiente)
+SMTP no esta configurado (EMAIL_HOST/EMAIL_HOST_USER/EMAIL_HOST_PASSWORD en
+nom035/settings.py apuntan a Gmail pero el envio real falla). Jorge menciono que hay
+varias cosas por configurar, y que aparte ya se cambiaron RECAPTCHA_SITE_KEY y
+RECAPTCHA_SECRET_KEY (variables de entorno relacionadas, movidas a env vars en el
+Lote D). Configurar SMTP real es un prerequisito para que TANTO PasswordRecover como
+EmailVerification funcionen end-to-end -- se sugiere agregarlo a la lista de pendientes
+de infraestructura junto a INFRA-001 (Volume persistente Railway).
+
+## LOTE O: COMPLETADO Y VALIDADO (dentro de lo verificable en este ambiente) -- LISTO
+## PARA MERGE A auditoria-local
+
+# ============================================================
+# LOTE P (credenciales SMTP hardcodeadas) — IMPLEMENTADO Y VALIDADO (sesion 18, cont.)
+# Fecha: 17 Jul 2026
+# ============================================================
+
+## RESULTADO: LOTE P COMPLETO Y VALIDADO EN STAGING
+
+Rama fix/lote-p-smtp-env-vars (a partir de auditoria-local, ya incluye el fix del link
+roto de "Olvidaste tu contrasena" hecho en tarea aparte), implementada por Codex
+siguiendo LOTE_P_especificacion_smtp_hardcoded.md.
+
+### Contexto del hallazgo
+Al intentar validar el flujo legitimo de PasswordRecover (Lote O) via correo real,
+Jorge confirmo que el envio de correo en staging falla (error "no pudimos enviarte un
+correo de confirmacion"). Diagnostico de Claude: la credencial de Gmail hardcodeada en
+nom035/settings.py (EMAIL_HOST_USER/EMAIL_HOST_PASSWORD) SI es valida -- un login SMTP
+de prueba contra smtp.gmail.com con esa credencial exacta funciono correctamente desde
+fuera de Railway (LOGIN_OK). Esto descarta credencial revocada/incorrecta y apunta a
+algo especifico del entorno de Railway (Google bloqueando la IP de Railway como inicio
+de sesion sospechoso, o limite de Gmail SMTP para envio servidor-a-servidor) -- PENDIENTE
+de que Jorge lo investigue por separado (revisar alertas de seguridad en la bandeja de
+n035.ihes@gmail.com), fuera de alcance de este lote.
+
+De paso se encontro que EMAIL_HOST_USER y EMAIL_HOST_PASSWORD (contrasena de aplicacion
+real de Gmail) estaban hardcodeados en texto plano en el codigo fuente -- mismo patron
+CWE-798 que AES_ENCRYPTION_KEY/RECAPTCHA_SECRET_KEY ya corregido en el Lote D, que
+quedo fuera en ese momento.
+
+### Cambio implementado
+nom035/settings.py lineas 183-188: EMAIL_HOST, EMAIL_PORT, EMAIL_HOST_USER,
+EMAIL_HOST_PASSWORD, EMAIL_USE_TLS movidos a config() (python-decouple), mismo patron
+exacto ya usado para AES_ENCRYPTION_KEY/RECAPTCHA_SECRET_KEY, con default= identico al
+valor hardcodeado anterior -- CERO cambio de comportamiento mientras Railway no tenga
+las variables de entorno configuradas.
+
+### Validacion en staging
+- Deploy limpio, gunicorn arriba sin errores
+- Pagina de login renderiza normal (confirmado por Claude via navegador embebido) --
+  sin regresion, tal como se esperaba de un cambio que solo mueve el origen del valor
+- No se repitieron pruebas de envio de correo (ya se sabe que sigue fallando por la
+  causa externa a Railway, sin relacion con este lote)
+
+## PENDIENTE DE INFRAESTRUCTURA ACTUALIZADO
+1. Jorge debe revisar alertas de seguridad en n035.ihes@gmail.com (posible bloqueo de
+   Google al inicio de sesion desde la IP de Railway) -- si se resuelve, considerar
+   configurar EMAIL_HOST_USER/EMAIL_HOST_PASSWORD reales en Railway (staging y
+   produccion) usando las variables de entorno que ya existen desde este lote
+2. Evaluar a futuro migrar a un proveedor de email transaccional dedicado (SendGrid,
+   Mailgun, SES) si Gmail SMTP sigue siendo poco confiable -- no urgente
+3. INFRA-001 (Volume persistente Railway) -- sigue sin resolver
+4. PN-01 a 06 -- bloqueado, falta conectar proveedor de IA real
+
+## LOTE P: COMPLETADO Y VALIDADO EN STAGING -- LISTO PARA MERGE A auditoria-local
+
+# ============================================================
+# LOTE Q (remitente SMTP hardcodeado + observabilidad) — IMPLEMENTADO Y VALIDADO (sesion 18, cont.)
+# Fecha: 17 Jul 2026
+# ============================================================
+
+## RESULTADO: LOTE Q COMPLETO -- Y REVELO LA CAUSA REAL DE QUE SMTP NO FUNCIONE
+
+Rama fix/lote-q-smtp-from-y-logging (a partir de auditoria-local), implementada por
+Codex siguiendo LOTE_Q_especificacion_smtp_from_y_logging.md.
+
+### Cambios implementados
+1. nom035/settings.py: agregado DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL',
+   default=EMAIL_HOST_USER) -- el remitente por default ahora siempre coincide con la
+   cuenta que autentica, sin importar cual sea
+2. surveys/views.py, send_mail(): from_email hardcodeado a 'IHES <n035.ihes@gmail.com>'
+   (la cuenta VIEJA) reemplazado por f'NormaIA <{settings.DEFAULT_FROM_EMAIL}>' -- esto
+   corrige el mismatch que causaba que Gmail rechazara el envio tras cambiar de cuenta
+   en el Lote P (proteccion anti-spoofing de Gmail: remitente debe coincidir con quien
+   autentica)
+3. surveys/views.py: agregado logging real (p_.error(), logger ya existente en el
+   archivo) en los 2 except: desnudos que envuelven especificamente las llamadas a
+   send_mail() -- EmailVerification.post() (linea ~703) y PasswordRecover.post() (linea
+   ~761, SOLO ese, no el que valida el codigo de recuperacion en la misma clase, ese
+   sigue intacto sin loguear nada, es logica de seguridad del Lote O sin relacion)
+   Antes: except: silencioso, CERO rastro en logs. Ahora: except Exception as e:
+   p_.error(f"...: {e}") antes de mostrar el mismo mensaje generico al usuario
+
+### VALIDACION EN STAGING -- HALLAZGO CRITICO DE INFRAESTRUCTURA CONFIRMADO
+Al probar el flujo real de recuperacion de contrasena en staging (POST a
+/password_recover con pruebaA@test.com), el request se quedo COLGADO ~2 minutos 20
+segundos (sin responder), y el log de Railway (gracias al logging nuevo de este mismo
+lote) finalmente mostro:
+
+    Error enviando correo de recuperacion a pruebaA@test.com: [Errno 101] Network is unreachable
+
+ESTO CAMBIA EL DIAGNOSTICO POR COMPLETO. NO es un problema de credenciales invalidas,
+NI del remitente (aunque ese fix seguia siendo necesario y correcto de todas formas).
+Es un error de RED A NIVEL DE SISTEMA OPERATIVO: Railway no puede establecer conexion
+saliente hacia smtp.gmail.com:587 en absoluto. La prueba anterior de Claude (sesion
+17) que dio "LOGIN_OK" fue ejecutada desde el sandbox local de Claude, CON salida a
+internet sin restricciones -- NO representativa de la red real de Railway. Se descarta
+la hipotesis de "Google bloqueo la IP de Railway como sospechosa".
+
+Patron conocido: varias plataformas PaaS (Railway, Heroku, Render, etc.) bloquean por
+defecto la salida por puertos SMTP crudos (25, 465, 587) como medida anti-spam,
+mientras que la salida HTTPS (443) casi nunca se bloquea -- por eso los proveedores de
+email transaccional (SendGrid, Mailgun, Postmark, SES, Resend) exponen API HTTPS en vez
+de solo SMTP.
+
+## DECISION DE JORGE
+Dejar pendiente por ahora -- NO es bloqueante para el resto de la auditoria (SEC-006 ya
+esta cerrado en el Lote O, independientemente de si el correo funciona). Cuando se
+retome: opciones evaluadas fueron (1) migrar a proveedor de email transaccional via API
+HTTPS -- la solucion mas probable de funcionar dado el error de red confirmado, pero
+requiere mas trabajo (cuenta nueva, verificar dominio, adaptar send_mail() al
+SDK/API del proveedor), o (2) confirmar con soporte/documentacion de Railway si el
+egress SMTP se puede habilitar en el plan actual.
+
+## PENDIENTE DE INFRAESTRUCTURA ACTUALIZADO
+1. SMTP: confirmado que Railway bloquea o no puede alcanzar smtp.gmail.com:587 (Errno
+   101, Network is unreachable) -- pendiente decidir entre migrar a proveedor via
+   API HTTPS o gestionar habilitar el puerto con Railway
+2. INFRA-001 (Volume persistente Railway) -- sigue sin resolver
+3. PN-01 a 06 -- bloqueado, falta conectar proveedor de IA real
+
+## LOTE Q: COMPLETADO Y VALIDADO EN STAGING (el logging cumplio su proposito de
+## diagnostico exactamente como se penso) -- LISTO PARA MERGE A auditoria-local
+
+# ============================================================
+# LOTE R (PN-01 a PN-06, Perfil Narrativo IA) — IMPLEMENTADO Y VALIDADO (sesion 19)
+# Fecha: 18 Jul 2026
+# ============================================================
+
+## RESULTADO: LOTE R COMPLETO Y VALIDADO EN STAGING CONTRA EL PROVEEDOR DE IA REAL
+
+Rama fix/lote-r-perfil-narrativo (a partir de auditoria-local), implementada por Codex
+siguiendo LOTE_R_especificacion_perfil_narrativo.md.
+
+### Recuperacion de los hallazgos originales
+Los 7 entregables originales de la auditoria (13 Jul 2026) se habian perdido del repo y
+de su historial de git tras el incidente de seguridad. Se recuperaron los 6 hallazgos
+PN-01 a PN-06 desde el registro local de sesiones de Codex
+(~/.codex/sessions/2026/07/12/rollout-...jsonl), unica fuente que los conservaba
+integros. El qa_tests/ local (scripts .py de las pruebas ya no existen, solo quedaron
+.pyc compilados y JSON/capturas de resultados) sirvio como evidencia complementaria,
+en particular un test de autorizacion horizontal sobre el perfil narrativo que resulto
+INCONCLUSO (fallo de infraestructura del script, no revela vulnerabilidad) -- se
+confirmo por separado que el ownership de GenerarPerfilNarrativoView SI esta bien
+resuelto (candidate__user=request.user), no hay IDOR aqui.
+
+### Cambios implementados (todos dentro de GenerarPerfilNarrativoView, surveys/psico_views.py)
+1. PN-01 (respuesta vacia aceptada): se valida texto.strip() no vacio antes de guardar;
+   si el proveedor devuelve vacio, error 502 controlado, perfil anterior no se toca
+2. PN-02 (regeneracion sobrescribe sin historial) + PN-03 (sin timestamp): nuevo campo
+   TestResult.perfil_narrativo_historial (JSONField, migracion manual 0039) -- cada
+   generacion agrega una entrada con texto+timestamp+usuario_id+modelo, sin sobrescribir
+   el historial; perfil_narrativo se mantiene como "el actual" para no romper
+   psico_reporte.html
+3. PN-04 (500 con texto de excepcion): logging real con p_.error() (logger nuevo en
+   psico_views.py, mismo patron ya usado en views.py desde el Lote Q), respuesta al
+   cliente generica sin str(e)
+4. PN-05 (regeneraciones sin limite): tope duro de 5 regeneraciones por sesion +
+   cooldown de 60 segundos entre generaciones, usando el mismo historial del punto 2
+5. PN-06 (nombre del candidato en el prompt enviado al proveedor externo): quitado de
+   las 5 variantes de prompt (disc/moss/raven/zavic/competencias-comercial), la
+   variable candidato (linea 451 original) se elimino por completo, sin uso en ningun
+   otro punto de la funcion
+
+### Validacion en staging CONTRA EL PROVEEDOR DE IA REAL (Claude Haiku via Anthropic,
+### ANTHROPIC_API_KEY configurada en Railway con credito)
+No existe ningun boton/JS en ningun template que dispare esta vista -- se probo
+posteando directo al endpoint. Se necesito un TestSession+TestResult sintetico (no
+habia ninguno bajo las cuentas de prueba); se creo con Codex via TCP Proxy temporal de
+Postgres de staging (mismo procedimiento ya documentado, con una cuenta nueva de Codex
+por agotamiento de la anterior -- se le dieron instrucciones completas y autocontenidas
+sin asumir contexto previo).
+1. Generacion normal -> 200, texto real generado por Claude Haiku, CONFIRMADO que el
+   texto no menciona el nombre del candidato en ningun punto (dice "el candidato"
+   generico) -- PN-06 verificado con datos reales, no solo por inspeccion de codigo
+2. Regeneracion inmediata (misma sesion, sin esperar) -> 429 "Espera un momento..." --
+   cooldown de 60s confirmado
+3. session_id inexistente (999999) -> 404 (tardo mas de lo normal por actividad del TCP
+   proxy de Postgres activo en paralelo, pero resolvio correctamente, no hubo cuelgue
+   real ni 500 -- confirmado revisando el network log despues de que la peticion
+   completara en segundo plano)
+4. Migracion 0039 aplicada limpio en el deploy de staging
+
+## HALLAZGO NUEVO IMPORTANTE ENCONTRADO DURANTE ESTA VALIDACION (fuera de Lote R)
+LoginView.post() (surveys/views.py, lineas 480-481) imprimia usuario Y CONTRASENA EN
+TEXTO PLANO en cada intento de login exitoso -- confirmado en los logs de Railway
+durante las pruebas de este lote (aparecieron las credenciales de pruebaA@test.com
+literalmente en el log). CWE-532, presente desde siempre, sin relacion con este lote.
+Corregido de inmediato por Claude (autorizado explicitamente por Jorge dado lo trivial
+y de bajo riesgo del cambio: borrar 2 lineas print()) en rama aparte
+fix/lote-s-credenciales-en-logs, pusheada, pendiente de merge.
+
+## LOTE R: COMPLETADO Y VALIDADO EN STAGING CONTRA EL PROVEEDOR DE IA REAL -- LISTO
+## PARA MERGE A auditoria-local
+
+# ============================================================
+# LOTE S (CWE-532, credenciales en logs) — IMPLEMENTADO Y VALIDADO (sesion 19, cont.)
+# Fecha: 18 Jul 2026
+# ============================================================
+
+## RESULTADO: LOTE S COMPLETO Y VALIDADO EN STAGING
+
+Rama fix/lote-s-credenciales-en-logs (a partir de auditoria-local). Fix implementado
+directamente por Claude (autorizado explicitamente por Jorge dado lo trivial y de bajo
+riesgo del cambio), no via Codex -- unico lote de esta sesion con esa excepcion.
+
+### Hallazgo
+Encontrado por accidente durante la validacion del Lote R: LoginView.post()
+(surveys/views.py, lineas 480-481) imprimia usuario Y CONTRASENA EN TEXTO PLANO en cada
+intento de login exitoso via print(us)/print(pw). Confirmado en los logs reales de
+Railway durante las pruebas de este lote -- aparecieron las credenciales de
+pruebaA@test.com literalmente. CWE-532, presente desde siempre en el codigo original,
+sin relacion con ningun lote anterior. ApiLoginView (la otra vista de login) confirmada
+limpia, sin el mismo problema.
+
+### Cambio implementado
+Eliminadas las 2 lineas print(us)/print(pw) en LoginView.post(). Sin ningun otro
+cambio -- el resto del flujo de autenticacion (authenticate(), login(), validacion de
+email) queda identico.
+
+### Validacion en staging
+- Deploy limpio, gunicorn arriba sin errores
+- Login confirmado funcionando exactamente igual que antes (POST a /login/ con
+  pruebaA@test.com -> 200, redirige a /main) -- sin regresion de comportamiento
+- grep confirmo que no queda ningun otro print() de credenciales en el resto del
+  proyecto
+
+## LOTE S: COMPLETADO Y VALIDADO EN STAGING -- LISTO PARA MERGE A auditoria-local
+
+# ============================================================
+# LOTE T (INFRA-001, Volume persistente Railway) — IMPLEMENTADO Y VALIDADO (sesion 20)
+# Fecha: 18-19 Jul 2026
+# ============================================================
+
+## RESULTADO: LOTE T COMPLETO Y VALIDADO EN STAGING -- HALLAZGO INFRA-001 CERRADO
+
+Rama fix/lote-t-infra001-volumen-persistente (a partir de auditoria-local). Fix
+implementado directamente por Claude (mismo criterio que el Lote S: cambio chico,
+mismo patron config()+default= ya usado en Lotes D/P/Q), coordinado en tiempo real
+con Jorge mientras configuraba el Volume en el dashboard de Railway.
+
+### Contexto
+Railway solo permitio adjuntar UN volumen por servicio via el flujo de "clic derecho
+en canvas -> New -> Volume" (el menu de creacion rapida no vuelve a ofrecer "Volume"
+como tipo despues del primero). Esto obligo a resolver como acomodar dos rutas
+distintas (MEDIA_ROOT publico y PROTECTED_MEDIA_ROOT protegido, separados
+deliberadamente desde el Lote C2 para cerrar EVI-SEC-001) dentro de un solo punto de
+montaje, SIN reintroducir la vulnerabilidad de archivos protegidos servidos sin
+autenticacion. Se confirmo antes de tocar nada: MEDIA_ROOT se sirve publico y sin auth
+via urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+(nom035/urls.py linea 128, sin guard de DEBUG), mientras PROTECTED_MEDIA_ROOT nunca
+tiene URL publica, solo se accede via las 3 vistas @login_required del Lote C2.
+
+### Cambio implementado
+nom035/settings.py: nueva variable PERSISTENT_STORAGE_ROOT = config('PERSISTENT_STORAGE_ROOT',
+default=BASE_DIR) -- MEDIA_ROOT y PROTECTED_MEDIA_ROOT ahora son subcarpetas
+(media/ y files/ respectivamente) DENTRO de ese unico punto de montaje, preservando
+la separacion logica y de seguridad exacta que ya existia (siguen siendo carpetas
+distintas, solo que ahora ambas viven sobre el mismo volumen fisico). Default=BASE_DIR
+preserva el comportamiento actual en cualquier ambiente sin la variable configurada
+(mismo patron ya usado en Lotes D/P/Q).
+
+### Configuracion de infraestructura (Jorge, en Railway)
+1. Volume creado y adjuntado al servicio nom035 (staging), Mount Path = /data
+2. Variable de entorno PERSISTENT_STORAGE_ROOT=/data agregada en el servicio nom035
+3. Deploy de la rama fix/lote-t-infra001-volumen-persistente
+
+### Validacion en staging -- PRUEBA REAL DE PERSISTENCIA ANTE REDEPLOY
+1. Deploy inicial: log confirma "Mounting volume on: /var/lib/containers/.../vol_hbp4g9magfmavzjr",
+   gunicorn arranca limpio
+2. Subida de archivo de prueba (logo, PNG de 70 bytes) via POST directo a /edit_profile/
+   (login via fetch con pruebaA@test.com) -> 200
+3. Descarga confirmada via /descargar/logo/ (vista protegida del Lote C2) -> 200,
+   image/png, 70 bytes exactos
+4. REDEPLOY manual disparado en Railway (mismo codigo, sin push nuevo) -- log confirma
+   mismo volumen montado (mismo ID vol_hbp4g9magfmavzjr), gunicorn arranca limpio
+5. Descarga repetida DESPUES del redeploy -> 200, mismos 70 bytes exactos -- CONFIRMADO
+   que el archivo sobrevivio el redeploy, la causa raiz de INFRA-001 (perdida de
+   archivos en cada redeploy) esta resuelta
+
+## PENDIENTE ACTUALIZADO
+1. Repetir el mismo Volume + variable de entorno en el servicio de PRODUCCION cuando
+   se decida llevar el proyecto a produccion real (este lote y su validacion fueron
+   unicamente en staging, como el resto de la auditoria)
+2. SMTP -- sigue pendiente, bloqueo de red Railway->Gmail, decision de Jorge de dejarlo
+   pendiente
+3. PN-01 a 06 -- ya resueltos (Lote R), no hay pendiente activo de Perfil Narrativo
+4. Limpiar el archivo de prueba subido (test_volumen.png) en algun momento -- no es
+   sensible, es solo un pixel de prueba, no urgente
+
+## LOTE T: COMPLETADO Y VALIDADO EN STAGING (persistencia ante redeploy confirmada con
+## prueba real) -- LISTO PARA MERGE A auditoria-local

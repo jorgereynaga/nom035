@@ -24,6 +24,9 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 from decouple import config
 
 SECRET_KEY = config('SECRET_KEY')
+AES_ENCRYPTION_KEY = config('AES_ENCRYPTION_KEY', default='test1234test1234')
+RECAPTCHA_SECRET_KEY = config('RECAPTCHA_SECRET_KEY', default='6Le3XCEtAAAAAFDF0__aZfnj9DQjwe6lkzdylREY')
+RECAPTCHA_SITE_KEY = config('RECAPTCHA_SITE_KEY', default='6Le3XCEtAAAAAO-V0M9w9XaNgAtUHFj7TxrMJz0B')
 DEBUG = config('DEBUG', default=False, cast=bool)
 ALLOWED_HOSTS = config('ALLOWED_HOSTS').split(',')
 
@@ -34,6 +37,7 @@ DATABASE_URL = config('DATABASE_URL')
 
 
 APPEND_SLASH = True
+LOGIN_URL = 'login'
 # SECURE_SSL_REDIRECT=True
 SESSION_COOKIE_AGE=(60*120)
 SESSION_SAVE_EVERY_REQUEST=True
@@ -77,16 +81,15 @@ MIDDLEWARE = [
 
 CORS_ORIGIN_ALLOW_ALL = False
 CORS_ALLOW_CREDENTIALS = False
-CORS_ALLOWED_ORIGINS = [
-    "https://035.ihes.mx",
-    "https://nom035-production.up.railway.app",
-    "https://tu-frontend.com",
-]
+CORS_ALLOWED_ORIGINS = config(
+    'CORS_ALLOWED_ORIGINS',
+    default='https://035.ihes.mx,https://nom035-production.up.railway.app'
+).split(',')
 
-CSRF_TRUSTED_ORIGINS = [
-    "https://035.ihes.mx",
-    "https://nom035-production.up.railway.app",
-]
+CSRF_TRUSTED_ORIGINS = config(
+    'CSRF_TRUSTED_ORIGINS',
+    default='https://035.ihes.mx,https://nom035-production.up.railway.app'
+).split(',')
 # CORS_ALLOWED_ORIGINS  = [
 #     # 'https://connect.facebook.net',
 #     'https://035.ihes.mx',
@@ -178,20 +181,25 @@ USE_TZ = True
 
 
 #email
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_HOST_USER = 'n035.ihes@gmail.com'
-EMAIL_HOST_PASSWORD = 'qwsloneabrhgcdgr'
-EMAIL_USE_TLS = True
+EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
+EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='n035.ihes@gmail.com')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='qwsloneabrhgcdgr')
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default=EMAIL_HOST_USER)
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
+# PERSISTENT_STORAGE_ROOT: en Railway apunta al mount path del Volume (ej. /data),
+# para que MEDIA_ROOT y PROTECTED_MEDIA_ROOT sobrevivan a los redeploys. Default=BASE_DIR
+# preserva el comportamiento actual en cualquier ambiente sin la variable configurada.
+PERSISTENT_STORAGE_ROOT = config('PERSISTENT_STORAGE_ROOT', default=BASE_DIR)
+MEDIA_ROOT = os.path.join(PERSISTENT_STORAGE_ROOT, 'media/')
 MEDIA_URL = '/media/'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static/'),
 ]
-PROTECTED_MEDIA_ROOT=os.path.join(BASE_DIR, 'files')
+PROTECTED_MEDIA_ROOT=os.path.join(PERSISTENT_STORAGE_ROOT, 'files')
 STATIC_ROOT = "/static/"
 STATIC_URL = '/static/'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'

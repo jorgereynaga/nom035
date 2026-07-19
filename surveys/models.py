@@ -2,15 +2,54 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.contrib.postgres.fields import ArrayField
 from django.core.exceptions import ValidationError
+from django.conf import settings
+from django.core.files.storage import FileSystemStorage
 from datetime import timedelta
 
+protected_storage = FileSystemStorage(location=settings.PROTECTED_MEDIA_ROOT)
+
+def validar_contenido_archivo(archivo, extensiones_permitidas):
+	"""
+	Valida que el contenido real del archivo corresponda a su extension declarada.
+	Deja el puntero del archivo en la posicion 0 al finalizar.
+	"""
+	nombre = archivo.name
+	ext = nombre.split('.')[-1].lower() if '.' in nombre else ''
+	if ext not in extensiones_permitidas:
+		raise ValidationError(f'Extension no permitida: {ext}')
+
+	archivo.seek(0)
+	cabecera = archivo.read(8)
+	archivo.seek(0)
+
+	if ext == 'pdf':
+		if not cabecera.startswith(b'%PDF-'):
+			raise ValidationError('El archivo declarado como PDF no tiene un contenido PDF valido.')
+	elif ext in ('jpg', 'jpeg'):
+		if not cabecera.startswith(b'\xff\xd8\xff'):
+			raise ValidationError('El archivo declarado como JPG no tiene un contenido de imagen JPEG valido.')
+		_validar_imagen_con_pillow(archivo)
+	elif ext == 'png':
+		if not cabecera.startswith(b'\x89PNG\r\n\x1a\n'):
+			raise ValidationError('El archivo declarado como PNG no tiene un contenido de imagen PNG valido.')
+		_validar_imagen_con_pillow(archivo)
+
+def _validar_imagen_con_pillow(archivo):
+	"""Verifica con Pillow que el archivo sea una imagen abrible y valida."""
+	from PIL import Image
+	archivo.seek(0)
+	try:
+		img = Image.open(archivo)
+		img.verify()
+	except Exception:
+		raise ValidationError('El archivo no es una imagen valida.')
+	finally:
+		archivo.seek(0)
+
 def validate_file_extension(value):
-	ext = value.name.split('.')
-	valid_extensions = ['jpg','png']
-	if not ext[len(ext)-1] in valid_extensions:
-		raise ValidationError(f'Solo se admiten archivos JPG y PNG! la extension de tu archivo es {ext}')
-	if value.size>2621440:
+	if value.size > 2621440:
 		raise ValidationError(u'Archivo muy pesado. Limite de 2.5Mb')
+	validar_contenido_archivo(value, ['jpg', 'png'])
 
 def user_directory_path(instance, filename):
 	return 'logos/{0}/{1}'.format(instance.user.id, filename)
@@ -21,6 +60,7 @@ class Userapp(models.Model):
 	user=models.OneToOneField(User,related_name="userapp",on_delete=models.CASCADE)
 	name=models.CharField(u'Nombre, Denominación, Razón social', max_length=150)
 	phone=models.CharField(u'Teléfono', max_length=15)
+	# DEPRECATED - Conekta ya no se usa, campo se conserva por compatibilidad historica
 	client_id=models.CharField(u'Cliente conekta', max_length=30, blank=True, null=True)
 	validated_email=models.BooleanField(u'Correo Validado',default=False)
 	workplaces_available=models.IntegerField(u'Centros pagados A', default=0)
@@ -42,7 +82,7 @@ class Userapp(models.Model):
 	#username=correo
 	record_create=models.DateTimeField(auto_now_add=True)
 	record_update=models.DateTimeField(auto_now=True)
-	image=models.FileField(u'Logo de la empresa', upload_to=user_directory_path,validators=[validate_file_extension], blank=True, null=True)
+	image=models.FileField(u'Logo de la empresa', upload_to=user_directory_path, storage=protected_storage, validators=[validate_file_extension], blank=True, null=True)
 
 
 class Workplace(models.Model):
@@ -78,7 +118,7 @@ class Workplace(models.Model):
 class ResultFiles(models.Model):
 	workplace=models.ForeignKey(Workplace,related_name="result_files",verbose_name='Centro de trabajo', on_delete=models.PROTECT)
 	evaluation=models.IntegerField('Número de evaluación')
-	image=models.FileField(u'Archivo', upload_to=result_directory_path, blank=True, null=True)
+	image=models.FileField(u'Archivo', upload_to=result_directory_path, storage=protected_storage, blank=True, null=True)
 	record_create = models.DateTimeField(u"Fecha de creación",auto_now_add=True)
 	result_type=models.IntegerField(u'Tipo de resultado',choices=enumerate(["Informe de resultados ejecutivo","Informe de resultados detallado",
 		"Resultados del Instrumento para Identificar los Factores de Riesgo Psicosocial","Gantt de Actividades",
@@ -226,6 +266,7 @@ class RiskSurveyA(models.Model):
 	def __str__(self):
 		return f"{self.employee.name}"
 	class Meta:
+		unique_together = ('employee', 'evaluation')
 		verbose_name='Identificacion de analisis de los factores de riesgo psicosocial'
 		verbose_name_plural='Identificacion de analisis de los factores de riesgo psicosocial'
 
@@ -256,6 +297,7 @@ class TraumaSurvey(models.Model):
 	def __str__(self):
 		return f"{self.employee.name}"
 	class Meta:
+		unique_together = ('employee', 'evaluation')
 		verbose_name='Acontecimientos traumáticos severos'
 		verbose_name_plural='Acontecimientos traumáticos severos'
 class RiskSurveyB(models.Model):
@@ -342,6 +384,7 @@ class RiskSurveyB(models.Model):
 	def __str__(self):
 		return f"{self.employee.name}"
 	class Meta:
+		unique_together = ('employee', 'evaluation')
 		verbose_name='Identificacion de analisis de los factores de riesgo psicosocial'
 		verbose_name_plural='Identificacion de analisis de los factores de riesgo psicosocial'
 	# def cal_dominios(self):
@@ -579,6 +622,7 @@ class TestResult(models.Model):
 	scores = models.JSONField(u'Puntuaciones (JSON)', default=dict)
 	interpretacion = models.TextField(u'Interpretación', blank=True)
 	perfil_narrativo = models.TextField(u'Perfil narrativo (IA)', blank=True)
+	perfil_narrativo_historial = models.JSONField(u'Historial de perfiles narrativos (IA)', default=list)
 	record_create = models.DateTimeField(auto_now_add=True)
 
 	def __str__(self):
@@ -624,73 +668,6 @@ class TestResult(models.Model):
 # from __future__ import unicode_literals
 
 
-
-# class ConektaWebhook(generics.GenericAPIView):
-# 	def post(self, request, *args, **kwargs):
-# 		obj=request.data['data']
-# 		if obj is not None:
-# 			obj=request.data['data']['object']
-# 			if 'payment_method' in obj:
-# 				method=obj['payment_method']['type']
-# 				if method=='oxxo' or method=='spei':
-# 					if obj['status']=='paid':
-# 						orders=Payment.objects.filter(payment_id=obj['order_id'])
-# 						from_email=u'Asociación Mexicana de Jefes de Bomberos <mailer@amjb.org.mx>'
-# 						text_content=u'.'
-# 						htmly=get_template('mailer.html')
-# 						saved=False
-# 						user=orders.last().user.userapp if orders.last() else None
-# 						subject=u'Tus eventos para la Convención Nacional de jefes de bomberos Zapopan 2019'
-# 						for order in orders:
-# 							if order.is_paid:
-# 								order.is_paid=None
-# 								order.save()
-# 								saved=True
-# 							if order.product is not None:
-# 								if order.product.idproduct==1:
-# 									user=order.user.userapp
-# 									user.is_subscribed=True
-# 									user.save()
-# 									subject=u'Admisión a la Convención Nacional de jefes de bomberos Zapopan 2019'
-# 						if saved and user:
-# 							to=user.user.email
-# 							products_list=[]
-# 							_sum=0.0
-# 							for item in orders:
-# 								if item.event is not None:
-# 									_sum=_sum+item.event.price
-# 									products_list.append({"name":item.event.name,"desc":item.event.description,"quantity":1,"amount":item.event.price,"amount_total":item.event.price*1})
-# 								else:
-# 									_sum=_sum+item.product.price
-# 									products_list.append({"name":item.product.name,"desc":item.product.description,"quantity":1,"amount":item.product.price,"amount_total":item.product.price*1})
-# 							ctx={"date_today":process_date(datetime.now()),
-# 								"subject":subject,
-# 								"user_name":user.user.get_full_name(),
-# 								"user_state":user.state,
-# 								"user_city":user.city,
-# 								"user_phone":user.phone,
-# 								"user_mail":to,
-# 								"payment_amount":_sum,
-# 								"refer":"Pagado",
-# 								"payment_method":method,
-# 								"payment_id":obj['order_id'],
-# 								"companion_code":user.get_companion_code() if not user.companion else 'No aplica',
-# 								"products":products_list,
-# 								"sub":(_sum-(_sum*0.16)-(_sum*0.04)),
-# 								"card_charges":_sum*0.04,
-# 								"iva":_sum*0.16,
-# 								"subtotal":_sum}
-# 							html_content=htmly.render(ctx)
-# 							msg=EmailMultiAlternatives(subject, text_content, from_email, [to])
-# 							# msg2=EmailMultiAlternatives(subject, text_content, from_email, ["erick.fcm.0@gmail.com"])
-# 							msg.attach_alternative(html_content, "text/html")
-# 							# msg2.attach_alternative(html_content, "text/html")
-# 							msg.send()
-# 							# msg2.send()
-# 							call_command('notif', f'Correo enviado a {user}  {to}')
-# 							print(f'Correo enviado a {user}  {to}')
-
-# 		return Response("Success")
 
 # from django.contrib.auth.models import User
 # from django.db import models
@@ -1037,7 +1014,7 @@ class EvidenciaFaseC(models.Model):
 	)
 	workplace=models.ForeignKey(Workplace,related_name="evidencias_fase_c",verbose_name='Centro de trabajo', on_delete=models.CASCADE)
 	tipo=models.CharField(u'Tipo de evidencia', max_length=30, choices=TIPO_CHOICES)
-	archivo=models.FileField(u'Archivo', upload_to='evidencias_fase_c/%Y/%m/')
+	archivo=models.FileField(u'Archivo', upload_to='evidencias_fase_c/%Y/%m/', storage=protected_storage)
 	notas=models.TextField(u'Notas', blank=True)
 	fecha_carga=models.DateTimeField(auto_now_add=True)
 	def __str__(self):

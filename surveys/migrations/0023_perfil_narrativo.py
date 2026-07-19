@@ -1,4 +1,4 @@
-from django.db import migrations, models
+from django.db import migrations
 
 
 class Migration(migrations.Migration):
@@ -8,9 +8,4 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(
-            model_name='testresult',
-            name='perfil_narrativo',
-            field=models.TextField(blank=True, verbose_name='Perfil narrativo (IA)'),
-        ),
     ]

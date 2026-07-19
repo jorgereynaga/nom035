@@ -1,14 +1,15 @@
 from surveys.services.credits import assign_nom035_credits
-from django.shortcuts import render, redirect
-from django.http import HttpResponse, JsonResponse
+from django.shortcuts import render, redirect, get_object_or_404
+from django.http import FileResponse, HttpResponse, JsonResponse
 from django.db.models import Q
 from django.views.generic import View
 from django.utils import timezone
 import json
 from django.contrib.auth import login, logout, authenticate
-from django.db import IntegrityError
+from django.contrib.auth.decorators import login_required
+from django.db import IntegrityError, transaction
 from django.contrib import messages
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
 from django.http import HttpResponse, HttpResponseRedirect,JsonResponse,Http404
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.forms import UserCreationForm,SetPasswordForm,PasswordChangeForm
@@ -38,18 +39,11 @@ from math import ceil
 from django.template.loader import get_template
 from django.core.mail import EmailMultiAlternatives
 
-import logging, requests,uuid, conekta,time,os,base64,json
-conekta.api_key="key_qfCtN8NqwJRTTJR23wdcqA"
-conekta.api_version = "2.0.0"
-conekta.locale="es"
+import logging, requests,uuid,time,os,base64,json
 
 import stripe
 
 p_= logging.getLogger(__name__)
-#conekta api key produccion key_qfCtN8NqwJRTTJR23wdcqA
-#conekta api key produccion pulica key_V9bKr8wrjH5CxLrcbKo2PzA
-#conekta api key pruebas key_GjNVdzaLBs9ntDqXxzJvPg
-#conekta api key pruebas publica key_AhXYuQnj8pMv4UEmsEz8Hsw
 #https://n035.page.link/?link=https://035.ihes.mx/app/access?workplace_id=280053610240503210429881290965155008225-[1580245165.810466&apn=ihes.com.mx.n035
 
 def download_file(request, user_id,file_name):
@@ -86,7 +80,6 @@ def download_file2(request, workplace_id,evaluation,file_name):
 	if request.user.is_authenticated:
 		userapp = getattr(request.user, "userapp", None)
 		if userapp and not getattr(userapp, "stripe_plan_key", ""):
-			from django.http import HttpResponse
 			return HttpResponse('<h2 style="font-family:sans-serif;text-align:center;margin-top:80px">&#128274; Descarga no disponible en modo demo.<br><a href="/stripe/planes/" style="color:#2563eb">Adquiere un plan para descargar tus resultados</a></h2>', status=403)
 	token=None
 	if "_-_Token " in file_name:
@@ -94,6 +87,14 @@ def download_file2(request, workplace_id,evaluation,file_name):
 		filename=file_name.split("_-_Token ")[0]
 		user = Token.objects.filter(key=token).last().user
 		if not user:
+			print("invalid user")
+			raise Http404
+	else:
+		filename=file_name
+		if not request.user.is_authenticated:
+			print("invalid user")
+			raise Http404
+		if not Workplace.objects.filter(id=workplace_id, user=request.user).exists():
 			print("invalid user")
 			raise Http404
 	file_path = os.path.join(settings.PROTECTED_MEDIA_ROOT, f"charts/{workplace_id}/{evaluation}/{filename}")
@@ -105,40 +106,39 @@ def download_file2(request, workplace_id,evaluation,file_name):
 	print("path not found")
 	raise Http404
 
+@login_required
+def download_logo(request):
+	userapp = getattr(request.user, "userapp", None)
+	if not userapp or not userapp.image:
+		raise Http404
+	return FileResponse(open(userapp.image.path, 'rb'))
+
+@login_required
+def download_result_image(request, workplace_id, result_id):
+	if not Workplace.objects.filter(id=workplace_id, user=request.user).exists():
+		raise Http404
+	result = get_object_or_404(ResultFiles, id=result_id, workplace_id=workplace_id)
+	if not result.image:
+		raise Http404
+	return FileResponse(open(result.image.path, 'rb'))
+
+@login_required
+def download_evidencia_fase_c(request, evidencia_id):
+	evidencia = get_object_or_404(EvidenciaFaseC, id=evidencia_id)
+	if evidencia.workplace.user_id != request.user.id:
+		raise Http404
+	if not evidencia.archivo:
+		raise Http404
+	return FileResponse(open(evidencia.archivo.path, 'rb'))
+
 def send_mail(to_emails,ctx,template='email-template.html',subject='Tu registro a nuestra plataforma IHES 035 está completo',text_content='Gracias por tu registro con nosotros.'):
-	from_email='IHES <n035.ihes@gmail.com>'
+	from_email=f'NormaIA <{settings.DEFAULT_FROM_EMAIL}>'
 	htmly=get_template(template)
 	html_content=htmly.render(ctx)
 	msg=EmailMultiAlternatives(subject, text_content, from_email, to_emails)
 	msg.attach_alternative(html_content, "text/html")
 	return msg.send()
 
-def get_price(workplace):
-	workplace_type=workplace.survey_type()
-	if workplace.employee_num>=1 and workplace.employee_num<=5:
-		product=Product.objects.filter(id=6)
-		base_emp=5
-		type_price=750
-	elif workplace.employee_num>=6 and workplace.employee_num<=15:
-		product=Product.objects.filter(id=1)
-		base_emp=6
-		type_price=750
-	elif workplace.employee_num>=16 and workplace.employee_num<=50:
-		product=Product.objects.filter(id=2)
-		base_emp=16
-		type_price=700
-	elif workplace.employee_num>50:
-		base_emp=51
-		type_price=650
-		product=Product.objects.filter(id=3)
-	price=None
-	if product:
-		base_price=product.last().price
-		if product.last().id==6:
-			price=base_price
-		else:
-			price=base_price+((workplace.employee_num-base_emp)*type_price)
-	return price
 class TACView(View):
 	def get(self, request, *args, **kwargs):
 		return render(request, 'tyc.html')
@@ -255,26 +255,6 @@ class Index(LoginRequiredMixin,View):
 			ctx['psico_plan_activo']=None
 		return render(request, 'index.html',ctx)
 		
-class PaymentView(LoginRequiredMixin,View):
-	login_url = reverse_lazy('login')
-	redirect_field_name = 'redirect_to'
-	def get(self, request, *args, **kwargs):
-		ctx={"workplaces":[{"id":item.id,"name":item.name,"employee_count":item.employee_num
-		} for item in Workplace.objects.filter(user_id=self.request.user.id)]}
-		ctx['workplaces_available']=request.user.userapp.workplaces_available
-		ctx["cards"]=[{"last4":item.last4,"exp_month":item.exp_month,"exp_year":item.exp_year,
-			"brand":item.brand,"name":item.name,"card_token":item.card_token
-			} for item in PaymentCard.objects.filter(user_id=self.request.user.id)]
-		ctx['productA']=[{'name':item.name,'desc':item.description,'price':item.price}for item in Product.objects.filter(id=1)][0]
-		ctx['productB']=[{'name':item.name,'desc':item.description,'price':item.price}for item in Product.objects.filter(id=2)][0]
-		ctx['productC']=[{'name':item.name,'desc':item.description,'price':item.price}for item in Product.objects.filter(id=3)][0]
-		ctx['productD']=[{'name':item.name,'desc':item.description,'price':item.price}for item in Product.objects.filter(id=4)][0]
-		ctx['workplaces']=[{"id":item.id,"type":item.survey_type(),"name":item.name,
-		"emp_num":item.employee_num,"address":item.address,"business":item.user.userapp.name,
-		"total_price":get_price(item)} for item in Workplace.objects.filter(user_id=self.request.user.id,paid=False)]
-
-		return render(request, 'payments.html',ctx)
-	
 class SaveAnswers(generics.GenericAPIView):
 	serializer_class = WorkplaceSerializer
 	def post(self, request, *args, **kwargs):
@@ -331,25 +311,29 @@ class SaveAnswers(generics.GenericAPIView):
 		else:
 			return Response('invalid form', status=status.HTTP_400_BAD_REQUEST)
 		if serializer.is_valid():
-			data=serializer.save()
+			if form in ("risksurveya","risksurveyb","traumasurvey"):
+				userapp = workplace.user.userapp
+				if workplace.es_demo:
+					return Response('Modo demo: adquiere un plan para registrar encuestas reales.', status=status.HTTP_403_FORBIDDEN)
+				if userapp.nom035_creditos <= 0:
+					return Response('Sin creditos disponibles. Adquiere un plan.', status=status.HTTP_403_FORBIDDEN)
+				try:
+					with transaction.atomic():
+						data = serializer.save()
+						userapp.nom035_creditos -= 1
+						userapp.save()
+				except IntegrityError:
+					return Response('Ya existe una respuesta registrada para este empleado en esta evaluacion.', status=status.HTTP_409_CONFLICT)
+			else:
+				data = serializer.save()
 			if form=="employee":
 				code=data.get_code()
 			else:
 				code=data.employee.get_code()
-			if form in ("risksurveya","risksurveyb","traumasurvey"):
-				try:
-					userapp=workplace.user.userapp
-					if workplace.es_demo:
-						return Response('Modo demo: adquiere un plan para registrar encuestas reales.', status=status.HTTP_403_FORBIDDEN)
-					elif userapp.nom035_creditos>0:
-						userapp.nom035_creditos-=1
-						userapp.save()
-					else:
-						return Response('Sin creditos disponibles. Adquiere un plan.', status=status.HTTP_403_FORBIDDEN)
-				except Exception as e:
-					print(f'Error descontando credito NOM-035: {e}')
 			return Response({"status":"ok","employee_url":code,"next_form":next_form}, status=status.HTTP_201_CREATED)
 
+		if form in ("risksurveya","risksurveyb","traumasurvey") and serializer.Meta.model.objects.filter(employee_id=employee_id, evaluation=workplace.evaluation).exists():
+			return Response('Ya existe una respuesta registrada para este empleado en esta evaluacion.', status=status.HTTP_409_CONFLICT)
 		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class SaveCharts(APIView):
@@ -493,8 +477,6 @@ class LoginView(View):
 		if form.is_valid():
 			us = form.cleaned_data['username']
 			pw = form.cleaned_data['password']
-			print(us)
-			print(pw)
 			user = authenticate(username=us, password=pw)
 			if user is not None and user.is_active:
 				if user.userapp.validated_email:
@@ -538,7 +520,7 @@ class LandingView(View):
         return render(request, 'landing.html')		
 class NewUserView(View):
 	def get(self, request, *args, **kwargs):
-		return render(request, 'auth-register.html')
+		return render(request, 'auth-register.html', {'recaptcha_site_key': settings.RECAPTCHA_SITE_KEY})
 class WorkplaceView(LoginRequiredMixin,View):
 	login_url = reverse_lazy('login')
 	redirect_field_name = 'redirect_to'
@@ -654,8 +636,8 @@ class WorkplaceResultView(LoginRequiredMixin,View):
 			h=200+(20*wk.employees.all().count())
 			ctx["chart_height"]=h+300 if h>600 else 900
 			ctx["chart_hb"]=h if h>600 else 600
-			# if not request.user.workplaces.filter(id=kwargs['workplace_id']).exists():
-			# 	return HttpResponseRedirect(reverse_lazy('workplaces'))
+			if not request.user.workplaces.filter(id=kwargs['workplace_id']).exists():
+				return HttpResponseRedirect(reverse_lazy('workplaces'))
 		else:
 			return HttpResponseRedirect(reverse_lazy('workplaces'))
 		if 'evaluation' in kwargs:
@@ -665,13 +647,13 @@ class WorkplaceResultView(LoginRequiredMixin,View):
 		return render(request, 'workplace_results.html',ctx)
 
 def encript(text):
-	key="test1234test1234"
+	key=settings.AES_ENCRYPTION_KEY
 	enc=AES.new(key.encode(),AES.MODE_CBC)
 	cipher=enc.encrypt(pad(text.encode(),AES.block_size))
 	return (cipher.hex(),enc.iv.hex())
 
 def decript(text,iv):
-	key="test1234test1234"
+	key=settings.AES_ENCRYPTION_KEY
 	decrypt=AES.new(key.encode(),AES.MODE_CBC,iv=bytes.fromhex(iv))
 	# ddata=decrypt.decrypt(text2)
 	return unpad(decrypt.decrypt(bytes.fromhex(text)),AES.block_size)
@@ -716,7 +698,8 @@ class EmailVerification(View):
 					try:
 						send_mail([user],ctx=ctx,template="register-template.html",subject="Verificación de Correo IHES")
 						messages.success(request, "email_sent")
-					except:
+					except Exception as e:
+						p_.error(f"Error enviando correo de verificacion a {user.email}: {e}")
 						messages.success(request, "email_error")
 				else:
 					messages.success(request, "already_valid")
@@ -774,29 +757,40 @@ class PasswordRecover(View):
 					# print(iv)
 					send_mail([user],ctx=ctx,template="register-template.html",subject="Recuperación de contraseña IHES")
 					messages.success(request, "email_sent")
-				except:
+				except Exception as e:
+					p_.error(f"Error enviando correo de recuperacion a {user.email}: {e}")
 					messages.success(request, "email_error")
 			else:
 				messages.success(request, "email_error")
 				# messages.success(request, "not_user_found")
-		elif "new_password1" in request.POST and "new_password1" in request.POST and "user-email" in request.POST:
-			email=request.POST.get('user-email','')
-			if email!="":
-				user=User.objects.filter(username=email).last()
-				if user:
-					form =SetPasswordForm(user,request.POST)
-					if form.is_valid():
-						f=form.save()
-						messages.success(request, "password_recovered")
-					else:
-						print(form.errors)
-						messages.success(request, "form_error")
+		elif "new_password1" in request.POST and "new_password2" in request.POST:
+			valid_code=False
+			user=None
+			if 'code' in kwargs and 'iv' in kwargs:
+				code=f"0x{kwargs['code']}"
+				iv=f"0x{kwargs['iv']}"
+				try:
+					text=decript(hex(int(code, 16))[2:],hex(int(iv, 16))[2:])
+					data=text.decode().split('<->')
+					if datetime.now()<(datetime.fromtimestamp(float(data[1]))+timedelta(hours=1)):
+						userapp=Userapp.objects.filter(user_id=data[0],record_create=datetime.fromtimestamp(float(data[2]))).last()
+						if userapp:
+							valid_code=True
+							user=userapp.user
+				except:
+					valid_code=False
+			if valid_code and user:
+				form =SetPasswordForm(user,request.POST)
+				if form.is_valid():
+					f=form.save()
+					messages.success(request, "password_recovered")
 				else:
-					messages.success(request, "error_changing_pass")
+					print(form.errors)
+					messages.success(request, "form_error")
 			else:
 				messages.success(request, "error_changing_pass")
 			ct["send_mail"]=False
-			ct["valid_code"]=True
+			ct["valid_code"]=valid_code
 		else:
 			messages.success(request, "email_not_provided")
 		return render(request, 'password_recover.html',ct)
@@ -1151,13 +1145,21 @@ class SurveyView(View):
 			return render(request, 'survey.html',ctx)
 		return render(request, 'survey.html')
 
+@login_required
 def employees_dt(request,workplace_id,t,evaluation):
-	draw = int(request.GET.get('draw'))
-	start = int(request.GET.get('start'))
-	length = int(request.GET.get('length'))
+	if not Workplace.objects.filter(id=workplace_id, user=request.user).exists():
+		return JsonResponse({'draw':0,'recordsTotal':0,'recordsFiltered':0,'data':[]}, status=403)
+	try:
+		draw = int(request.GET.get('draw'))
+		start = int(request.GET.get('start'))
+		length = int(request.GET.get('length'))
+		order = int(request.GET.get('order[0][column]'))
+	except (TypeError, ValueError):
+		return JsonResponse({'draw':0,'recordsTotal':0,'recordsFiltered':0,'data':[]}, status=400)
+	if length <= 0:
+		return JsonResponse({'draw':0,'recordsTotal':0,'recordsFiltered':0,'data':[]}, status=400)
 	search = request.GET.get('search[value]')
 	order_direction=request.GET.get('order[0][dir]')
-	order=int(request.GET.get('order[0][column]'))
 	query= Employee.objects.filter(workplace_id=workplace_id).order_by('-record_create')
 	if not query:
 		return JsonResponse({'draw':draw,'recordsTotal':0,'recordsFiltered':0,'data':[],})
@@ -1166,7 +1168,7 @@ def employees_dt(request,workplace_id,t,evaluation):
 	records_total = query.count()
 	records_filtered = records_total
 	ordering={0:"name",1:"gender",2:"ocupation",3:"department"}
-	if order>3:
+	if order not in ordering:
 		order=0
 	order_direction='' if order_direction=='asc' else '-'
 	if search:
@@ -1175,7 +1177,7 @@ def employees_dt(request,workplace_id,t,evaluation):
 		records_filtered = records_total
 	if not query.exists():
 		return JsonResponse({'draw':draw,'recordsTotal':records_total,'recordsFiltered':records_filtered,'data':[],})
-	page=(start/length)+1
+	page=(start//length)+1
 	paginator = Paginator(query.order_by("{}{}".format(order_direction, ordering[order])), length)
 	try:
 		workplaces = paginator.page(page).object_list
@@ -1241,23 +1243,28 @@ def employees_dt(request,workplace_id,t,evaluation):
 				})
 	return JsonResponse({'draw':draw,'recordsTotal':records_total,'recordsFiltered':records_filtered,'data':arr,})
 
+@login_required
 def get_results(request):
 	workplace_id=request.GET.get('workplace_id',None)
+	if not Workplace.objects.filter(id=workplace_id, user=request.user).exists():
+		return JsonResponse({'results':[]}, status=403)
 	results=ResultFiles.objects.filter(workplace_id=workplace_id)
 	data=[{"evaluation":item.evaluation,
 		"result_type":item.get_result_type_display(),
 		"date":item.record_create.strftime('%d/%m/%Y %H:%M'),
-		"image":item.image.url if item.image else "#"}for item in results]
+		"image":reverse('download_result_image', args=[item.workplace_id, item.id]) if item.image else "#"}for item in results]
 	return JsonResponse({'results':data})
 
+@login_required
 def get_workplaces(request):
-	user_id=request.GET.get('user_id',None)
-	data=[{'id':wk.id,"text":wk.name} for wk in Workplace.objects.filter(user_id=user_id)]
-	p_.error(data)
+	data=[{'id':wk.id,"text":wk.name} for wk in Workplace.objects.filter(user_id=request.user.id)]
 	return JsonResponse({'results':data})
 
+@login_required
 def get_departments(request):
 	workplace_id=request.GET.get('workplace_id',None)
+	if not Workplace.objects.filter(id=workplace_id, user=request.user).exists():
+		return JsonResponse({'results':[]}, status=403)
 	emp_list = Employee.objects.filter(workplace_id=workplace_id).values_list('department', flat=True).distinct()
 	data=[{'id':wk,"text":wk} for wk in emp_list]
 	return JsonResponse({'results':[{'id':'', "text":''},*data]})
@@ -1326,8 +1333,11 @@ def get_questions(request):
 
 			return JsonResponse({'data':{"questions":questions},'form_name':Employee._meta.verbose_name,'form':Employee._meta.model_name})
 	return JsonResponse({'data':{"questions":[]},'form_name':'invalid form','form':''})
+@login_required
 def get_chart_data(request):
 	workplace_id=request.GET.get('workplace_id',None)
+	if not Workplace.objects.filter(id=workplace_id, user=request.user).exists():
+		return JsonResponse({'error':'not_found'}, status=403)
 	dept_id=request.GET.get('dept_id',None)
 	evaluation=request.GET.get('evaluation',None)
 	if evaluation is None:
@@ -1860,7 +1870,7 @@ class UserappList(generics.ListCreateAPIView):
 		if 'webform' in dic:
 			print(request.data['webform'])
 			recaptcha_response =request.data['webform']
-			secret_key="6Le3XCEtAAAAAFDF0__aZfnj9DQjwe6lkzdylREY"
+			secret_key=settings.RECAPTCHA_SECRET_KEY
 			data = {
 				'response': recaptcha_response,
 				'secret': secret_key
@@ -2066,9 +2076,12 @@ class EmployeeList(generics.ListCreateAPIView):
 	pagination_class = StandardPagination
 	def get_queryset(self):
 		if 'workplace_id' in self.request.query_params:
-			queryset = Employee.objects.filter(workplace_id=self.request.query_params['workplace_id'])
+			queryset = Employee.objects.filter(
+				workplace_id=self.request.query_params['workplace_id'],
+				workplace__user=self.request.user
+			)
 		else:
-			queryset = Employee.objects.all()
+			queryset = Employee.objects.filter(workplace__user=self.request.user)
 		return queryset
 	def get(self, request, *args, **kwargs):
 		response = super(EmployeeList, self).get(request, args, kwargs)
@@ -2081,18 +2094,20 @@ class EmployeeList(generics.ListCreateAPIView):
 			item['access_code']=emp.get_code()
 			item['status']=emp.get_status(text="text")
 
-			if emp.surveyB.last() and emp.workplace.survey_type()==3:
+			survey_b_actual = emp.surveyB.filter(evaluation=emp.workplace.evaluation).last()
+			survey_a_actual = emp.surveyA.filter(evaluation=emp.workplace.evaluation).last()
+			if survey_b_actual and emp.workplace.survey_type()==3:
 				_sum=0
 				for field in RiskSurveyB._meta.fields:
 					if field.name not in ['id','employee','evaluation','record_create','record_update','r3_a','r3_b']:
-						_sum=_sum+(getattr(emp.surveyB.last(),field.attname) or 0)
+						_sum=_sum+(getattr(survey_b_actual,field.attname) or 0)
 				val=f"{_sum}/288"
 				result_text="Riesgo nulo" if _sum<50 else ("Riesgo bajo" if _sum<75 else ("Riesgo medio" if _sum<99 else ("Riesgo alto" if _sum<140 else "Riesgo muy alto")))
-			elif emp.surveyA.last() and emp.workplace.survey_type()!=3:
+			elif survey_a_actual and emp.workplace.survey_type()!=3:
 				_sum=0
 				for field in RiskSurveyA._meta.fields:
 					if field.name not in ['id','employee','evaluation','record_create','record_update','r2_p_a','r2_p_b']:
-						_sum=_sum+(getattr(emp.surveyA.last(),field.attname) or 0)
+						_sum=_sum+(getattr(survey_a_actual,field.attname) or 0)
 				val=f"{_sum}/184"
 				result_text="Riesgo nulo" if _sum<20 else ("Riesgo bajo" if _sum<45 else ("Riesgo medio" if _sum<70 else ("Riesgo alto" if _sum<90 else "Riesgo muy alto")))
 			else:
@@ -2368,180 +2383,6 @@ class PDFCreate(APIView):
 			# 	response=f"https://035.ihes.mx/files/tmp/{self.request.user.id}/{template}.pdf"
 		return Response({"pdf":f"https://035.ihes.mx/files/tmp/{self.request.user.id}/{template}.pdf"})
 
-class PaymentList(generics.ListCreateAPIView):
-	serializer_class = PaymentSerializer
-	permission_classes = (IsAuthenticated,)
-	authentication_classes = (TokenAuthentication,SessionAuthentication)
-	def get(self,request):
-		pass
-	def post(self, request):
-		prods=[]
-		card=None
-		print(request.data)
-		if 'card_token' in request.data:
-			card=PaymentCard.objects.filter(card_token=request.data['card_token']).last()
-			if not card:
-				return Response("No has seleccionado una tarjeta", status=status.HTTP_400_BAD_REQUEST)
-		else:
-			return Response("No has seleccionado una tarjeta", status=status.HTTP_400_BAD_REQUEST)
-		# if 'employee_num' in request.data:
-		# 	if request.data['employee_num']!=0:
-		# 		choices=((0,'1 a 15 empleados'),(1,'16 a 50 empleados'),(2,'Más de 50 empleados'))
-		# 		if request.data['employee_num']>=1 and request.data['employee_num']<=5:
-		# 			prod= Product.objects.get(id=6)
-		# 		elif request.data['employee_num']>=6 and request.data['employee_num']<=15:
-		# 			prod= Product.objects.get(id=1)
-		# 		elif request.data['employee_num']>=16 and request.data['employee_num']<=50:
-		# 			prod= Product.objects.get(id=2)
-		# 		elif request.data['employee_num']>=51 and request.data['employee_num']<=100:
-		# 			prod= Product.objects.get(id=3)
-		# 		elif request.data['employee_num']>100:
-		# 			prod= Product.objects.get(id=4)
-		# 		prods.append({'name':prod.name, 'unit_price': prod.price*100,'quantity':request.data['employee_num']} )
-		# if 'workplace_a' in request.data:
-		# 	if request.data['workplace_a']!=0:
-		# 		prod= Product.objects.get(id=1)
-		# 		prods.append({'name':prod.name, 'unit_price': prod.price*100,'quantity':request.data['workplace_a']} )
-		# if 'workplace_b' in request.data:
-		# 	if request.data['workplace_b']!=0:
-		# 		prod= Product.objects.get(id=2)
-		# 		prods.append({'name':prod.name, 'unit_price': prod.price*100,'quantity':request.data['workplace_b']} )
-		# if 'workplace_c' in request.data:
-		# 	if request.data['workplace_c']!=0:
-		# 		prod= Product.objects.get(id=3)
-		# 		prods.append({'name':prod.name, 'unit_price': prod.price*100,'quantity':request.data['workplace_c']} )
-		_total=0
-		if 'workplaces' in request.data:
-			for item in request.data['workplaces']:
-				if isinstance(item,dict):
-					item=list(item.values())
-				p_.error(item)
-				workplace=Workplace.objects.filter(id=item[0]).last()
-				if not workplace:
-					p_.error("no workplace")
-					return Response("Ha ocurrido un error", status=status.HTTP_400_BAD_REQUEST)
-				price=get_price(workplace)
-				_total=_total+price
-				if price!=int(item[1]):
-					p_.error(f"{price}--{item[1]}")
-					p_.error("bad price")
-					return Response("Ha ocurrido un error", status=status.HTTP_400_BAD_REQUEST)
-				prods.append({'name':workplace.name, 'unit_price': price*100,'quantity':1} )
-		user=Userapp.objects.filter(user_id=request.data['user']).last()
-		if card.user!=user.user:
-			p_.error("bad user")
-			return Response("Ha ocurrido un error", status=status.HTTP_400_BAD_REQUEST)
-		order=None
-		if len(request.data['workplaces'])==0:
-			p_.error("bad workplaces length")
-			return Response("Ha ocurrido un error", status=status.HTTP_400_BAD_REQUEST)
-		else:
-			try:
-
-				customer = conekta.Customer.find(user.client_id)
-				src=""
-				for source in customer.payment_sources:
-					if source.id==card.card_token:
-						src=source.id
-				if src!="":
-					customer.update({'default_payment_source_id': src})
-				else:
-					return Response("Ha ocurrido un error", status=status.HTTP_400_BAD_REQUEST)
-				order_data={
-					"currency": "MXN",
-					"customer_info": {
-						"customer_id": user.client_id
-					},
-					"line_items": prods,
-					"charges": [{
-						"payment_method": {
-							"type": "default",
-						}
-					}]
-				}
-				print(order_data)
-				order = conekta.Order.create(order_data)
-			except conekta.ConektaError as e:
-				# print(f'Pago fallido {e} {user.user.username}')
-				print(f'Pago fallido {e.message} {user.user.username}')
-				if isinstance(e, conekta.ParameterValidationError):
-					return Response("No se ha podido procesar la tarjeta, intente de nuevo.", status=status.HTTP_422_UNPROCESSABLE_ENTITY)
-				print(conekta.ParameterValidationError)
-				print(conekta.ProcessingError)
-				if isinstance(e, conekta.ProcessingError):
-					return Response("Su pago no ha podido ser completado, consulte a su banco o intente de nuevo.", status=status.HTTP_402_PAYMENT_REQUIRED)
-
-				# print (conekta.getConektaMessage())
-		if order is not None:
-			# 	if request.data['payment_method']=='spei':
-			# 		r_data["is_paid"]=f"CLABE: {order.charges[0].payment_method.receiving_account_number} - Banco: {order.charges[0].payment_method.receiving_account_bank}"
-			# 	elif request.data['payment_method']=='oxxo_cash':
-			# 		r_data["is_paid"]=order.charges[0].payment_method.reference
-			# 	elif request.data['payment_method']=='card':
-			# 		r_data["is_paid"]=None
-			r_data={"user":user.user.id,
-				"payment_id":order.id,
-				"is_paid":"",
-				"payer_email":user.user.email}
-			serializer = PaymentSerializer(data=r_data)
-			if serializer.is_valid():
-				payment=serializer.save()
-				email_list=[]
-				for item in request.data['workplaces']:
-					if isinstance(item,dict):
-						item=list(item.values())
-					workplace=Workplace.objects.filter(id=item[0]).last()
-					if workplace.employee_num>=1 and workplace.employee_num<=5:
-						prod=6
-					elif workplace.employee_num>=6 and workplace.employee_num<=15:
-						prod=1
-					elif workplace.employee_num>=16 and workplace.employee_num<=50:
-						prod=2
-					elif workplace.employee_num>=51 and workplace.employee_num<=100:
-						prod=3
-					elif workplace.employee_num>100:
-						prod=4
-					workplace.paid=True
-					workplace.save()
-					email_list.append({"name":workplace.name,"price":get_price(workplace),"emp_num":workplace.employee_num})
-					prodA=PurchasedProducts.objects.create(**{"product_id":prod,
-						"workplace":workplace,
-						"payment":payment,
-						"payment_method":card,
-						"quantity":1,})
-				# if 'workplace_b' in request.data:
-				# 	if request.data["workplace_b"]!=0:
-				# 		B={"product_id":2,
-				# 		"payment":payment,
-				# 		"payment_method":card,
-				# 		"quantity":request.data['workplace_b'],}
-				# 		prodB=PurchasedProducts.objects.create(**B)
-				# 		user.workplaces_availableB=user.workplaces_availableB+int(request.data['workplace_b'])
-				# 		user.save()
-				# if 'workplace_c' in request.data:
-				# 	if request.data["workplace_c"]!=0:
-				# 		C={"product_id":3,
-				# 		"payment":payment,
-				# 		"payment_method":card,
-				# 		"quantity":request.data['workplace_c'],}
-				# 		prodB=PurchasedProducts.objects.create(**C)
-				# 		user.workplaces_availableC=user.workplaces_availableC+int(request.data['workplace_c'])
-				# 		user.save()
-				ctx={"username":user.user.username,"phone":user.phone,"email":user.user.email,"name":user.name,"title":"Gracias por tu compra.","payment_id":payment.payment_id, "workplaces":email_list,
-					"type":"payment_confirmed","date_today":datetime.now().strftime('%d/%m/%Y')}
-				send_mail([user.user.email,"erick.fcm.0@gmail.com"],ctx=ctx,template="register-template.html",subject="Gracias por tu compra en IHES")
-			
-				return Response({"user":user.user.id,
-				"payment_id":order.id,
-				"total":_total,
-				"last4":card.last4,
-				"card_name":card.name,
-				"payer_email":user.user.email}, status=status.HTTP_201_CREATED)
-			else:
-				return Response({'errors':serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-		# p_.error("error 2")
-		return Response({'errors':serializer_errors}, status=status.HTTP_400_BAD_REQUEST)
-
 class EndEvaluation(APIView):
 	http_method_names = ['get',]
 	permission_classes = (IsAuthenticated,)
@@ -2558,72 +2399,6 @@ class EndEvaluation(APIView):
 			return Response({'status':'ok'})
 		except Exception as e:
 			return Response({'status':'error', 'error':f"error::{e}"})
-class AddCardList(APIView):
-	serializer_class = CardSerializer
-	http_method_names = ['get', 'post', 'delete']
-	permission_classes = (IsAuthenticated,)
-	authentication_classes = (TokenAuthentication,SessionAuthentication)
-	def get_queryset(self):
-		if 'user' in self.request.query_params:
-			queryset = PaymentCard.objects.filter(user_id=self.request.query_params['user'])
-		else:
-			queryset = PaymentCard.objects.none()
-		return queryset
-	def get(self, request, format=None):
-		serializer = self.serializer_class(self.get_queryset(), many=True)
-		return Response(serializer.data)
-	def post(self, request):
-		# data=request.data.copy()
-		token=request.data['card_token']
-		user= request.user
-		if user.userapp.client_id is None:
-			#crear cliente en conecta
-			try:
-				user_data={'name': user.userapp.name,
-					'email':user.email,'phone': user.userapp.phone,
-					'payment_sources': [{'token_id':token,'type': 'card',}]}
-				print(user_data)
-				customer = conekta.Customer.create(user_data)
-			except conekta.ConektaError as e:
-				return Response(e.message, status=status.HTTP_400_BAD_REQUEST)
-			source = customer.payment_sources[len(customer.payment_sources)-1]
-			customer.update({'default_payment_source_id': source.id})
-			user.userapp.client_id=customer.id
-			user.userapp.save()
-		else:
-			customer = conekta.Customer.find(user.userapp.client_id)
-			source = customer.createPaymentSource({"type": "card","token_id":token,})
-			# source = customer.payment_sources[len(customer.payment_sources)-1]
-			customer.update({'default_payment_source_id': source.id})
-		# customer.delete()
-		data={"user":user.id,"last4":source.last4,
-			"exp_month":source.exp_month,"exp_year":source.exp_year,
-			"brand":source.brand,"name":source.name,"card_token":source.id,
-		}
-		serializer=CardSerializer(data=data)
-		if serializer.is_valid():
-			serializer.save()
-			return Response(data, status=status.HTTP_201_CREATED)
-		print(serializer.errors)
-		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-	def delete(self, request):
-		# data=request.data.copy()
-		token=request.data['card_token']
-		user= request.user
-		if user.userapp.client_id is not None:
-			customer = conekta.Customer.find(user.userapp.client_id)
-			sources = customer.payment_sources
-			for source in sources:
-				if source.id==token:
-					source.delete()
-					user_cards=user.user_cards.filter(card_token=token)
-					for card in user_cards:
-						card.delete()
-					return Response("ok", status=200)
-				print(source.id)
-				print(token)
-			return Response("No se encontró la tarjeta", status=status.HTTP_400_BAD_REQUEST)
-		return Response("Ocurrió un error intenta de nuevo", status=status.HTTP_400_BAD_REQUEST)
 # Views Web Page
 class WebIndex(View):
 	def get(self, request, *args, **kwargs):
@@ -2977,6 +2752,8 @@ class ClimaLaboralView(View):
             return HttpResponse("Centro de trabajo no encontrado", status=404)
         if not getattr(wk.user.userapp, "stripe_plan_key", None) and not getattr(wk.user.userapp, "nom035_creditos", 0):
             return render(request, "clima_sin_plan.html", {"workplace": wk})
+        if request.session.get(f'clima_submitted_{wk.id}'):
+            return render(request, 'clima_gracias.html', {'workplace': wk, 'ya_enviado': True})
         departments = Employee.objects.filter(workplace=wk).values_list('department', flat=True).distinct()
         ctx = {
             'workplace': wk,
@@ -2991,12 +2768,15 @@ class ClimaLaboralView(View):
             return HttpResponse("Centro de trabajo no encontrado", status=404)
         if not getattr(wk.user.userapp, "stripe_plan_key", None) and not getattr(wk.user.userapp, "nom035_creditos", 0):
             return HttpResponse("Sin plan activo", status=403)
+        if request.session.get(f'clima_submitted_{wk.id}'):
+            return render(request, 'clima_gracias.html', {'workplace': wk, 'ya_enviado': True})
         department = request.POST.get('department', '')
         data = {'workplace': wk, 'department': department}
         for i in range(1, 41):
             val = request.POST.get(f'cl_p{i}')
             data[f'cl_p{i}'] = int(val) if val and val.isdigit() else None
         WorkEnvironmentSurvey.objects.create(**data)
+        request.session[f'clima_submitted_{wk.id}'] = True
         return render(request, 'clima_gracias.html', {'workplace': wk})
 
 class ClimaResultadosView(LoginRequiredMixin, View):
