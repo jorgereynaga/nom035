@@ -1376,3 +1376,67 @@ email) queda identico.
   proyecto
 
 ## LOTE S: COMPLETADO Y VALIDADO EN STAGING -- LISTO PARA MERGE A auditoria-local
+
+# ============================================================
+# LOTE T (INFRA-001, Volume persistente Railway) — IMPLEMENTADO Y VALIDADO (sesion 20)
+# Fecha: 18-19 Jul 2026
+# ============================================================
+
+## RESULTADO: LOTE T COMPLETO Y VALIDADO EN STAGING -- HALLAZGO INFRA-001 CERRADO
+
+Rama fix/lote-t-infra001-volumen-persistente (a partir de auditoria-local). Fix
+implementado directamente por Claude (mismo criterio que el Lote S: cambio chico,
+mismo patron config()+default= ya usado en Lotes D/P/Q), coordinado en tiempo real
+con Jorge mientras configuraba el Volume en el dashboard de Railway.
+
+### Contexto
+Railway solo permitio adjuntar UN volumen por servicio via el flujo de "clic derecho
+en canvas -> New -> Volume" (el menu de creacion rapida no vuelve a ofrecer "Volume"
+como tipo despues del primero). Esto obligo a resolver como acomodar dos rutas
+distintas (MEDIA_ROOT publico y PROTECTED_MEDIA_ROOT protegido, separados
+deliberadamente desde el Lote C2 para cerrar EVI-SEC-001) dentro de un solo punto de
+montaje, SIN reintroducir la vulnerabilidad de archivos protegidos servidos sin
+autenticacion. Se confirmo antes de tocar nada: MEDIA_ROOT se sirve publico y sin auth
+via urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+(nom035/urls.py linea 128, sin guard de DEBUG), mientras PROTECTED_MEDIA_ROOT nunca
+tiene URL publica, solo se accede via las 3 vistas @login_required del Lote C2.
+
+### Cambio implementado
+nom035/settings.py: nueva variable PERSISTENT_STORAGE_ROOT = config('PERSISTENT_STORAGE_ROOT',
+default=BASE_DIR) -- MEDIA_ROOT y PROTECTED_MEDIA_ROOT ahora son subcarpetas
+(media/ y files/ respectivamente) DENTRO de ese unico punto de montaje, preservando
+la separacion logica y de seguridad exacta que ya existia (siguen siendo carpetas
+distintas, solo que ahora ambas viven sobre el mismo volumen fisico). Default=BASE_DIR
+preserva el comportamiento actual en cualquier ambiente sin la variable configurada
+(mismo patron ya usado en Lotes D/P/Q).
+
+### Configuracion de infraestructura (Jorge, en Railway)
+1. Volume creado y adjuntado al servicio nom035 (staging), Mount Path = /data
+2. Variable de entorno PERSISTENT_STORAGE_ROOT=/data agregada en el servicio nom035
+3. Deploy de la rama fix/lote-t-infra001-volumen-persistente
+
+### Validacion en staging -- PRUEBA REAL DE PERSISTENCIA ANTE REDEPLOY
+1. Deploy inicial: log confirma "Mounting volume on: /var/lib/containers/.../vol_hbp4g9magfmavzjr",
+   gunicorn arranca limpio
+2. Subida de archivo de prueba (logo, PNG de 70 bytes) via POST directo a /edit_profile/
+   (login via fetch con pruebaA@test.com) -> 200
+3. Descarga confirmada via /descargar/logo/ (vista protegida del Lote C2) -> 200,
+   image/png, 70 bytes exactos
+4. REDEPLOY manual disparado en Railway (mismo codigo, sin push nuevo) -- log confirma
+   mismo volumen montado (mismo ID vol_hbp4g9magfmavzjr), gunicorn arranca limpio
+5. Descarga repetida DESPUES del redeploy -> 200, mismos 70 bytes exactos -- CONFIRMADO
+   que el archivo sobrevivio el redeploy, la causa raiz de INFRA-001 (perdida de
+   archivos en cada redeploy) esta resuelta
+
+## PENDIENTE ACTUALIZADO
+1. Repetir el mismo Volume + variable de entorno en el servicio de PRODUCCION cuando
+   se decida llevar el proyecto a produccion real (este lote y su validacion fueron
+   unicamente en staging, como el resto de la auditoria)
+2. SMTP -- sigue pendiente, bloqueo de red Railway->Gmail, decision de Jorge de dejarlo
+   pendiente
+3. PN-01 a 06 -- ya resueltos (Lote R), no hay pendiente activo de Perfil Narrativo
+4. Limpiar el archivo de prueba subido (test_volumen.png) en algun momento -- no es
+   sensible, es solo un pixel de prueba, no urgente
+
+## LOTE T: COMPLETADO Y VALIDADO EN STAGING (persistencia ante redeploy confirmada con
+## prueba real) -- LISTO PARA MERGE A auditoria-local
