@@ -853,15 +853,16 @@
         font-size: 15px; font-weight: 800;
         line-height: 1;
         margin-bottom: 4px;
+        color: var(--text-primary);
       }
       .dim-badge {
         display: inline-block;
         padding: 1px 7px;
         border-radius: 20px;
         font-size: 9px; font-weight: 700;
+        color: var(--text-primary);
         letter-spacing: .04em; text-transform: uppercase;
         background: rgba(0,0,0,.07);
-        color: inherit;
       }
 
       .dim-empty {
@@ -1171,8 +1172,8 @@
               {% for dim in item.dimensions_preview %}
               <div class="dim-card" style="background-color:{{dim.color}}33;border-left-color:{{dim.color}};">
                 <p class="dim-card-name">{{dim.name}}</p>
-                <p class="dim-card-val" style="color:{{dim.color}};">{{dim.pct}}%</p>
-                <span class="dim-badge" style="color:{{dim.color}};">{{dim.nivel}}</span>
+                <p class="dim-card-val">{{dim.pct}}%</p>
+                <span class="dim-badge">{{dim.nivel}}</span>
               </div>
               {% endfor %}
             </div>
@@ -1409,8 +1410,8 @@
               {% for dim in item.climate_dimensions_preview %}
               <div class="dim-card" style="background-color:{{dim.color}}33;border-left-color:{{dim.color}};">
                 <p class="dim-card-name">{{dim.name}}</p>
-                <p class="dim-card-val" style="color:{{dim.color}};">{{dim.prom}}</p>
-                <span class="dim-badge" style="color:{{dim.color}};">{{dim.nivel}}</span>
+                <p class="dim-card-val">{{dim.prom}}</p>
+                <span class="dim-badge">{{dim.nivel}}</span>
               </div>
               {% endfor %}
             </div>
