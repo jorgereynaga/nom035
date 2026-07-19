@@ -1512,3 +1512,49 @@ preserva el comportamiento actual en cualquier ambiente sin la variable configur
 4. Considerar generar RECAPTCHA_SECRET_KEY/SITE_KEY separadas para staging tambien (hoy
    staging sigue usando las llaves viejas por default, que ya estaban expuestas
    publicamente en el codigo original) -- no urgente, staging no es produccion real
+
+# ============================================================
+# LOTE U (contraste de texto en tarjetas de dimension, dashboard) — IMPLEMENTADO Y VALIDADO (sesion 20, cont.)
+# Fecha: 19 Jul 2026
+# ============================================================
+
+## RESULTADO: LOTE U COMPLETO Y VALIDADO -- FIX VISUAL, SIN RELACION CON LA AUDITORIA
+
+Rama fix/lote-u-contraste-dashboard (a partir de auditoria-local). Hallazgo reportado
+por Jorge (screenshot), no parte de los hallazgos de seguridad.
+
+### Hallazgo
+En surveys/templates/index.html, las tarjetas de "Dimensiones de riesgo" (dashboard
+NOM-035) y "Dimensiones de clima" (Clima Laboral) usaban el mismo color saturado del
+nivel de riesgo tanto para el fondo/borde de la tarjeta COMO para el texto del valor y
+la etiqueta -- para el nivel "Medio" ese color es #ffff00 (amarillo puro), casi
+ilegible sobre el fondo claro tintado al 20%.
+
+### Cambio implementado
+- Quitados los estilos inline style="color:{{dim.color}}" de .dim-card-val y .dim-badge
+  en los 2 bloques (dimensions_preview y climate_dimensions_preview)
+- Agregado color: var(--text-primary) (#0f172a, mismo color ya usado en el resto del
+  dashboard) a ambas clases CSS
+- El fondo tintado (background-color:{{dim.color}}33) y el borde izquierdo
+  (border-left-color:{{dim.color}}) del .dim-card NO se tocaron -- siguen codificando
+  visualmente el nivel de riesgo, solo el texto encima se volvio siempre legible
+
+### LECCION TECNICA -- bug detectado en revision de diff antes de aprobar
+El primer intento de Codex agrego correctamente color: var(--text-primary) a
+.dim-card-val, pero en .dim-badge la regla CSS YA TENIA una linea color: inherit;
+preexistente MAS ABAJO en el mismo bloque -- en CSS, cuando hay 2 declaraciones color
+en la misma regla, gana la que aparece despues en el codigo, asi que color: inherit
+anulaba silenciosamente el fix nuevo. Antes no importaba porque el style inline (mayor
+especificidad) siempre ganaba sobre cualquier CSS de clase; al quitar el inline, el
+conflicto preexistente salio a la luz. Se le pidio a Codex un segundo pase para
+eliminar esa linea color: inherit; sobrante -- confirmado con grep que la regla quedo
+con una sola declaracion de color.
+
+### Validacion en staging
+Deploy limpio. Login via fetch + navegacion a /main confirmados. Estilos computados
+verificados directo en el navegador (mas confiable que una captura visual): tanto
+.dim-badge como .dim-card-val devuelven color: rgb(15, 23, 42) (#0f172a) de forma
+incondicional, sin importar el nivel de riesgo mostrado -- confirma que el fix ya no
+depende del color del nivel en absoluto.
+
+## LOTE U: COMPLETADO Y VALIDADO EN STAGING -- LISTO PARA MERGE A auditoria-local
