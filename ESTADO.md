@@ -1440,3 +1440,75 @@ preserva el comportamiento actual en cualquier ambiente sin la variable configur
 
 ## LOTE T: COMPLETADO Y VALIDADO EN STAGING (persistencia ante redeploy confirmada con
 ## prueba real) -- LISTO PARA MERGE A auditoria-local
+
+# ============================================================
+# DESPLIEGUE A PRODUCCION — REMEDIACION COMPLETA DE AUDITORIA APLICADA (sesion 20, cierre)
+# Fecha: 19 Jul 2026
+# ============================================================
+
+## RESULTADO: auditoria-local FUSIONADA A main Y DESPLEGADA A PRODUCCION (Railway) --
+## VALIDADA EN VIVO
+
+### Merge a main
+1. Confirmado antes de tocar nada: el auto-deploy del servicio `production` en Railway
+   estaba pausado manualmente por Jorge -- el push a main no iba a disparar deploy
+   automatico
+2. git checkout main && git pull && git merge auditoria-local -- SIN CONFLICTOS (main
+   no tenia ningun commit propio, 70 commits de diferencia, todos de auditoria-local)
+3. Push a origin/main confirmado (379861da..4e975431)
+4. Verificado que los commits de todos los lotes (A a T, incluyendo el fix critico de
+   PasswordRecover del Lote O y la eliminacion de Conekta del Lote L) estan presentes
+   en main
+
+### Deploy manual a produccion (Jorge, deliberado)
+1. Primer deploy: migraciones 0037/0038/0039 aplicadas por primera vez en la base de
+   datos de produccion (nunca habian corrido ahi), gunicorn arranco limpio
+2. Variables de entorno configuradas en el servicio `production` de Railway:
+   - AES_ENCRYPTION_KEY: nueva llave aleatoria de 32 caracteres (AES-256) generada por
+     Claude con secrets.choice, distinta a la de prueba/staging
+   - RECAPTCHA_SITE_KEY / RECAPTCHA_SECRET_KEY: nuevas, generadas por Jorge en la
+     consola de reCAPTCHA para el dominio de produccion (035.ihes.mx)
+   - EMAIL_HOST_USER=normaia.sistemas@gmail.com, EMAIL_HOST_PASSWORD= App Password de
+     Gmail (cuenta con 2FA activado, contraseña de aplicacion generada especificamente)
+   - ANTHROPIC_API_KEY: misma llave que staging (decision de Jorge, reusar en vez de
+     separar, credito compartido entre ambos ambientes)
+   - PENDIENTE: PERSISTENT_STORAGE_ROOT + Volume en produccion -- Jorge planea migrar
+     produccion real a un VPS de DigitalOcean pronto, en un VPS tradicional (git pull +
+     reiniciar proceso) el disco es persistente por defecto y este Volume de Railway
+     NO hace falta ahi -- se decidio no configurar Volume en Railway production dado
+     que es una situacion temporal antes de la migracion a DO
+3. Segundo deploy (para recoger las variables nuevas): limpio, sin migraciones nuevas
+   (ya aplicadas), gunicorn arranco sin errores
+
+### Validacion en produccion real (Codex + Jorge)
+1. Codex intento registrar una cuenta de prueba via automatizacion en
+   https://nom035-production.up.railway.app/newuser/ -> fallo con "Solicitud denegada"
+   -- diagnosticado por Claude leyendo el codigo real (UserappList.post()): ese mensaje
+   especifico solo ocurre cuando reCAPTCHA responde success=true pero score<=0.5 (NO es
+   el mensaje de llaves mal configuradas, que seria "El captcha no es valido") --
+   comportamiento esperado de reCAPTCHA v3 detectando trafico de navegador automatizado,
+   no un bug de la configuracion nueva
+2. Jorge probo el mismo registro manualmente (navegador humano normal) -> EXITOSO,
+   cuenta creada sin problema -- CONFIRMA que las llaves de reCAPTCHA nuevas de
+   produccion estan correctamente configuradas y funcionando
+
+## ESTADO FINAL: PRODUCCION (Railway, dominio 035.ihes.mx / nom035-production.up.railway.app)
+## CORRIENDO LA REMEDIACION COMPLETA DE LA AUDITORIA, CON VARIABLES DE ENTORNO REALES,
+## VALIDADA CON REGISTRO DE USUARIO REAL EXITOSO
+
+## PENDIENTES RESTANTES
+1. SMTP en produccion: mismo riesgo que en staging (posible bloqueo de puerto 587 en
+   Railway) -- AUN NO PROBADO en produccion end-to-end (recuperacion de contrasena /
+   verificacion de correo reales). Jorge planea migrar a un VPS de DigitalOcean donde
+   este problema probablemente no exista (los VPS tradicionales no suelen bloquear
+   SMTP saliente) -- pendiente confirmar una vez ahi
+2. Migracion futura a VPS de DigitalOcean: cuando este listo, replicar las mismas
+   variables de entorno (pueden reusarse los mismos valores) en el nuevo .env, ajustar
+   DATABASE_URL y ALLOWED_HOSTS al nuevo host -- PERSISTENT_STORAGE_ROOT no necesario
+   ahi (disco persistente por defecto en VPS tradicional)
+3. Decision pendiente sin resolver: db.sqlite3 y carpeta media/ trackeados en el
+   historial de git (contienen PDFs reales de clientes de prueba) -- hallazgo anotado
+   hace varias sesiones, nunca atacado, sigue ahi
+4. Considerar generar RECAPTCHA_SECRET_KEY/SITE_KEY separadas para staging tambien (hoy
+   staging sigue usando las llaves viejas por default, que ya estaban expuestas
+   publicamente en el codigo original) -- no urgente, staging no es produccion real
