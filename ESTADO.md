@@ -1558,3 +1558,31 @@ incondicional, sin importar el nivel de riesgo mostrado -- confirma que el fix y
 depende del color del nivel en absoluto.
 
 ## LOTE U: COMPLETADO Y VALIDADO EN STAGING -- LISTO PARA MERGE A auditoria-local
+
+# ============================================================
+# LOTE V (texto de botones Metodos de pago / Mis pagos) — IMPLEMENTADO Y VALIDADO (sesion 21)
+# Fecha: 19 Jul 2026
+# ============================================================
+
+## RESULTADO: LOTE V COMPLETO Y VALIDADO -- CAMBIO DE TEXTO, SIN RELACION CON LA AUDITORIA
+
+Rama fix/lote-v-texto-boton-pagos (a partir de auditoria-local). Pedido directo de
+Jorge: el texto "en Stripe" en los botones de Configuracion -> Metodos de pago / Mis
+pagos sobraba (aunque funcionalmente si va a Stripe).
+
+### Cambio implementado
+surveys/templates/edit_profile.html:
+- "Administrar métodos de pago en Stripe" -> "Administrar métodos de pago"
+- "Consultar pagos en Stripe" -> "Consultar pagos"
+Solo el texto visible de los 2 botones, href intactos (siguen apuntando a
+{% url 'stripe_portal' %}). Los subtitulos/parrafos descriptivos que tambien
+mencionan "Stripe" arriba de los botones NO se tocaron (Jorge solo pidio el texto
+de los botones).
+
+### Validacion en staging
+Deploy limpio. Confirmado con fetch directo al HTML real servido por
+/edit_profile/ (logueado como pruebaA@test.com): los 2 botones muestran
+exactamente "Administrar métodos de pago" y "Consultar pagos", con
+href="/stripe/portal/" sin cambios.
+
+## LOTE V: COMPLETADO Y VALIDADO EN STAGING -- LISTO PARA MERGE A auditoria-local
