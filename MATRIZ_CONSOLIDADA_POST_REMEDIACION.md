@@ -42,13 +42,14 @@ Actualizado: 15 Jul 2026, sesión 14. Este documento complementa (no reemplaza) 
 | CONFIG-002 | Dominio placeholder sin usar en `CORS_ALLOWED_ORIGINS` (`"https://tu-frontend.com"`) | Baja/cosmético | ⏳ Pendiente | `nom035/settings.py` |
 | INFRA-001 | **Sin Volume persistente en Railway** — archivos en `MEDIA_ROOT`/`PROTECTED_MEDIA_ROOT` se pierden en cada redeploy. Aplica también a producción actual | **Alta** (pérdida de datos, no vulnerabilidad de seguridad) | ⏳ **Pendiente — bloqueante antes de producción real** | Infraestructura Railway, no código |
 | SEC-008 | Llaves de Conekta (pagos) comentadas y visibles en el código fuente | Baja | ⏳ Pendiente, revisar si son válidas o ya revocadas | `surveys/views.py` ~51-53 |
+| SEC-009 | **CRÍTICO — Webhook de Stripe duplicado, la implementación "correcta" nunca se ejecuta.** `nom035/urls.py` registra `/stripe/webhook/` 3 veces; Django usa la primera coincidencia (línea 39, función `stripe_webhook()` en `surveys/views.py:2562`), dejando `StripeWebhookView` (`surveys/stripe_views.py`) como código muerto pese a parecer la implementación oficial. La función activa: solo maneja `checkout.session.completed` (cancelaciones de suscripción probablemente nunca se procesan), tiene un fallback peligroso (`User.objects.first()` si no encuentra al comprador — asignaría el plan pagado a un usuario cualquiera), y solo usa `print()` con emojis como logging. Presente también en `main` (producción). Encontrado durante el trabajo del dashboard de métricas de negocio (rama `auditoria-local`), no forma parte de ese lote. Detalle completo en `ESTADO.md`. | **Crítica** | ⏳ **Pendiente — requiere su propio lote y rama, validación completa en staging con Stripe test mode antes de tocar main** | `nom035/urls.py` líneas 39/114/136, `surveys/views.py:2562`, `surveys/stripe_views.py`, `surveys/services/credits.py` |
 
 ## Total actualizado
 
 - **Hallazgos originales corregidos:** 2 de 22 (los 2 críticos: N35-SEC-001, EVI-SEC-001)
-- **Hallazgos nuevos encontrados:** 12
+- **Hallazgos nuevos encontrados:** 13
 - **Hallazgos nuevos corregidos:** 5 (N35-SEC-002, N35-SEC-003, N35-SEC-004, EVI-SEC-003, BUG-001)
-- **Hallazgos nuevos pendientes:** 7 (SEC-005, SEC-006, SEC-007, CONFIG-001, CONFIG-002, INFRA-001, SEC-008)
+- **Hallazgos nuevos pendientes:** 8 (SEC-005, SEC-006, SEC-007, CONFIG-001, CONFIG-002, INFRA-001, SEC-008, SEC-009)
 
 ## Recomendación de siguiente lote (decisión pendiente de Jorge al retomar)
 
