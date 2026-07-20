@@ -673,6 +673,18 @@
         </div>
       </div>
 
+      <!-- ── Línea de tiempo de suscripciones ── -->
+      <div class="section-card">
+        <div class="section-card-header">
+          <div class="section-title" style="margin-bottom:0;">
+            <span class="title-dot" style="background:#10b981;"></span>
+            Suscripciones nuevas por periodo
+          </div>
+          <span class="td-muted">Vista {% if granularidad == 'dia' %}diaria{% else %}semanal{% endif %}</span>
+        </div>
+        <canvas id="timelineSuscripciones" style="max-height:280px;"></canvas>
+      </div>
+
       <!-- ── Distribución de planes ── -->
       <div class="section-card">
         <div class="section-card-header">
@@ -768,6 +780,33 @@
   </div><!-- /main -->
 
   <script>
+    const timelineLabels = {{ timeline_labels|safe }};
+    const timelineData = {{ timeline_data|safe }};
+    new Chart(document.getElementById('timelineSuscripciones'), {
+      type: 'line',
+      data: {
+        labels: timelineLabels,
+        datasets: [{
+          label: 'Suscripciones nuevas',
+          data: timelineData,
+          borderColor: '#4f46e5',
+          backgroundColor: 'rgba(79, 70, 229, 0.12)',
+          fill: true,
+          tension: 0.3,
+          pointRadius: 3,
+          pointBackgroundColor: '#4f46e5',
+        }],
+      },
+      options: {
+        scales: {
+          y: { beginAtZero: true, ticks: { precision: 0 } },
+        },
+        plugins: {
+          legend: { display: false },
+        },
+      },
+    });
+
     const labels = [{% for item in distribucion_planes %}'{{ item.plan|escapejs }}'{% if not forloop.last %}, {% endif %}{% endfor %}];
     const data = [{% for item in distribucion_planes %}{{ item.clientes }}{% if not forloop.last %}, {% endif %}{% endfor %}];
     new Chart(document.getElementById('distribucionPlanes'), {

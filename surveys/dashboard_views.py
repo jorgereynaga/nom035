@@ -1,9 +1,12 @@
+import json
 from datetime import datetime, timedelta
 from decimal import Decimal
 
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
+from django.db.models import Count
+from django.db.models.functions import TruncDate, TruncWeek
 from django.shortcuts import render
 from django.utils import timezone
 from django.views import View
@@ -84,6 +87,40 @@ class DashboardMetricasView(LoginRequiredMixin, UserPassesTestMixin, View):
                 'evaluaciones_psico': evaluaciones_psico,
             })
 
+        rango_dias = (fecha_fin - fecha_inicio).days
+        granularidad = 'dia' if rango_dias <= 31 else 'semana'
+        trunc_fn = TruncDate if granularidad == 'dia' else TruncWeek
+
+        eventos_qs = PlanPurchaseEvent.objects.filter(
+            user__is_staff=False, user__is_superuser=False,
+            record_create__gte=fecha_inicio, record_create__lte=fecha_fin,
+        ).annotate(
+            bucket=trunc_fn('record_create')
+        ).values('bucket').annotate(total=Count('id'))
+
+        conteo_por_bucket = {}
+        for row in eventos_qs:
+            bucket = row['bucket']
+            if isinstance(bucket, datetime):
+                bucket = bucket.date()
+            conteo_por_bucket[bucket] = row['total']
+
+        timeline_labels = []
+        timeline_data = []
+        if granularidad == 'dia':
+            cursor = fecha_inicio.date()
+            fin = fecha_fin.date()
+            paso = timedelta(days=1)
+        else:
+            cursor = fecha_inicio.date() - timedelta(days=fecha_inicio.date().weekday())
+            fin = fecha_fin.date()
+            paso = timedelta(days=7)
+
+        while cursor <= fin:
+            timeline_labels.append(cursor.strftime('%d/%m'))
+            timeline_data.append(conteo_por_bucket.get(cursor, 0))
+            cursor += paso
+
         return render(request, 'dashboard_metricas.html', {
             'fecha_inicio': fecha_inicio.strftime('%Y-%m-%d'),
             'fecha_fin': fecha_fin.strftime('%Y-%m-%d'),
@@ -93,6 +130,9 @@ class DashboardMetricasView(LoginRequiredMixin, UserPassesTestMixin, View):
             'distribucion_planes': distribucion_planes,
             'mrr': round(mrr, 2),
             'profundidad_uso': profundidad_uso,
+            'granularidad': granularidad,
+            'timeline_labels': json.dumps(timeline_labels),
+            'timeline_data': json.dumps(timeline_data),
         })
 
     def _parse_fecha(self, valor):
