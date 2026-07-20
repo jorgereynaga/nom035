@@ -1586,3 +1586,312 @@ exactamente "Administrar métodos de pago" y "Consultar pagos", con
 href="/stripe/portal/" sin cambios.
 
 ## LOTE V: COMPLETADO Y VALIDADO EN STAGING -- LISTO PARA MERGE A auditoria-local
+
+# ============================================================
+# DASHBOARD DE METRICAS DE NEGOCIO — ESPECIFICACION COMPLETADA (sesion 15/16)
+# Fecha: 19 Jul 2026
+# ============================================================
+
+## Iniciativa nueva, independiente del trabajo de auditoria — NO bloquea produccion
+
+Vista interna protegida (is_superuser), solo para Jorge, con metricas de negocio:
+usuarios registrados, clientes historicos vs activos, desglose/distribucion de
+planes, MRR estimado, profundidad de uso (centros activos + evaluaciones
+completadas por cliente de pago).
+
+Investigacion completa hecha, especificacion escrita en
+DASHBOARD_especificacion_metricas_negocio.md (raiz del repo, rama
+feature/dashboard-metricas-negocio). Cubre:
+
+1. Modelo nuevo PlanPurchaseEvent (append-only, precio/periodo como snapshot)
+   + migracion manual 0040_plan_purchase_event.py (dependencia: 0039)
+2. Un solo PlanPurchaseEvent.objects.create() nuevo dentro de
+   _handle_checkout_completed (surveys/stripe_views.py) -- cero cambios a
+   _activate_plan, _handle_invoice_paid, _handle_payment_failed,
+   _handle_subscription_change. El objetivo es que el historico sobreviva a la
+   cancelacion (hoy _handle_subscription_change vacia stripe_plan_key y se
+   pierde el rastro)
+3. DashboardMetricasView nueva (surveys/dashboard_views.py, archivo nuevo),
+   UserPassesTestMixin + is_superuser (403 real, no URL oculta)
+4. Template standalone dashboard_metricas.html (deliberadamente sin
+   {% extends 'index.html' %} para evitar el bug de bloques Django ya
+   documentado abajo en este archivo) + Chart.js via CDN (no habia libreria de
+   graficas instalada en el proyecto)
+5. URL /metricas/, import explicito nuevo en nom035/urls.py (mismo patron que
+   psico_views, para no repetir el bug del NameError en Railway)
+
+Decisiones de diseno explicitas (confirmar al revisar el diff):
+- Se excluyen cuentas is_staff/is_superuser de todas las metricas de clientes
+- El rango de fechas filtra "usuarios registrados" y "compraron alguna vez",
+  pero NO "plan activo ahora"/MRR/distribucion de planes (son snapshot del
+  momento actual)
+- Renovaciones (invoice.paid) NO generan evento nuevo en esta version, fuera
+  de alcance
+- Sin link en el sidebar hacia /metricas/ salvo que Jorge lo pida
+
+## PENDIENTE INMEDIATO
+1. Pasarle DASHBOARD_especificacion_metricas_negocio.md a Codex con
+   instruccion explicita de implementar (sobre esta misma rama o una nueva
+   derivada, segun decida Jorge)
+2. Revisar diff, probar en staging (Stripe test mode: simular compra,
+   confirmar 1 fila nueva en PlanPurchaseEvent + activacion de plan sin
+   cambios; simular cancelacion, confirmar que el historico sobrevive)
+3. Diseño visual de dashboard_metricas.html con Replit -- prompt aun no
+   escrito, pendiente hasta que el esqueleto funcional este confirmado
+
+# ============================================================
+# DASHBOARD DE METRICAS DE NEGOCIO — IMPLEMENTADO Y VALIDADO EN STAGING
+# Fecha: 20 Jul 2026
+# ============================================================
+
+## NOTA DE PROCESO: Codex sin cuota hasta 26 Jul 2026 (ambas cuentas, solo este proyecto)
+Este lote se implemento con Claude aplicando el codigo directamente (en vez de
+Codex), con autorizacion explicita de Jorge como modo de trabajo temporal
+mientras Codex no este disponible. El resto del flujo (Jorge revisa diff antes
+de cada commit, validacion en staging antes de merge) se mantuvo sin cambios.
+
+## Implementacion completa en feature/dashboard-metricas-negocio-impl
+- surveys/models.py: PlanPurchaseEvent (append-only) + migracion manual 0040
+- surveys/stripe_views.py: 1 solo create() nuevo en _handle_checkout_completed,
+  cero cambios al resto de _activate_plan/_handle_invoice_paid/etc
+- surveys/dashboard_views.py (nuevo): DashboardMetricasView, LoginRequiredMixin
+  + UserPassesTestMixin (is_superuser)
+- surveys/templates/dashboard_metricas.html (nuevo): standalone, Chart.js via CDN
+- nom035/urls.py: import explicito + path('metricas/', ...)
+
+## BUG encontrado y corregido durante validacion en staging
+DashboardMetricasView tenia `raise_exception = True` a nivel de clase. Como
+LoginRequiredMixin y UserPassesTestMixin comparten el atributo raise_exception
+(ambos heredan de AccessMixin), esto causaba que un usuario ANONIMO recibiera
+403 directo en vez de ser redirigido a /login/ -- confirmado en staging antes
+del fix (GET /metricas/ -> 403 sin sesion).
+
+FIX: se quito raise_exception de la clase y se sobreescribio handle_no_permission()
+para diferenciar los 2 casos (no autenticado -> redirect normal a login_url,
+autenticado pero no superuser -> PermissionDenied real). Confirmado en staging
+despues del fix: GET /metricas/ sin sesion -> GET /login/?next=/metricas/ -> 200.
+
+## Validacion completa en staging (nom035-staging.up.railway.app), 3 casos
+1. Anonimo -> redirige a /login/?next=/metricas/ (corregido, ver bug arriba)
+2. Autenticado, no-superuser (pruebaB@test.com) -> 403 correcto
+3. Autenticado, superuser (admin) -> 200, datos correctos (3 usuarios
+   registrados, 0 compraron/activos ya que staging no tiene compras Stripe
+   reales todavia -- coherente con PlanPurchaseEvent vacio)
+
+## HALLAZGO NUEVO, preexistente, NO corregido en este lote
+Durante la validacion se encontro que `/login/` (LoginView.post(),
+surveys/views.py:481) hace `user.userapp.validated_email` sin verificar que
+el Userapp exista. Cualquier cuenta is_staff/is_superuser creada via
+createsuperuser (sin pasar por el registro de clientes) no tiene Userapp,
+y el login normal por /login/ truena con una excepcion no controlada en vez
+de un error claro (se vio como que "se queda pensando"). Workaround usado
+para probar como superuser: loguearse por /ihes_admin/ (no depende de
+Userapp) y navegar directo a la URL protegida en la misma sesion. Pendiente
+de decidir si se agrega a la matriz de hallazgos para un lote futuro.
+
+## PENDIENTE INMEDIATO
+1. Merge feature/dashboard-metricas-negocio-impl -> auditoria-local
+2. Diseño visual de dashboard_metricas.html con Replit -- prompt aun no escrito
+3. Decidir si el hallazgo de Userapp/login de superusuarios entra a la matriz
+   de hallazgos como un lote futuro
+
+# ============================================================
+# HALLAZGO NUEVO, CRITICO: SEC-009 — Webhook de Stripe duplicado,
+# la implementacion "correcta" nunca se ejecuta
+# Fecha: 20 Jul 2026
+# ============================================================
+
+Encontrado durante el trabajo del dashboard de metricas de negocio (rama
+auditoria-local), independiente de ese lote. Registrado tambien en
+MATRIZ_CONSOLIDADA_POST_REMEDIACION.md como SEC-009. Confirmado en codigo
+real, presente tambien en main (produccion). AUN NO CORREGIDO -- solo
+diagnosticado, pendiente de decidir cuando atacarlo.
+
+## El problema
+
+nom035/urls.py registra la ruta /stripe/webhook/ TRES veces (lineas 39, 114,
+136 al momento de este hallazgo). Django usa el primer patron que hace
+match -- la linea 39, que apunta a una funcion stripe_webhook() en
+surveys/views.py:2562. Esto significa que la clase StripeWebhookView completa
+(surveys/stripe_views.py) NUNCA se ejecuta con un webhook real de Stripe --
+es codigo muerto, a pesar de que parece la implementacion "oficial" (con
+metodos separados para cada tipo de evento).
+
+## Como se llego a este estado (investigacion de historial)
+
+git log --oneline -- surveys/views.py filtrado por "webhook"/"credit"/"stripe":
+- 12 may 2026: se integro Stripe con clases (stripe_views.py)
+- 22-30 may 2026: sesion de depuracion (commits "force user for webhook test",
+  "debug webhook completo", "fix: reescribir stripe_webhook limpio") que
+  termino escribiendo una funcion nueva y paralela directo en views.py, con
+  su propio sistema de creditos (assign_nom035_credits() en
+  surveys/services/credits.py, usa nom035_creditos/psico_evaluaciones_disponibles)
+  -- distinto al sistema que usa la clase muerta (workplaces_available/B/C)
+- Esa funcion quedo registrada ANTES en urls.py y es la que corre en
+  produccion hoy
+
+## Problemas concretos de la funcion activa (surveys/views.py:2562)
+
+1. Solo maneja checkout.session.completed. No maneja invoice.paid,
+   invoice.payment_failed, ni customer.subscription.deleted/updated -- las
+   cancelaciones de suscripcion probablemente nunca se procesan en
+   produccion: un cliente que cancela en Stripe seguiria con su plan activo
+   indefinidamente en el sistema.
+2. Fallback peligroso: si no encuentra al usuario comprador
+   (User.objects.get(id=user_id) o por email falla), hace
+   user = User.objects.first() -- asignaria el plan pagado al PRIMER usuario
+   cualquiera de toda la base de datos.
+3. Tiene print() con emojis como unico logging (sin logger), leftover de
+   depuracion.
+4. Codigo duplicado/paralelo a StripeWebhookView, que ademas tiene un modelo
+   de creditos distinto e incompatible (workplaces_available vs
+   nom035_creditos) -- riesgo de confusion para cualquiera que edite
+   stripe_views.py pensando que esta tocando codigo vivo.
+
+## Nota importante -- que SI esta bien
+
+El campo Userapp.stripe_plan_key/psico_plan_key SI se actualiza
+correctamente en la funcion activa, asi que cualquier logica que dependa
+solo de ese campo (ej. el dashboard de metricas de negocio, PlanPurchaseEvent)
+NO se ve afectada. El problema es especifico a: cancelaciones sin procesar,
+el fallback peligroso, y el hecho de que StripeWebhookView es enteramente
+codigo muerto.
+
+## Pendiente de decidir (para cuando se ataque este hallazgo)
+
+Dos caminos posibles, requiere pensarlo con cuidado porque toca el webhook
+que sirve compras reales:
+(a) Eliminar StripeWebhookView y las 2 rutas duplicadas, migrando cualquier
+    logica util (manejo de invoice.paid/payment_failed/cancelaciones) a la
+    funcion activa en views.py
+(b) Al reves: limpiar la funcion de views.py y hacer que las 3 rutas apunten
+    unicamente a StripeWebhookView, migrando assign_nom035_credits y el
+    fallback seguro ahi
+
+Su propio lote, su propia rama, validacion completa en staging con Stripe
+test mode antes de tocar main.
+
+# ============================================================
+# SEC-009 CORREGIDO Y VALIDADO EN STAGING (opcion a)
+# Fecha: 20 Jul 2026
+# ============================================================
+
+## NOTA DE PROCESO
+Igual que el lote del dashboard de metricas: Claude aplico el codigo
+directamente (Codex sin cuota hasta 26 Jul 2026), con autorizacion explicita
+de Jorge. Rama: fix/sec-009-stripe-webhook-duplicado, partiendo de
+auditoria-local actualizada.
+
+## Decision de diseno confirmada con Jorge antes de implementar
+Se eligio la opcion (a): conservar y arreglar la funcion activa
+stripe_webhook() en views.py (porque ya alimenta nom035_creditos/
+psico_evaluaciones_disponibles, el sistema de creditos REALMENTE consumido
+por la app -- confirmado revisando donde se LEE cada campo, no solo donde
+se escribe: nom035_creditos se usa en surveys/views.py lineas 318, 802,
+1062, 2761, 2777; workplaces_available solo se mostraba en contexto de
+plantilla, su unico punto de decremento estaba comentado). Se elimino
+StripeWebhookView (codigo muerto, usaba el sistema de creditos incorrecto/
+no consumido) y las 2 rutas duplicadas en urls.py.
+
+Sobre cancelaciones (customer.subscription.deleted/updated), Jorge eligio
+explicitamente: solo limpiar stripe_plan_key/psico_plan_key (que deje de
+verse como "con plan activo"), SIN tocar creditos ya otorgados -- el
+cliente conserva lo que pago hasta agotarlo, pero no se le renueva.
+
+## Cambios aplicados
+- nom035/urls.py: eliminadas las 2 rutas duplicadas de /stripe/webhook/ y
+  el import de StripeWebhookView; queda 1 sola ruta activa (linea 39)
+- surveys/stripe_views.py: eliminada la clase StripeWebhookView completa
+  (codigo muerto) + imports que quedaron sin uso (HttpResponse,
+  method_decorator, csrf_exempt, PRICE_ID_TO_PLAN)
+- surveys/views.py, stripe_webhook(): funcion dividida en helpers
+  (_stripe_handle_checkout_completed, _stripe_handle_invoice_paid,
+  _stripe_handle_payment_failed, _stripe_handle_subscription_change):
+  - print() con emojis reemplazado por logging real (p_.info/warning/error)
+  - Eliminado el fallback peligroso `User.objects.first()`: ahora si no se
+    encuentra al comprador, se loguea con p_.error() y se ignora el evento
+    (nadie recibe un plan que no compro)
+  - invoice.paid: re-acredita SOLO si billing_reason=='subscription_cycle'
+    (evita doble acreditacion en la factura inicial, que ya se acredito via
+    checkout.session.completed)
+  - invoice.payment_failed: logueado como warning, sin desactivar acceso
+    (mismo comportamiento no-destructivo que tenia el codigo muerto)
+  - customer.subscription.deleted/updated: si status en
+    canceled/unpaid/past_due, limpia stripe_plan_key y psico_plan_key,
+    creditos existentes intactos (decision de Jorge arriba)
+  - Se incorporo tambien un cambio que ya estaba sin commitear en el
+    working tree (PlanPurchaseEvent.objects.create() dentro de esta misma
+    funcion, agregado en sesion anterior para que el dashboard de metricas
+    reciba compras reales) -- se fusiono directo en la reescritura en vez
+    de tratarlo aparte, avisado a Jorge antes de continuar
+- Confirmado con grep: ningun template ni reverse() dependia del nombre de
+  URL 'stripe_webhook' de la ruta eliminada -- Stripe llama la URL directo
+  por path, no por nombre
+
+## LIMITACION CONOCIDA, no resuelta en este lote (preexistente, heredada del diseno original)
+Userapp solo trackea UN stripe_subscription_id/plan a la vez de forma
+ambigua entre modulos: si un usuario tiene stripe_plan_key Y psico_plan_key
+ambos activos (ej. compro NOM-035 Y psicometria por separado), una renovacion
+(invoice.paid, subscription_cycle) solo puede re-acreditar uno de los dos
+(se prioriza stripe_plan_key). Confirmado en pruebas: no se recreditó
+psico_starter en el escenario de 2 planes simultaneos. El codigo muerto
+(StripeWebhookView) tenia la MISMA limitacion (solo leia stripe_plan_key,
+nunca psico_plan_key, en _handle_invoice_paid) -- no es una regresion de
+este lote, es un limite del modelo de datos actual (un solo
+stripe_subscription_id por Userapp). Pendiente de decidir si se rediseña
+a futuro (ej. subscription_id separado por modulo) si Jorge empieza a
+vender NOM-035 + psicometria como suscripciones independientes en vez de
+via el plan "suite".
+
+## Validacion completa en staging (Stripe test mode, sk_test_/whsec_ confirmados)
+Deploy limpio en Railway (Source cambiado temporalmente a la rama del lote,
+gunicorn arriba sin errores nuevos). Se creo un usuario de prueba con
+Userapp (staging.test@normaia.mx, ver nota abajo) y se simularon 8 eventos
+firmados criptograficamente igual que Stripe real (HMAC-SHA256 con el
+STRIPE_WEBHOOK_SECRET real de staging), enviados directo al endpoint:
+
+1. checkout.session.completed, usuario valido, plan nom035_pyme -> HTTP 200,
+   +50 nom035_creditos, stripe_plan_key='nom035_pyme', stripe_customer_id y
+   stripe_subscription_id guardados, PlanPurchaseEvent creado
+2. checkout.session.completed, usuario INEXISTENTE (id y email invalidos)
+   -> HTTP 200, evento ignorado, log p_.error() con el detalle, NINGUN
+   usuario recibio credito (confirma que el fallback peligroso ya no existe)
+3. checkout.session.completed, plan psico_starter -> HTTP 200,
+   +20 psico_evaluaciones_disponibles, psico_plan_key='psico_starter'
+4. invoice.paid, billing_reason=subscription_create -> HTTP 200, NO
+   acredito (confirma que no hay doble acreditacion en la factura inicial)
+5. invoice.paid, billing_reason=subscription_cycle -> HTTP 200, +50
+   nom035_creditos adicionales (renovacion), confirmando el mecanismo de
+   renovacion funciona (ver limitacion conocida arriba sobre cual plan
+   se re-acredita cuando hay 2 activos)
+6. invoice.payment_failed -> HTTP 200, logueado como warning, sin cambios
+   de estado
+7. customer.subscription.deleted, status=canceled -> HTTP 200,
+   stripe_plan_key y psico_plan_key limpiados a '', nom035_creditos
+   (100) y psico_evaluaciones_disponibles (20) INTACTOS -- exactamente el
+   comportamiento que Jorge eligio
+8. Firma invalida (secret incorrecto) -> HTTP 400, rechazado correctamente
+
+Todos los resultados verificados directo en base de datos (no solo el
+HTTP status), via TCP Proxy temporal en Postgres de staging (creado,
+usado, eliminado). Usuario de prueba reseteado a estado neutro
+(0 creditos, sin plan, sin customer_id) al terminar, para dejarlo limpio
+para pruebas futuras de la otra sesion de Claude.
+
+NOTA: se encontro que el usuario staging.test@normaia.mx (creado en sesion
+anterior para pruebas manuales) no tenia Userapp asociado -- mismo patron
+del hallazgo ya documentado sobre LoginView.post() y superusuarios sin
+Userapp. Se le creo un Userapp minimo para poder correr estas pruebas.
+
+## Commit local (aun NO pusheado a auditoria-local ni main)
+Rama fix/sec-009-stripe-webhook-duplicado, 1 commit:
+"Fix SEC-009: eliminar webhook de Stripe duplicado y codigo muerto"
+(nom035/urls.py, surveys/stripe_views.py, surveys/views.py)
+
+## PENDIENTE INMEDIATO
+1. Jorge revisa el diff final del commit antes de decidir merge a
+   auditoria-local
+2. Actualizar MATRIZ_CONSOLIDADA_POST_REMEDIACION.md: SEC-009 pasa de
+   Pendiente a Corregido (pendiente hasta que se confirme el merge)
+3. Considerar si la limitacion conocida (renovacion con 2 planes
+   simultaneos) amerita su propio hallazgo/lote a futuro

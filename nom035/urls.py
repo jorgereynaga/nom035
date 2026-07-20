@@ -18,7 +18,7 @@ from django.urls import path,re_path,include
 from surveys.views import *
 from surveys.stripe_views import (
     StripePlansView, StripeCheckoutView, StripePortalView,
-    StripeWebhookView, PaymentSuccessView, PaymentCancelView
+    PaymentSuccessView, PaymentCancelView
 )
 
 from surveys.psico_views import (
@@ -27,6 +27,7 @@ from surveys.psico_views import (
     GenerarPerfilNarrativoView, ReporteUnificadoView,
     InstrumentosCatalogoView,
 )
+from surveys.dashboard_views import DashboardMetricasView
 
 
 from django.conf import settings
@@ -110,7 +111,6 @@ urlpatterns = [
     path('stripe/planes/', StripePlansView.as_view(), name='stripe_planes'),
     path('stripe/checkout/', StripeCheckoutView.as_view(), name='stripe_checkout'),
     path('stripe/portal/', StripePortalView.as_view(), name='stripe_portal'),
-    path('stripe/webhook/', StripeWebhookView.as_view(), name='stripe_webhook'),
     path('payments/success/', PaymentSuccessView.as_view(), name='payment_success'),
     path('payments/cancel/', PaymentCancelView.as_view(), name='payment_cancel'),
     # Psicometría
@@ -123,14 +123,8 @@ urlpatterns = [
     path('psico/test/<str:token>/completar/', TestCompleteView.as_view(), name='test_completar'),
     path('psico/resultado/<int:session_id>/', TestResultView.as_view(), name='test_resultado'),
     path('psico/perfil-narrativo/<int:session_id>/', GenerarPerfilNarrativoView.as_view(), name='perfil_narrativo'),
+    path('metricas/', DashboardMetricasView.as_view(), name='dashboard_metricas'),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-
-from surveys.views import stripe_webhook
-from surveys.views import LandingView
-
-urlpatterns += [
-    path('stripe/webhook/', stripe_webhook),
-]
 

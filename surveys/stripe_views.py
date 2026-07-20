@@ -2,15 +2,13 @@ import stripe
 import json
 import logging
 from django.conf import settings
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse
 from django.views import View
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect
-from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.models import User
 from .models import Userapp, Workplace
-from .stripe_plans import PLANS, PRICE_ID_TO_PLAN
+from .stripe_plans import PLANS
 
 logger = logging.getLogger(__name__)
 stripe.api_key = settings.STRIPE_SECRET_KEY
@@ -135,169 +133,7 @@ class StripePortalView(LoginRequiredMixin, View):
 
 
 # ─────────────────────────────────────────────────────────────
-# 4. WEBHOOK DE STRIPE (activa/desactiva acceso automáticamente)
-# ─────────────────────────────────────────────────────────────
-@method_decorator(csrf_exempt, name='dispatch')
-class StripeWebhookView(View):
-
-    def post(self, request):
-        payload = request.body
-        sig_header = request.META.get('HTTP_STRIPE_SIGNATURE')
-        webhook_secret = settings.STRIPE_WEBHOOK_SECRET
-
-        try:
-            event = stripe.Webhook.construct_event(
-                payload, sig_header, webhook_secret
-            )
-        except ValueError:
-            return HttpResponse(status=400)
-        except stripe.error.SignatureVerificationError:
-            return HttpResponse(status=400)
-
-        event_type = event['type']
-        data = event['data']['object']
-
-        logger.info(f"Stripe webhook: {event_type}")
-
-        if event_type == 'checkout.session.completed':
-            self._handle_checkout_completed(data)
-
-        elif event_type == 'invoice.paid':
-            self._handle_invoice_paid(data)
-
-        elif event_type == 'invoice.payment_failed':
-            self._handle_payment_failed(data)
-
-        elif event_type in ['customer.subscription.deleted',
-                            'customer.subscription.updated']:
-            self._handle_subscription_change(data)
-
-        return HttpResponse(status=200)
-
-    def _handle_checkout_completed(self, session):
-        try:
-            user_id = session['metadata'].get('user_id')
-            plan_key = session['metadata'].get('plan_key')
-
-            if not user_id or not plan_key:
-                return
-
-            userapp = Userapp.objects.get(user_id=user_id)
-            plan = PLANS.get(plan_key)
-
-            if not plan:
-                return
-
-            # Activar acceso según módulo
-            self._activate_plan(userapp, plan, plan_key)
-
-            # Guardar subscription_id si es recurrente
-            if session.get('subscription'):
-                userapp.stripe_subscription_id = session['subscription']
-
-            userapp.stripe_plan_key = plan_key
-            userapp.save()
-
-            logger.info(f"Plan activado: user={user_id}, plan={plan_key}")
-            try:
-                from django.core.management import call_command
-                call_command("borrar_datos_demo", int(user_id))
-                logger.info(f"Datos demo eliminados para user={user_id}")
-            except Exception as e:
-                logger.error(f"Error borrando datos demo: {e}")
-
-        except Userapp.DoesNotExist:
-            logger.error(f"Userapp no encontrado: user_id={user_id}")
-        except Exception as e:
-            logger.error(f"Error en checkout_completed: {e}")
-
-    def _handle_invoice_paid(self, invoice):
-        try:
-            customer_id = invoice.get('customer')
-            userapp = Userapp.objects.get(stripe_customer_id=customer_id)
-            plan_key = userapp.stripe_plan_key
-
-            if plan_key and plan_key in PLANS:
-                plan = PLANS[plan_key]
-                self._activate_plan(userapp, plan, plan_key)
-                userapp.save()
-                logger.info(f"Renovación pagada: customer={customer_id}")
-
-        except Userapp.DoesNotExist:
-            logger.error(f"Userapp no encontrado: customer={customer_id}")
-        except Exception as e:
-            logger.error(f"Error en invoice_paid: {e}")
-
-    def _handle_payment_failed(self, invoice):
-        try:
-            customer_id = invoice.get('customer')
-            userapp = Userapp.objects.get(stripe_customer_id=customer_id)
-            # Opcional: enviar email de aviso pero no desactivar aún
-            logger.warning(f"Pago fallido: customer={customer_id}")
-        except Exception as e:
-            logger.error(f"Error en payment_failed: {e}")
-
-    def _handle_subscription_change(self, subscription):
-        try:
-            customer_id = subscription.get('customer')
-            status = subscription.get('status')
-            userapp = Userapp.objects.get(stripe_customer_id=customer_id)
-
-            if status in ['canceled', 'unpaid', 'past_due']:
-                # Desactivar acceso
-                userapp.workplaces_available = 0
-                userapp.workplaces_availableB = 0
-                userapp.workplaces_availableC = 0
-                userapp.psico_evaluaciones_disponibles = 0
-                userapp.stripe_plan_key = ''
-                userapp.save()
-                logger.info(f"Acceso desactivado: customer={customer_id}, status={status}")
-
-        except Userapp.DoesNotExist:
-            logger.error(f"Userapp no encontrado: customer={customer_id}")
-        except Exception as e:
-            logger.error(f"Error en subscription_change: {e}")
-
-    def _activate_plan(self, userapp, plan, plan_key):
-        modulo = plan['modulo']
-        empleados_max = plan['empleados_max']
-        evaluaciones = plan['evaluaciones_mes']
-
-        if modulo == 'nom035':
-            # Asignar créditos de centros de trabajo según tamaño
-            if empleados_max <= 15:
-                userapp.workplaces_available = userapp.workplaces_available + 1
-            elif empleados_max <= 50:
-                userapp.workplaces_availableB = userapp.workplaces_availableB + 1
-            else:
-                userapp.workplaces_availableC = userapp.workplaces_availableC + 1
-
-        elif modulo == 'psicometria':
-            if evaluaciones == -1:
-                # Ilimitado
-                userapp.psico_evaluaciones_disponibles = 99999
-            else:
-                userapp.psico_evaluaciones_disponibles = (
-                    userapp.psico_evaluaciones_disponibles + evaluaciones
-                )
-
-        elif modulo == 'suite':
-            # Activa NOM-035 PyME + psicometría
-            if empleados_max <= 50:
-                userapp.workplaces_availableB = userapp.workplaces_availableB + 1
-            else:
-                userapp.workplaces_availableC = userapp.workplaces_availableC + 1
-
-            if evaluaciones == -1:
-                userapp.psico_evaluaciones_disponibles = 99999
-            else:
-                userapp.psico_evaluaciones_disponibles = (
-                    userapp.psico_evaluaciones_disponibles + evaluaciones
-                )
-
-
-# ─────────────────────────────────────────────────────────────
-# 5. PÁGINAS DE RETORNO DESPUÉS DEL PAGO
+# 4. PÁGINAS DE RETORNO DESPUÉS DEL PAGO
 # ─────────────────────────────────────────────────────────────
 class PaymentSuccessView(LoginRequiredMixin, View):
     login_url = '/login/'
