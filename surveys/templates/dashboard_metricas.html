@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Metricas de negocio</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <h1>Metricas de negocio</h1>
+
+    <form method="get">
+        <label for="fecha_inicio">Fecha de inicio</label>
+        <input type="date" id="fecha_inicio" name="fecha_inicio" value="{{ fecha_inicio }}">
+        <label for="fecha_fin">Fecha de fin</label>
+        <input type="date" id="fecha_fin" name="fecha_fin" value="{{ fecha_fin }}">
+        <button type="submit">Aplicar</button>
+    </form>
+
+    <section>
+        <h2>Resumen</h2>
+        <div>Usuarios registrados: {{ total_usuarios }}</div>
+        <div>Compraron alguna vez: {{ usuarios_con_compra_historica }}</div>
+        <div>Clientes activos: {{ clientes_activos }}</div>
+        <div>MRR estimado: ${{ mrr|floatformat:2 }} MXN</div>
+    </section>
+
+    <section>
+        <h2>Distribucion de planes</h2>
+        <table>
+            <thead>
+                <tr><th>Plan</th><th>Clientes</th><th>Porcentaje</th></tr>
+            </thead>
+            <tbody>
+                {% for item in distribucion_planes %}
+                <tr>
+                    <td>{{ item.plan }}</td>
+                    <td>{{ item.clientes }}</td>
+                    <td>{{ item.pct }}%</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="3">No hay clientes activos.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <canvas id="distribucionPlanes"></canvas>
+    </section>
+
+    <section>
+        <h2>Profundidad de uso por cliente activo</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Usuario</th>
+                    <th>Email</th>
+                    <th>Plan</th>
+                    <th>Centros activos</th>
+                    <th>Evaluaciones NOM-035</th>
+                    <th>Evaluaciones psicometria</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cliente in profundidad_uso %}
+                <tr>
+                    <td>{{ cliente.usuario }}</td>
+                    <td>{{ cliente.email }}</td>
+                    <td>{{ cliente.plan }}</td>
+                    <td>{{ cliente.centros_activos }}</td>
+                    <td>{{ cliente.evaluaciones_nom035 }}</td>
+                    <td>{{ cliente.evaluaciones_psico }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6">No hay clientes activos.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+
+    <script>
+        const labels = [{% for item in distribucion_planes %}'{{ item.plan|escapejs }}'{% if not forloop.last %}, {% endif %}{% endfor %}];
+        const data = [{% for item in distribucion_planes %}{{ item.clientes }}{% if not forloop.last %}, {% endif %}{% endfor %}];
+        new Chart(document.getElementById('distribucionPlanes'), {
+            type: 'pie',
+            data: {
+                labels: labels,
+                datasets: [{ data: data }],
+            },
+        });
+    </script>
+</body>
+</html>

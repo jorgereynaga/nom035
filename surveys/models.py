@@ -1019,3 +1019,16 @@ class EvidenciaFaseC(models.Model):
 	fecha_carga=models.DateTimeField(auto_now_add=True)
 	def __str__(self):
 		return f"{self.get_tipo_display()} - {self.workplace.name}"
+
+
+class PlanPurchaseEvent(models.Model):
+	"""Registro historico append-only de cada activacion de plan. NUNCA se edita ni se borra."""
+	user=models.ForeignKey(User,related_name="plan_purchase_events",on_delete=models.CASCADE)
+	plan_key=models.CharField(u'Plan',max_length=100)
+	modulo=models.CharField(u'Modulo',max_length=20)
+	precio=models.DecimalField(u'Precio (snapshot MXN)',max_digits=10,decimal_places=2)
+	periodo=models.CharField(u'Periodo',max_length=20)
+	stripe_customer_id=models.CharField(u'Stripe Customer ID',max_length=100,blank=True,null=True)
+	record_create=models.DateTimeField(auto_now_add=True)
+	def __str__(self):
+		return f"{self.user.username} - {self.plan_key} ({self.record_create.date()})"
