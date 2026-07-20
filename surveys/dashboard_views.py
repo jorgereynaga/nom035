@@ -15,7 +15,7 @@ from .models import Userapp, Workplace, Candidate, Result, TestSession, PlanPurc
 from .stripe_plans import PLANS
 
 
-class DashboardMetricasView(LoginRequiredMixin, UserPassesTestMixin, View):
+class SuperuserRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
     login_url = '/login/'
 
     def test_func(self):
@@ -26,6 +26,8 @@ class DashboardMetricasView(LoginRequiredMixin, UserPassesTestMixin, View):
             return super().handle_no_permission()  # redirige a login_url
         raise PermissionDenied  # logueado pero no superuser -> 403 real
 
+
+class DashboardMetricasView(SuperuserRequiredMixin, View):
     def get(self, request):
         fecha_fin = self._parse_fecha(request.GET.get('fecha_fin')) or timezone.now()
         fecha_inicio = self._parse_fecha(request.GET.get('fecha_inicio')) or (fecha_fin - timedelta(days=30))
@@ -142,3 +144,38 @@ class DashboardMetricasView(LoginRequiredMixin, UserPassesTestMixin, View):
             return timezone.make_aware(datetime.strptime(valor, '%Y-%m-%d'))
         except ValueError:
             return None
+
+
+class ClientesListView(SuperuserRequiredMixin, View):
+    def get(self, request):
+        usuarios_qs = User.objects.filter(
+            is_staff=False, is_superuser=False,
+        ).select_related('userapp').prefetch_related('plan_purchase_events').order_by('-date_joined')
+
+        clientes = []
+        for user in usuarios_qs:
+            userapp = getattr(user, 'userapp', None)
+            stripe_plan_key = userapp.stripe_plan_key if userapp else ''
+            activo = bool(stripe_plan_key)
+            eventos = sorted(user.plan_purchase_events.all(), key=lambda e: e.record_create, reverse=True)
+            compro_alguna_vez = len(eventos) > 0
+
+            if activo:
+                plan_nombre = PLANS.get(stripe_plan_key, {}).get('name', stripe_plan_key)
+                estado = 'activo'
+            elif compro_alguna_vez:
+                plan_nombre = PLANS.get(eventos[0].plan_key, {}).get('name', eventos[0].plan_key)
+                estado = 'cancelado'
+            else:
+                plan_nombre = '—'
+                estado = 'nunca_compro'
+
+            clientes.append({
+                'usuario': user.username,
+                'email': user.email,
+                'fecha_registro': user.date_joined.strftime('%d/%m/%Y'),
+                'estado': estado,
+                'plan': plan_nombre,
+            })
+
+        return render(request, 'dashboard_clientes.html', {'clientes': clientes})
