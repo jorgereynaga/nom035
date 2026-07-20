@@ -241,6 +241,7 @@
       border: 1px solid var(--border);
       border-radius: var(--radius-sm);
       padding: .5rem .85rem;
+      height: 38px;
       outline: none;
       transition: border-color .15s, box-shadow .15s;
       width: 100%;
@@ -254,7 +255,19 @@
       box-shadow: 0 0 0 3px rgba(79,70,229,.12);
     }
 
-    .filter-bar select { flex: 0 1 180px; cursor: pointer; }
+    .filter-bar select {
+      flex: 0 1 180px;
+      cursor: pointer;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      padding-top: 0;
+      padding-bottom: 0;
+      padding-right: 2.25rem;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right .75rem center;
+    }
 
     .filter-bar .filter-label {
       font-size: .72rem;
