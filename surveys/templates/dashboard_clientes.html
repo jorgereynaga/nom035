@@ -4,12 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Clientes — NormaIA</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Plus+Jakarta+Sans:wght@700&display=swap" rel="stylesheet">
   <style>
-    /* â”€â”€ Variables NormaIA â”€â”€ */
+    /* ── Variables NormaIA ── */
     :root {
       --color-primary:    #4f46e5;
       --color-primary-h:  #4338ca;
@@ -28,11 +27,6 @@
       --shadow-sm:        0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.05);
       --shadow-md:        0 4px 16px rgba(0,0,0,.10), 0 2px 4px rgba(0,0,0,.06);
       --sidebar-w:        240px;
-
-      /* plan badge colors */
-      --plan-starter:     #10b981;
-      --plan-pro:         #4f46e5;
-      --plan-enterprise:  #f59e0b;
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -45,7 +39,7 @@
       min-height: 100vh;
     }
 
-    /* â”€â”€ Sidebar â”€â”€ */
+    /* ── Sidebar ── */
     .sidebar {
       width: var(--sidebar-w);
       background: var(--bg-dark);
@@ -86,9 +80,7 @@
       letter-spacing: -.3px;
     }
 
-    .sidebar-logo .brand span {
-      color: var(--color-accent);
-    }
+    .sidebar-logo .brand span { color: var(--color-accent); }
 
     .sidebar-nav {
       padding: 1.5rem 1rem;
@@ -120,11 +112,7 @@
       transition: background .15s, color .15s;
     }
 
-    .sidebar-nav a:hover,
-    .sidebar-nav a.active {
-      background: rgba(255,255,255,.07);
-      color: #fff;
-    }
+    .sidebar-nav a:hover { background: rgba(255,255,255,.07); color: #fff; }
 
     .sidebar-nav a.active {
       background: rgba(79,70,229,.25);
@@ -138,11 +126,9 @@
     }
 
     .sidebar-nav a.active svg,
-    .sidebar-nav a:hover svg {
-      opacity: 1;
-    }
+    .sidebar-nav a:hover svg { opacity: 1; }
 
-    /* â”€â”€ Main content â”€â”€ */
+    /* ── Main ── */
     .main {
       margin-left: var(--sidebar-w);
       flex: 1;
@@ -151,7 +137,6 @@
       min-height: 100vh;
     }
 
-    /* â”€â”€ Top header â”€â”€ */
     .topbar {
       background: var(--bg-dark);
       padding: 1.25rem 2.5rem;
@@ -169,9 +154,7 @@
       letter-spacing: -.3px;
     }
 
-    .topbar-title span {
-      color: var(--color-accent);
-    }
+    .topbar-title span { color: var(--color-accent); }
 
     .topbar-badge {
       background: rgba(79,70,229,.18);
@@ -185,96 +168,9 @@
       border: 1px solid rgba(129,140,248,.3);
     }
 
-    /* â”€â”€ Page body â”€â”€ */
-    .page-body {
-      padding: 2rem 2.5rem 3rem;
-      flex: 1;
-    }
+    .page-body { padding: 2rem 2.5rem 3rem; flex: 1; }
 
-    /* â”€â”€ Filter card â”€â”€ */
-    .filter-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      box-shadow: var(--shadow-sm);
-      padding: 1.25rem 1.75rem;
-      display: flex;
-      align-items: flex-end;
-      gap: 1.25rem;
-      flex-wrap: wrap;
-      margin-bottom: 2rem;
-    }
-
-    .filter-card .filter-label {
-      font-size: .72rem;
-      font-weight: 600;
-      letter-spacing: .04em;
-      text-transform: uppercase;
-      color: var(--text-secondary);
-      margin-bottom: .35rem;
-    }
-
-    .filter-card .form-group {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .filter-card input[type="date"] {
-      font-family: inherit;
-      font-size: .875rem;
-      color: var(--text-primary);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      padding: .5rem .85rem;
-      outline: none;
-      background: var(--bg-base);
-      transition: border-color .15s, box-shadow .15s;
-    }
-
-    .filter-card input[type="date"]:focus {
-      border-color: var(--color-primary);
-      box-shadow: 0 0 0 3px rgba(79,70,229,.12);
-    }
-
-    .btn {
-      font-family: inherit;
-      font-size: .875rem;
-      font-weight: 600;
-      padding: .55rem 1.4rem;
-      border-radius: var(--radius-sm);
-      border: none;
-      cursor: pointer;
-      transition: background .15s, transform .1s, box-shadow .15s;
-      display: inline-flex;
-      align-items: center;
-      gap: .5rem;
-    }
-
-    .btn-primary {
-      background: var(--color-primary);
-      color: #fff;
-      box-shadow: 0 2px 8px rgba(79,70,229,.3);
-    }
-
-    .btn-primary:hover {
-      background: var(--color-primary-h);
-      box-shadow: 0 4px 12px rgba(79,70,229,.4);
-      transform: translateY(-1px);
-    }
-
-    .btn-primary:active {
-      transform: translateY(0);
-    }
-
-    .filter-divider {
-      width: 1px;
-      height: 40px;
-      background: var(--border);
-      align-self: flex-end;
-      margin-bottom: 2px;
-    }
-
-    /* â”€â”€ Section title â”€â”€ */
+    /* ── Section title ── */
     .section-title {
       font-family: 'Plus Jakarta Sans', sans-serif;
       font-size: 1rem;
@@ -293,81 +189,7 @@
       display: inline-block;
     }
 
-    /* â”€â”€ KPI grid â”€â”€ */
-    .kpi-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 1.25rem;
-      margin-bottom: 2rem;
-    }
-
-    .kpi-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      box-shadow: var(--shadow-sm);
-      padding: 1.5rem 1.75rem;
-      display: flex;
-      flex-direction: column;
-      gap: .75rem;
-      position: relative;
-      overflow: hidden;
-      transition: box-shadow .2s, transform .2s;
-    }
-
-    .kpi-card:hover {
-      box-shadow: var(--shadow-md);
-      transform: translateY(-2px);
-    }
-
-    .kpi-card::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 3px;
-      background: var(--color-primary);
-      border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-    }
-
-    .kpi-card:nth-child(2)::before { background: #10b981; }
-    .kpi-card:nth-child(3)::before { background: #f59e0b; }
-    .kpi-card:nth-child(4)::before { background: #06b6d4; }
-
-    .kpi-icon {
-      width: 40px; height: 40px;
-      border-radius: var(--radius-sm);
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0;
-    }
-
-    .kpi-icon.indigo  { background: rgba(79,70,229,.1);  color: var(--color-primary); }
-    .kpi-icon.green   { background: rgba(16,185,129,.1); color: #10b981; }
-    .kpi-icon.amber   { background: rgba(245,158,11,.1); color: #f59e0b; }
-    .kpi-icon.cyan    { background: rgba(6,182,212,.1);  color: #06b6d4; }
-
-    .kpi-icon svg {
-      width: 22px; height: 22px;
-    }
-
-    .kpi-body {}
-
-    .kpi-value {
-      font-family: 'Plus Jakarta Sans', sans-serif;
-      font-size: 2.5rem;
-      font-weight: 700;
-      line-height: 1;
-      color: var(--text-primary);
-      letter-spacing: -.03em;
-    }
-
-    .kpi-label {
-      font-size: .8rem;
-      font-weight: 500;
-      color: var(--text-secondary);
-      margin-top: .35rem;
-    }
-
-    /* â”€â”€ Section card â”€â”€ */
+    /* ── Section card ── */
     .section-card {
       background: var(--bg-card);
       border: 1px solid var(--border);
@@ -385,7 +207,80 @@
       margin-bottom: 1.25rem;
     }
 
-    /* â”€â”€ Tables â”€â”€ */
+    /* ── Filter bar ── */
+    .filter-bar {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-bottom: 1.25rem;
+      align-items: center;
+    }
+
+    .filter-bar .search-wrap {
+      position: relative;
+      flex: 1 1 220px;
+      max-width: 340px;
+    }
+
+    .filter-bar .search-wrap svg {
+      position: absolute;
+      left: .75rem;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 16px; height: 16px;
+      color: var(--text-muted);
+      pointer-events: none;
+    }
+
+    .filter-bar input[type="text"],
+    .filter-bar select {
+      font-family: inherit;
+      font-size: .875rem;
+      color: var(--text-primary);
+      background: var(--bg-base);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: .5rem .85rem;
+      outline: none;
+      transition: border-color .15s, box-shadow .15s;
+      width: 100%;
+    }
+
+    .filter-bar input[type="text"] { padding-left: 2.25rem; }
+
+    .filter-bar input[type="text"]:focus,
+    .filter-bar select:focus {
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px rgba(79,70,229,.12);
+    }
+
+    .filter-bar select { flex: 0 1 180px; cursor: pointer; }
+
+    .filter-bar .filter-label {
+      font-size: .72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      color: var(--text-secondary);
+      white-space: nowrap;
+    }
+
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: .3rem;
+    }
+
+    /* results count */
+    .results-count {
+      font-size: .8rem;
+      color: var(--text-muted);
+      margin-left: auto;
+      align-self: flex-end;
+      white-space: nowrap;
+    }
+
+    /* ── Table ── */
     .table-wrap {
       overflow-x: auto;
       border-radius: var(--radius-md);
@@ -398,9 +293,7 @@
       font-size: .875rem;
     }
 
-    thead tr {
-      background: var(--bg-dark);
-    }
+    thead tr { background: var(--bg-dark); }
 
     thead th {
       padding: .75rem 1rem;
@@ -422,9 +315,7 @@
     }
 
     tbody tr:last-child { border-bottom: none; }
-
     tbody tr:nth-child(even) { background: #f8fafc; }
-
     tbody tr:hover { background: #f1f5f9; }
 
     tbody td {
@@ -433,11 +324,63 @@
       vertical-align: middle;
     }
 
-    .td-center { text-align: center; }
+    tbody tr[data-hidden="true"] { display: none; }
 
     .td-muted { color: var(--text-secondary); font-size: .8rem; }
+    .td-empty {
+      color: var(--text-muted);
+      text-align: center;
+      padding: 2.5rem;
+      font-size: .875rem;
+    }
 
-    /* plan badge */
+    /* ── User cell ── */
+    .user-cell {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+    }
+
+    .user-avatar {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #4f46e5 0%, #818cf8 100%);
+      display: flex; align-items: center; justify-content: center;
+      font-size: .75rem;
+      font-weight: 700;
+      color: #fff;
+      flex-shrink: 0;
+      text-transform: uppercase;
+    }
+
+    .user-name { font-weight: 600; }
+
+    /* ── Badges ── */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: .35rem;
+      padding: .28rem .7rem;
+      border-radius: 999px;
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: .03em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .badge::before {
+      content: '';
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+      display: inline-block;
+    }
+
+    .badge-activo     { background: rgba(16,185,129,.12); color: #059669; }
+    .badge-cancelado  { background: rgba(239,68,68,.10);  color: #dc2626; }
+    .badge-nunca      { background: rgba(100,116,139,.10); color: #475569; }
+
     .plan-badge {
       display: inline-flex;
       align-items: center;
@@ -454,86 +397,30 @@
     .plan-badge.enterprise { background: rgba(245,158,11,.12); color: #d97706; }
     .plan-badge.default    { background: rgba(100,116,139,.12); color: #475569; }
 
-    /* pct pill */
-    .pct-pill {
-      display: inline-block;
-      font-weight: 600;
-      color: var(--color-primary);
-    }
+    /* ── No results row ── */
+    #no-results-row { display: none; }
+    #no-results-row.visible { display: table-row; }
 
-    /* number chip */
-    .num-chip {
-      font-weight: 600;
-      color: var(--text-primary);
-    }
-
-    /* empty row */
-    .td-empty {
-      color: var(--text-muted);
-      text-align: center;
-      padding: 2rem;
-      font-size: .875rem;
-    }
-
-    /* â”€â”€ Chart section â”€â”€ */
-    .chart-row {
-      display: flex;
-      gap: 1.5rem;
-      align-items: flex-start;
-      flex-wrap: wrap;
-    }
-
-    .chart-box {
-      flex: 0 0 auto;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    .chart-box canvas {
-      max-width: 320px;
-      display: block;
-      margin: 0 auto;
-    }
-
-    .chart-box .chart-label {
-      font-size: .75rem;
-      color: var(--text-muted);
-      margin-top: .75rem;
-      text-align: center;
-    }
-
-    .table-box {
-      flex: 1 1 260px;
-    }
-
-    /* â”€â”€ Responsive â”€â”€ */
-    @media (max-width: 1100px) {
-      .kpi-grid { grid-template-columns: repeat(2, 1fr); }
-    }
-
+    /* ── Responsive ── */
     @media (max-width: 768px) {
       .sidebar { display: none; }
       .main { margin-left: 0; }
       .topbar, .page-body { padding-left: 1.25rem; padding-right: 1.25rem; }
-      .kpi-grid { grid-template-columns: 1fr 1fr; }
-      .chart-row { flex-direction: column; }
     }
 
     @media (max-width: 480px) {
-      .kpi-grid { grid-template-columns: 1fr; }
-      .filter-card { flex-direction: column; align-items: stretch; }
-      .filter-divider { display: none; }
+      .filter-bar { flex-direction: column; align-items: stretch; }
+      .filter-bar .search-wrap { max-width: 100%; }
+      .filter-bar select { flex: none; }
     }
   </style>
 </head>
 <body>
 
-  <!-- â•â• Sidebar â•â• -->
+  <!-- ══ Sidebar ══ -->
   <aside class="sidebar">
     <div class="sidebar-logo">
       <div class="logo-mark">
-        <!-- shield / brain icon mark -->
         <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
           <path d="M12 2L4 5.5V11c0 4.5 3.3 8.7 8 9.9 4.7-1.2 8-5.4 8-9.9V5.5L12 2z"/>
         </svg>
@@ -571,22 +458,63 @@
     </nav>
   </aside>
 
-  <!-- â•â• Main â•â• -->
+  <!-- ══ Main ══ -->
   <div class="main">
 
-    <!-- Top bar -->
     <header class="topbar">
       <h1 class="topbar-title">Clientes — <span>NormaIA</span></h1>
       <span class="topbar-badge">Admin</span>
     </header>
 
     <div class="page-body">
+
       <div class="section-title">
-        <span class="title-dot"></span> Clientes
+        <span class="title-dot"></span> Directorio de clientes
       </div>
+
       <div class="section-card">
+        <div class="section-card-header">
+          <div class="section-title" style="margin-bottom:0;">
+            <span class="title-dot" style="background:#818cf8;"></span>
+            Lista de usuarios registrados
+          </div>
+          <span id="results-count" class="results-count"></span>
+        </div>
+
+        <!-- ── Filter bar ── -->
+        <div class="filter-bar">
+          <div class="filter-group">
+            <span class="filter-label">Buscar</span>
+            <div class="search-wrap">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+              <input type="text" id="search-input" placeholder="Usuario o email…" autocomplete="off">
+            </div>
+          </div>
+
+          <div class="filter-group">
+            <span class="filter-label">Estado</span>
+            <select id="filter-estado">
+              <option value="">Todos</option>
+              <option value="activo">Activo</option>
+              <option value="cancelado">Cancelado</option>
+              <option value="nunca">Nunca compró</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <span class="filter-label">Plan</span>
+            <select id="filter-plan">
+              <option value="">Todos</option>
+              <!-- populated by JS from table data -->
+            </select>
+          </div>
+        </div>
+
+        <!-- ── Table ── -->
         <div class="table-wrap">
-          <table>
+          <table id="clientes-table">
             <thead>
               <tr>
                 <th>Usuario</th>
@@ -596,22 +524,45 @@
                 <th>Plan</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody id="clientes-tbody">
               {% for cliente in clientes %}
-              <tr>
-                <td><strong>{{ cliente.usuario }}</strong></td>
-                <td class="td-muted">{{ cliente.email }}</td>
-                <td>{{ cliente.fecha_registro }}</td>
+              <tr
+                data-usuario="{{ cliente.usuario|lower }}"
+                data-email="{{ cliente.email|lower }}"
+                data-estado="{{ cliente.estado }}"
+                data-plan="{{ cliente.plan|lower }}"
+              >
                 <td>
-                  <span class="plan-badge {% if cliente.estado == 'activo' %}starter{% elif cliente.estado == 'cancelado' %}enterprise{% else %}default{% endif %}">
-                    {% if cliente.estado == 'activo' %}Activo{% elif cliente.estado == 'cancelado' %}Cancelado{% else %}Nunca compró{% endif %}
+                  <div class="user-cell">
+                    <div class="user-avatar">{{ cliente.usuario|slice:":2" }}</div>
+                    <span class="user-name">{{ cliente.usuario }}</span>
+                  </div>
+                </td>
+                <td class="td-muted">{{ cliente.email }}</td>
+                <td class="td-muted">{{ cliente.fecha_registro }}</td>
+                <td>
+                  {% if cliente.estado == 'activo' %}
+                    <span class="badge badge-activo">Activo</span>
+                  {% elif cliente.estado == 'cancelado' %}
+                    <span class="badge badge-cancelado">Cancelado</span>
+                  {% else %}
+                    <span class="badge badge-nunca">Nunca compró</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <span class="plan-badge {% if 'starter' in cliente.plan|lower %}starter{% elif 'pro' in cliente.plan|lower %}pro{% elif 'enterprise' in cliente.plan|lower %}enterprise{% else %}default{% endif %}">
+                    {{ cliente.plan }}
                   </span>
                 </td>
-                <td>{{ cliente.plan }}</td>
               </tr>
               {% empty %}
               <tr><td colspan="5" class="td-empty">No hay usuarios registrados.</td></tr>
               {% endfor %}
+              <tr id="no-results-row">
+                <td colspan="5" class="td-empty">
+                  Ningún cliente coincide con los filtros aplicados.
+                </td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -619,5 +570,65 @@
 
     </div><!-- /page-body -->
   </div><!-- /main -->
+
+  <script>
+    (function () {
+      const tbody     = document.getElementById('clientes-tbody');
+      const searchEl  = document.getElementById('search-input');
+      const estadoEl  = document.getElementById('filter-estado');
+      const planEl    = document.getElementById('filter-plan');
+      const countEl   = document.getElementById('results-count');
+      const noResults = document.getElementById('no-results-row');
+
+      /* ── Populate Plan dropdown from table data ── */
+      const allRows = Array.from(tbody.querySelectorAll('tr[data-plan]'));
+      const plans = [...new Set(allRows.map(r => r.dataset.plan).filter(Boolean))].sort();
+      plans.forEach(function (p) {
+        const opt = document.createElement('option');
+        opt.value = p;
+        opt.textContent = p.charAt(0).toUpperCase() + p.slice(1);
+        planEl.appendChild(opt);
+      });
+
+      /* ── Filter logic ── */
+      function applyFilters() {
+        const q      = searchEl.value.trim().toLowerCase();
+        const estado = estadoEl.value.toLowerCase();
+        const plan   = planEl.value.toLowerCase();
+        let visible  = 0;
+
+        allRows.forEach(function (row) {
+          const matchSearch = !q ||
+            row.dataset.usuario.includes(q) ||
+            row.dataset.email.includes(q);
+
+          const matchEstado = !estado || row.dataset.estado === estado ||
+            (estado === 'nunca' && row.dataset.estado !== 'activo' && row.dataset.estado !== 'cancelado');
+
+          const matchPlan = !plan || row.dataset.plan === plan;
+
+          const show = matchSearch && matchEstado && matchPlan;
+          row.setAttribute('data-hidden', show ? 'false' : 'true');
+          if (show) visible++;
+        });
+
+        /* show/hide empty state */
+        noResults.classList.toggle('visible', visible === 0 && allRows.length > 0);
+
+        /* update count */
+        const total = allRows.length;
+        countEl.textContent = visible === total
+          ? total + ' cliente' + (total !== 1 ? 's' : '')
+          : visible + ' de ' + total + ' cliente' + (total !== 1 ? 's' : '');
+      }
+
+      searchEl.addEventListener('input',  applyFilters);
+      estadoEl.addEventListener('change', applyFilters);
+      planEl.addEventListener('change',   applyFilters);
+
+      /* initialise count */
+      applyFilters();
+    })();
+  </script>
 </body>
 </html>
