@@ -3,6 +3,7 @@ from decimal import Decimal
 
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.models import User
+from django.core.exceptions import PermissionDenied
 from django.shortcuts import render
 from django.utils import timezone
 from django.views import View
@@ -13,10 +14,14 @@ from .stripe_plans import PLANS
 
 class DashboardMetricasView(LoginRequiredMixin, UserPassesTestMixin, View):
     login_url = '/login/'
-    raise_exception = True  # 403 en vez de redirect si esta logueado pero no es superuser
 
     def test_func(self):
         return self.request.user.is_superuser
+
+    def handle_no_permission(self):
+        if not self.request.user.is_authenticated:
+            return super().handle_no_permission()  # redirige a login_url
+        raise PermissionDenied  # logueado pero no superuser -> 403 real
 
     def get(self, request):
         fecha_fin = self._parse_fecha(request.GET.get('fecha_fin')) or timezone.now()
