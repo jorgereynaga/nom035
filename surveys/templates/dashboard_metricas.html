@@ -774,30 +774,87 @@
   <script>
     const timelineLabels = {{ timeline_labels|safe }};
     const timelineData = {{ timeline_data|safe }};
-    new Chart(document.getElementById('timelineSuscripciones'), {
-      type: 'line',
-      data: {
-        labels: timelineLabels,
-        datasets: [{
-          label: 'Suscripciones nuevas',
-          data: timelineData,
-          borderColor: '#4f46e5',
-          backgroundColor: 'rgba(79, 70, 229, 0.12)',
-          fill: true,
-          tension: 0.3,
-          pointRadius: 3,
-          pointBackgroundColor: '#4f46e5',
-        }],
-      },
-      options: {
-        scales: {
-          y: { beginAtZero: true, ticks: { precision: 0 } },
+
+    (function () {
+      const canvasEl = document.getElementById('timelineSuscripciones');
+      const ctx = canvasEl.getContext('2d');
+
+      /* Build vertical gradient for the area fill */
+      const grad = ctx.createLinearGradient(0, 0, 0, 280);
+      grad.addColorStop(0,   'rgba(79, 70, 229, 0.28)');
+      grad.addColorStop(0.6, 'rgba(79, 70, 229, 0.08)');
+      grad.addColorStop(1,   'rgba(79, 70, 229, 0.00)');
+
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: timelineLabels,
+          datasets: [{
+            label: 'Suscripciones nuevas',
+            data: timelineData,
+            borderColor: '#4f46e5',
+            borderWidth: 2.5,
+            backgroundColor: grad,
+            fill: true,
+            tension: 0.42,
+            pointRadius: 4,
+            pointHoverRadius: 6,
+            pointBackgroundColor: '#ffffff',
+            pointBorderColor: '#4f46e5',
+            pointBorderWidth: 2,
+            pointHoverBackgroundColor: '#4f46e5',
+            pointHoverBorderColor: '#ffffff',
+            pointHoverBorderWidth: 2,
+          }],
         },
-        plugins: {
-          legend: { display: false },
+        options: {
+          responsive: true,
+          interaction: { mode: 'index', intersect: false },
+          scales: {
+            x: {
+              grid: { color: 'rgba(226,232,240,0.6)', drawBorder: false },
+              ticks: {
+                font: { family: 'Inter', size: 11 },
+                color: '#94a3b8',
+                maxRotation: 0,
+                maxTicksLimit: 10,
+              },
+            },
+            y: {
+              beginAtZero: true,
+              grid: { color: 'rgba(226,232,240,0.6)', drawBorder: false },
+              ticks: {
+                precision: 0,
+                font: { family: 'Inter', size: 11 },
+                color: '#94a3b8',
+                padding: 6,
+              },
+            },
+          },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: '#0f172a',
+              titleColor: '#e2e8f0',
+              bodyColor: '#818cf8',
+              padding: 12,
+              cornerRadius: 8,
+              titleFont: { family: 'Inter', size: 12, weight: '600' },
+              bodyFont: { family: 'Inter', size: 13, weight: '700' },
+              displayColors: false,
+              callbacks: {
+                title: function(items) { return items[0].label; },
+                label: function(item) {
+                  return item.raw === 1
+                    ? '1 suscripción nueva'
+                    : item.raw + ' suscripciones nuevas';
+                },
+              },
+            },
+          },
         },
-      },
-    });
+      });
+    })();
 
     const labels = [{% for item in distribucion_planes %}'{{ item.plan|escapejs }}'{% if not forloop.last %}, {% endif %}{% endfor %}];
     const data = [{% for item in distribucion_planes %}{{ item.clientes }}{% if not forloop.last %}, {% endif %}{% endfor %}];
