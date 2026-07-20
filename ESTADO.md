@@ -1586,3 +1586,55 @@ exactamente "Administrar métodos de pago" y "Consultar pagos", con
 href="/stripe/portal/" sin cambios.
 
 ## LOTE V: COMPLETADO Y VALIDADO EN STAGING -- LISTO PARA MERGE A auditoria-local
+
+# ============================================================
+# DASHBOARD DE METRICAS DE NEGOCIO — ESPECIFICACION COMPLETADA (sesion 15/16)
+# Fecha: 19 Jul 2026
+# ============================================================
+
+## Iniciativa nueva, independiente del trabajo de auditoria — NO bloquea produccion
+
+Vista interna protegida (is_superuser), solo para Jorge, con metricas de negocio:
+usuarios registrados, clientes historicos vs activos, desglose/distribucion de
+planes, MRR estimado, profundidad de uso (centros activos + evaluaciones
+completadas por cliente de pago).
+
+Investigacion completa hecha, especificacion escrita en
+DASHBOARD_especificacion_metricas_negocio.md (raiz del repo, rama
+feature/dashboard-metricas-negocio). Cubre:
+
+1. Modelo nuevo PlanPurchaseEvent (append-only, precio/periodo como snapshot)
+   + migracion manual 0040_plan_purchase_event.py (dependencia: 0039)
+2. Un solo PlanPurchaseEvent.objects.create() nuevo dentro de
+   _handle_checkout_completed (surveys/stripe_views.py) -- cero cambios a
+   _activate_plan, _handle_invoice_paid, _handle_payment_failed,
+   _handle_subscription_change. El objetivo es que el historico sobreviva a la
+   cancelacion (hoy _handle_subscription_change vacia stripe_plan_key y se
+   pierde el rastro)
+3. DashboardMetricasView nueva (surveys/dashboard_views.py, archivo nuevo),
+   UserPassesTestMixin + is_superuser (403 real, no URL oculta)
+4. Template standalone dashboard_metricas.html (deliberadamente sin
+   {% extends 'index.html' %} para evitar el bug de bloques Django ya
+   documentado abajo en este archivo) + Chart.js via CDN (no habia libreria de
+   graficas instalada en el proyecto)
+5. URL /metricas/, import explicito nuevo en nom035/urls.py (mismo patron que
+   psico_views, para no repetir el bug del NameError en Railway)
+
+Decisiones de diseno explicitas (confirmar al revisar el diff):
+- Se excluyen cuentas is_staff/is_superuser de todas las metricas de clientes
+- El rango de fechas filtra "usuarios registrados" y "compraron alguna vez",
+  pero NO "plan activo ahora"/MRR/distribucion de planes (son snapshot del
+  momento actual)
+- Renovaciones (invoice.paid) NO generan evento nuevo en esta version, fuera
+  de alcance
+- Sin link en el sidebar hacia /metricas/ salvo que Jorge lo pida
+
+## PENDIENTE INMEDIATO
+1. Pasarle DASHBOARD_especificacion_metricas_negocio.md a Codex con
+   instruccion explicita de implementar (sobre esta misma rama o una nueva
+   derivada, segun decida Jorge)
+2. Revisar diff, probar en staging (Stripe test mode: simular compra,
+   confirmar 1 fila nueva en PlanPurchaseEvent + activacion de plan sin
+   cambios; simular cancelacion, confirmar que el historico sobrevive)
+3. Diseño visual de dashboard_metricas.html con Replit -- prompt aun no
+   escrito, pendiente hasta que el esqueleto funcional este confirmado
