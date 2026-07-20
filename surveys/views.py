@@ -2560,60 +2560,122 @@ from django.conf import settings
 
 @csrf_exempt
 def stripe_webhook(request):
-    print("🔥 WEBHOOK RECIBIDO")
     payload = request.body
     sig_header = request.META.get('HTTP_STRIPE_SIGNATURE')
     endpoint_secret = settings.STRIPE_WEBHOOK_SECRET
     try:
         event = stripe.Webhook.construct_event(payload, sig_header, endpoint_secret)
-    except ValueError:
-        print("❌ ERROR payload")
+    except ValueError as e:
+        p_.error(f"Stripe webhook: payload invalido: {e}")
         return HttpResponse(status=400)
-    except stripe.error.SignatureVerificationError:
-        print("❌ ERROR firma")
+    except stripe.error.SignatureVerificationError as e:
+        p_.error(f"Stripe webhook: firma invalida: {e}")
         return HttpResponse(status=400)
-    print("🔥 EVENTO:", event['type'])
-    if event['type'] == 'checkout.session.completed':
-        print("🔥 CHECKOUT COMPLETADO")
-        session = event['data']['object']
-        customer_email = (
-            session.get('customer_email') or
-            session.get('customer_details', {}).get('email')
-        )
-        # Intentar por user_id en metadata primero
-        user_id = session.get('metadata', {}).get('user_id')
-        plan_key = session.get('metadata', {}).get('plan_key')
-        print("🔥 USER_ID:", user_id, "PLAN_KEY:", plan_key)
-        try:
-            if user_id:
-                user = User.objects.get(id=user_id)
-            else:
-                user = User.objects.get(email=customer_email)
-        except (User.DoesNotExist, Exception) as e:
-            print("⚠️ ERROR USUARIO:", str(e))
-            user = User.objects.first()
-            print("⚠️ USUARIO FORZADO:", user.email)
-        product_name = plan_key or session.get('metadata', {}).get('product_type')
-        if not product_name:
-            print("⚠️ Sin product_name, ignorando evento")
-            return HttpResponse(status=200)
-        
-        assign_nom035_credits(user, product_name)
-         # Guardar plan activo en userapp
-        try:
-            userapp = user.userapp
-            from surveys.stripe_plans import PLANS as STRIPE_PLANS
-            _plan = STRIPE_PLANS.get(plan_key, {})
-            if _plan.get('modulo') == 'psicometria':
-                userapp.psico_plan_key = plan_key
-            else:
-                userapp.stripe_plan_key = plan_key
-            userapp.save()
-            print(f"✅ Plan guardado: {plan_key}")
-        except Exception as e:
-            print(f"⚠️ Error guardando plan: {e}")
-        print("🔥 CRÉDITOS ASIGNADOS")
+
+    event_type = event['type']
+    p_.info(f"Stripe webhook recibido: {event_type}")
+
+    if event_type == 'checkout.session.completed':
+        _stripe_handle_checkout_completed(event['data']['object'])
+    elif event_type == 'invoice.paid':
+        _stripe_handle_invoice_paid(event['data']['object'])
+    elif event_type == 'invoice.payment_failed':
+        _stripe_handle_payment_failed(event['data']['object'])
+    elif event_type in ('customer.subscription.deleted', 'customer.subscription.updated'):
+        _stripe_handle_subscription_change(event['data']['object'])
+
     return HttpResponse(status=200)
+
+
+def _stripe_handle_checkout_completed(session):
+    customer_email = (
+        session.get('customer_email') or
+        session.get('customer_details', {}).get('email')
+    )
+    user_id = session.get('metadata', {}).get('user_id')
+    plan_key = session.get('metadata', {}).get('plan_key')
+    try:
+        if user_id:
+            user = User.objects.get(id=user_id)
+        else:
+            user = User.objects.get(email=customer_email)
+    except User.DoesNotExist:
+        p_.error(
+            f"Stripe webhook checkout.session.completed: no se encontro usuario "
+            f"(user_id={user_id}, email={customer_email}), evento ignorado"
+        )
+        return
+
+    product_name = plan_key or session.get('metadata', {}).get('product_type')
+    if not product_name:
+        p_.warning(f"Stripe webhook checkout.session.completed: sin plan_key/product_type, user_id={user.id}")
+        return
+
+    assign_nom035_credits(user, product_name)
+    try:
+        userapp = user.userapp
+        from surveys.stripe_plans import PLANS as STRIPE_PLANS
+        _plan = STRIPE_PLANS.get(plan_key, {})
+        if _plan.get('modulo') == 'psicometria':
+            userapp.psico_plan_key = plan_key
+        else:
+            userapp.stripe_plan_key = plan_key
+        if session.get('customer'):
+            userapp.stripe_customer_id = session['customer']
+        if session.get('subscription'):
+            userapp.stripe_subscription_id = session['subscription']
+        userapp.save()
+        PlanPurchaseEvent.objects.create(
+            user=userapp.user,
+            plan_key=plan_key,
+            modulo=_plan.get('modulo', ''),
+            precio=_plan.get('precio', 0),
+            periodo=_plan.get('periodo', ''),
+            stripe_customer_id=userapp.stripe_customer_id,
+        )
+        p_.info(f"Stripe webhook: plan {plan_key} activado para user_id={user.id}")
+    except Exception as e:
+        p_.error(f"Stripe webhook checkout.session.completed: error guardando plan para user_id={user.id}: {e}")
+
+
+def _stripe_handle_invoice_paid(invoice):
+    # Solo re-acreditar en renovaciones de suscripcion, no en la factura inicial
+    # (esa ya se acredito via checkout.session.completed, evita doble acreditacion).
+    if invoice.get('billing_reason') != 'subscription_cycle':
+        return
+    customer_id = invoice.get('customer')
+    try:
+        userapp = Userapp.objects.get(stripe_customer_id=customer_id)
+    except Userapp.DoesNotExist:
+        p_.error(f"Stripe webhook invoice.paid: no se encontro Userapp para customer={customer_id}")
+        return
+    plan_key = userapp.stripe_plan_key or userapp.psico_plan_key
+    if not plan_key:
+        p_.warning(f"Stripe webhook invoice.paid: Userapp sin plan activo, customer={customer_id}")
+        return
+    assign_nom035_credits(userapp.user, plan_key)
+    p_.info(f"Stripe webhook: renovacion acreditada, plan={plan_key}, customer={customer_id}")
+
+
+def _stripe_handle_payment_failed(invoice):
+    customer_id = invoice.get('customer')
+    p_.warning(f"Stripe webhook invoice.payment_failed: customer={customer_id}")
+
+
+def _stripe_handle_subscription_change(subscription):
+    customer_id = subscription.get('customer')
+    status = subscription.get('status')
+    if status not in ('canceled', 'unpaid', 'past_due'):
+        return
+    try:
+        userapp = Userapp.objects.get(stripe_customer_id=customer_id)
+    except Userapp.DoesNotExist:
+        p_.error(f"Stripe webhook subscription change: no se encontro Userapp para customer={customer_id}")
+        return
+    userapp.stripe_plan_key = ''
+    userapp.psico_plan_key = ''
+    userapp.save()
+    p_.info(f"Stripe webhook: plan activo limpiado (status={status}), customer={customer_id}, creditos existentes intactos")
 
 
 class ReporteHTMLView(LoginRequiredMixin, View):
