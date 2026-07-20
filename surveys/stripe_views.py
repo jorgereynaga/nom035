@@ -198,6 +198,16 @@ class StripeWebhookView(View):
             userapp.stripe_plan_key = plan_key
             userapp.save()
 
+            from .models import PlanPurchaseEvent
+            PlanPurchaseEvent.objects.create(
+                user=userapp.user,
+                plan_key=plan_key,
+                modulo=plan.get('modulo', ''),
+                precio=plan.get('precio', 0),
+                periodo=plan.get('periodo', ''),
+                stripe_customer_id=userapp.stripe_customer_id,
+            )
+
             logger.info(f"Plan activado: user={user_id}, plan={plan_key}")
             try:
                 from django.core.management import call_command

@@ -1638,3 +1638,59 @@ Decisiones de diseno explicitas (confirmar al revisar el diff):
    cambios; simular cancelacion, confirmar que el historico sobrevive)
 3. Diseño visual de dashboard_metricas.html con Replit -- prompt aun no
    escrito, pendiente hasta que el esqueleto funcional este confirmado
+
+# ============================================================
+# DASHBOARD DE METRICAS DE NEGOCIO — IMPLEMENTADO Y VALIDADO EN STAGING
+# Fecha: 20 Jul 2026
+# ============================================================
+
+## NOTA DE PROCESO: Codex sin cuota hasta 26 Jul 2026 (ambas cuentas, solo este proyecto)
+Este lote se implemento con Claude aplicando el codigo directamente (en vez de
+Codex), con autorizacion explicita de Jorge como modo de trabajo temporal
+mientras Codex no este disponible. El resto del flujo (Jorge revisa diff antes
+de cada commit, validacion en staging antes de merge) se mantuvo sin cambios.
+
+## Implementacion completa en feature/dashboard-metricas-negocio-impl
+- surveys/models.py: PlanPurchaseEvent (append-only) + migracion manual 0040
+- surveys/stripe_views.py: 1 solo create() nuevo en _handle_checkout_completed,
+  cero cambios al resto de _activate_plan/_handle_invoice_paid/etc
+- surveys/dashboard_views.py (nuevo): DashboardMetricasView, LoginRequiredMixin
+  + UserPassesTestMixin (is_superuser)
+- surveys/templates/dashboard_metricas.html (nuevo): standalone, Chart.js via CDN
+- nom035/urls.py: import explicito + path('metricas/', ...)
+
+## BUG encontrado y corregido durante validacion en staging
+DashboardMetricasView tenia `raise_exception = True` a nivel de clase. Como
+LoginRequiredMixin y UserPassesTestMixin comparten el atributo raise_exception
+(ambos heredan de AccessMixin), esto causaba que un usuario ANONIMO recibiera
+403 directo en vez de ser redirigido a /login/ -- confirmado en staging antes
+del fix (GET /metricas/ -> 403 sin sesion).
+
+FIX: se quito raise_exception de la clase y se sobreescribio handle_no_permission()
+para diferenciar los 2 casos (no autenticado -> redirect normal a login_url,
+autenticado pero no superuser -> PermissionDenied real). Confirmado en staging
+despues del fix: GET /metricas/ sin sesion -> GET /login/?next=/metricas/ -> 200.
+
+## Validacion completa en staging (nom035-staging.up.railway.app), 3 casos
+1. Anonimo -> redirige a /login/?next=/metricas/ (corregido, ver bug arriba)
+2. Autenticado, no-superuser (pruebaB@test.com) -> 403 correcto
+3. Autenticado, superuser (admin) -> 200, datos correctos (3 usuarios
+   registrados, 0 compraron/activos ya que staging no tiene compras Stripe
+   reales todavia -- coherente con PlanPurchaseEvent vacio)
+
+## HALLAZGO NUEVO, preexistente, NO corregido en este lote
+Durante la validacion se encontro que `/login/` (LoginView.post(),
+surveys/views.py:481) hace `user.userapp.validated_email` sin verificar que
+el Userapp exista. Cualquier cuenta is_staff/is_superuser creada via
+createsuperuser (sin pasar por el registro de clientes) no tiene Userapp,
+y el login normal por /login/ truena con una excepcion no controlada en vez
+de un error claro (se vio como que "se queda pensando"). Workaround usado
+para probar como superuser: loguearse por /ihes_admin/ (no depende de
+Userapp) y navegar directo a la URL protegida en la misma sesion. Pendiente
+de decidir si se agrega a la matriz de hallazgos para un lote futuro.
+
+## PENDIENTE INMEDIATO
+1. Merge feature/dashboard-metricas-negocio-impl -> auditoria-local
+2. Diseño visual de dashboard_metricas.html con Replit -- prompt aun no escrito
+3. Decidir si el hallazgo de Userapp/login de superusuarios entra a la matriz
+   de hallazgos como un lote futuro

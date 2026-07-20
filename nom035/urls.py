@@ -27,6 +27,7 @@ from surveys.psico_views import (
     GenerarPerfilNarrativoView, ReporteUnificadoView,
     InstrumentosCatalogoView,
 )
+from surveys.dashboard_views import DashboardMetricasView
 
 
 from django.conf import settings
@@ -123,6 +124,7 @@ urlpatterns = [
     path('psico/test/<str:token>/completar/', TestCompleteView.as_view(), name='test_completar'),
     path('psico/resultado/<int:session_id>/', TestResultView.as_view(), name='test_resultado'),
     path('psico/perfil-narrativo/<int:session_id>/', GenerarPerfilNarrativoView.as_view(), name='perfil_narrativo'),
+    path('metricas/', DashboardMetricasView.as_view(), name='dashboard_metricas'),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
