@@ -1,9 +1,12 @@
+import json
 from datetime import datetime, timedelta
 from decimal import Decimal
 
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
+from django.db.models import Count
+from django.db.models.functions import TruncDate, TruncWeek
 from django.shortcuts import render
 from django.utils import timezone
 from django.views import View
@@ -12,7 +15,7 @@ from .models import Userapp, Workplace, Candidate, Result, TestSession, PlanPurc
 from .stripe_plans import PLANS
 
 
-class DashboardMetricasView(LoginRequiredMixin, UserPassesTestMixin, View):
+class SuperuserRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
     login_url = '/login/'
 
     def test_func(self):
@@ -23,6 +26,8 @@ class DashboardMetricasView(LoginRequiredMixin, UserPassesTestMixin, View):
             return super().handle_no_permission()  # redirige a login_url
         raise PermissionDenied  # logueado pero no superuser -> 403 real
 
+
+class DashboardMetricasView(SuperuserRequiredMixin, View):
     def get(self, request):
         fecha_fin = self._parse_fecha(request.GET.get('fecha_fin')) or timezone.now()
         fecha_inicio = self._parse_fecha(request.GET.get('fecha_inicio')) or (fecha_fin - timedelta(days=30))
@@ -84,6 +89,40 @@ class DashboardMetricasView(LoginRequiredMixin, UserPassesTestMixin, View):
                 'evaluaciones_psico': evaluaciones_psico,
             })
 
+        rango_dias = (fecha_fin - fecha_inicio).days
+        granularidad = 'dia' if rango_dias <= 31 else 'semana'
+        trunc_fn = TruncDate if granularidad == 'dia' else TruncWeek
+
+        eventos_qs = PlanPurchaseEvent.objects.filter(
+            user__is_staff=False, user__is_superuser=False,
+            record_create__gte=fecha_inicio, record_create__lte=fecha_fin,
+        ).annotate(
+            bucket=trunc_fn('record_create')
+        ).values('bucket').annotate(total=Count('id'))
+
+        conteo_por_bucket = {}
+        for row in eventos_qs:
+            bucket = row['bucket']
+            if isinstance(bucket, datetime):
+                bucket = bucket.date()
+            conteo_por_bucket[bucket] = row['total']
+
+        timeline_labels = []
+        timeline_data = []
+        if granularidad == 'dia':
+            cursor = fecha_inicio.date()
+            fin = fecha_fin.date()
+            paso = timedelta(days=1)
+        else:
+            cursor = fecha_inicio.date() - timedelta(days=fecha_inicio.date().weekday())
+            fin = fecha_fin.date()
+            paso = timedelta(days=7)
+
+        while cursor <= fin:
+            timeline_labels.append(cursor.strftime('%d/%m'))
+            timeline_data.append(conteo_por_bucket.get(cursor, 0))
+            cursor += paso
+
         return render(request, 'dashboard_metricas.html', {
             'fecha_inicio': fecha_inicio.strftime('%Y-%m-%d'),
             'fecha_fin': fecha_fin.strftime('%Y-%m-%d'),
@@ -93,6 +132,9 @@ class DashboardMetricasView(LoginRequiredMixin, UserPassesTestMixin, View):
             'distribucion_planes': distribucion_planes,
             'mrr': round(mrr, 2),
             'profundidad_uso': profundidad_uso,
+            'granularidad': granularidad,
+            'timeline_labels': json.dumps(timeline_labels),
+            'timeline_data': json.dumps(timeline_data),
         })
 
     def _parse_fecha(self, valor):
@@ -102,3 +144,38 @@ class DashboardMetricasView(LoginRequiredMixin, UserPassesTestMixin, View):
             return timezone.make_aware(datetime.strptime(valor, '%Y-%m-%d'))
         except ValueError:
             return None
+
+
+class ClientesListView(SuperuserRequiredMixin, View):
+    def get(self, request):
+        usuarios_qs = User.objects.filter(
+            is_staff=False, is_superuser=False,
+        ).select_related('userapp').prefetch_related('plan_purchase_events').order_by('-date_joined')
+
+        clientes = []
+        for user in usuarios_qs:
+            userapp = getattr(user, 'userapp', None)
+            stripe_plan_key = userapp.stripe_plan_key if userapp else ''
+            activo = bool(stripe_plan_key)
+            eventos = sorted(user.plan_purchase_events.all(), key=lambda e: e.record_create, reverse=True)
+            compro_alguna_vez = len(eventos) > 0
+
+            if activo:
+                plan_nombre = PLANS.get(stripe_plan_key, {}).get('name', stripe_plan_key)
+                estado = 'activo'
+            elif compro_alguna_vez:
+                plan_nombre = PLANS.get(eventos[0].plan_key, {}).get('name', eventos[0].plan_key)
+                estado = 'cancelado'
+            else:
+                plan_nombre = '—'
+                estado = 'nunca_compro'
+
+            clientes.append({
+                'usuario': user.username,
+                'email': user.email,
+                'fecha_registro': user.date_joined.strftime('%d/%m/%Y'),
+                'estado': estado,
+                'plan': plan_nombre,
+            })
+
+        return render(request, 'dashboard_clientes.html', {'clientes': clientes})

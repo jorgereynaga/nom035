@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clientes — NormaIA</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Plus+Jakarta+Sans:wght@700&display=swap" rel="stylesheet">
+  <style>
+    /* ── Variables NormaIA ── */
+    :root {
+      --color-primary:    #4f46e5;
+      --color-primary-h:  #4338ca;
+      --color-accent:     #818cf8;
+      --bg-dark:          #0f172a;
+      --bg-dark-2:        #1e293b;
+      --bg-base:          #f8fafc;
+      --bg-card:          #ffffff;
+      --border:           #e2e8f0;
+      --text-primary:     #0f172a;
+      --text-secondary:   #64748b;
+      --text-muted:       #94a3b8;
+      --radius-sm:        6px;
+      --radius-md:        10px;
+      --radius-lg:        16px;
+      --shadow-sm:        0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.05);
+      --shadow-md:        0 4px 16px rgba(0,0,0,.10), 0 2px 4px rgba(0,0,0,.06);
+      --sidebar-w:        240px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg-base);
+      color: var(--text-primary);
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: var(--sidebar-w);
+      background: var(--bg-dark);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      z-index: 100;
+      padding: 0 0 2rem;
+    }
+
+    .sidebar-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 1.5rem 1.5rem 1.25rem;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+
+    .sidebar-logo .logo-mark {
+      width: 34px; height: 34px;
+      background: var(--color-primary);
+      border-radius: var(--radius-sm);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .sidebar-logo .logo-mark svg {
+      width: 20px; height: 20px;
+      fill: #fff;
+    }
+
+    .sidebar-logo .brand {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 1.125rem;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: -.3px;
+    }
+
+    .sidebar-logo .brand span { color: var(--color-accent); }
+
+    .sidebar-nav {
+      padding: 1.5rem 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .sidebar-nav .nav-section {
+      font-size: .65rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      padding: .5rem .75rem .25rem;
+      margin-top: .5rem;
+    }
+
+    .sidebar-nav a {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: .6rem .75rem;
+      border-radius: var(--radius-sm);
+      color: #94a3b8;
+      text-decoration: none;
+      font-size: .875rem;
+      font-weight: 500;
+      transition: background .15s, color .15s;
+    }
+
+    .sidebar-nav a:hover { background: rgba(255,255,255,.07); color: #fff; }
+
+    .sidebar-nav a.active {
+      background: rgba(79,70,229,.25);
+      color: var(--color-accent);
+    }
+
+    .sidebar-nav a svg {
+      width: 18px; height: 18px;
+      flex-shrink: 0;
+      opacity: .75;
+    }
+
+    .sidebar-nav a.active svg,
+    .sidebar-nav a:hover svg { opacity: 1; }
+
+    /* ── Main ── */
+    .main {
+      margin-left: var(--sidebar-w);
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    .topbar {
+      background: var(--bg-dark);
+      padding: 1.25rem 2.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+
+    .topbar-title {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: -.3px;
+    }
+
+    .topbar-title span { color: var(--color-accent); }
+
+    .topbar-badge {
+      background: rgba(79,70,229,.18);
+      color: var(--color-accent);
+      font-size: .7rem;
+      font-weight: 700;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+      padding: .25rem .65rem;
+      border-radius: 999px;
+      border: 1px solid rgba(129,140,248,.3);
+    }
+
+    .page-body { padding: 2rem 2.5rem 3rem; flex: 1; }
+
+    /* ── Section title ── */
+    .section-title {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+    }
+
+    .section-title .title-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--color-primary);
+      display: inline-block;
+    }
+
+    /* ── Section card ── */
+    .section-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+      padding: 1.75rem;
+      margin-bottom: 1.5rem;
+      overflow: hidden;
+    }
+
+    .section-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.25rem;
+    }
+
+    /* ── Filter bar ── */
+    .filter-bar {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-bottom: 1.25rem;
+      align-items: center;
+    }
+
+    .filter-bar .search-wrap {
+      position: relative;
+      width: 220px;
+      max-width: 340px;
+    }
+
+    .filter-bar .search-wrap svg {
+      position: absolute;
+      left: .75rem;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 16px; height: 16px;
+      color: var(--text-muted);
+      pointer-events: none;
+    }
+
+    .filter-bar input[type="text"],
+    .filter-bar select {
+      font-family: inherit;
+      font-size: .875rem;
+      color: var(--text-primary);
+      background: var(--bg-base);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: .5rem .85rem;
+      height: 38px;
+      outline: none;
+      transition: border-color .15s, box-shadow .15s;
+      width: 100%;
+    }
+
+    .filter-bar input[type="text"] { padding-left: 2.25rem; }
+
+    .filter-bar input[type="text"]:focus,
+    .filter-bar select:focus {
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px rgba(79,70,229,.12);
+    }
+
+    .filter-bar select {
+      cursor: pointer;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      padding-top: 0;
+      padding-bottom: 0;
+      padding-right: 2.25rem;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right .75rem center;
+      width: 180px;
+    }
+
+    .filter-bar .filter-label {
+      font-size: .72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      color: var(--text-secondary);
+      white-space: nowrap;
+    }
+
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: .3rem;
+      flex: 0 0 auto;
+    }
+
+    /* results count */
+    .results-count {
+      font-size: .8rem;
+      color: var(--text-muted);
+      margin-left: auto;
+      align-self: flex-end;
+      white-space: nowrap;
+    }
+
+    /* ── Table ── */
+    .table-wrap {
+      overflow-x: auto;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .875rem;
+    }
+
+    thead tr { background: var(--bg-dark); }
+
+    thead th {
+      padding: .75rem 1rem;
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: #94a3b8;
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    thead th:first-child { border-radius: var(--radius-md) 0 0 0; }
+    thead th:last-child  { border-radius: 0 var(--radius-md) 0 0; }
+
+    tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background .12s;
+    }
+
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:nth-child(even) { background: #f8fafc; }
+    tbody tr:hover { background: #f1f5f9; }
+
+    tbody td {
+      padding: .75rem 1rem;
+      color: var(--text-primary);
+      vertical-align: middle;
+    }
+
+    tbody tr[data-hidden="true"] { display: none; }
+
+    .td-muted { color: var(--text-secondary); font-size: .8rem; }
+    .td-empty {
+      color: var(--text-muted);
+      text-align: center;
+      padding: 2.5rem;
+      font-size: .875rem;
+    }
+
+    /* ── User cell ── */
+    .user-cell {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+    }
+
+    .user-avatar {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #4f46e5 0%, #818cf8 100%);
+      display: flex; align-items: center; justify-content: center;
+      font-size: .75rem;
+      font-weight: 700;
+      color: #fff;
+      flex-shrink: 0;
+      text-transform: uppercase;
+    }
+
+    .user-name { font-weight: 600; }
+
+    /* ── Badges ── */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: .35rem;
+      padding: .28rem .7rem;
+      border-radius: 999px;
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: .03em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .badge::before {
+      content: '';
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+      display: inline-block;
+    }
+
+    .badge-activo     { background: rgba(16,185,129,.12); color: #059669; }
+    .badge-cancelado  { background: rgba(239,68,68,.10);  color: #dc2626; }
+    .badge-nunca      { background: rgba(100,116,139,.10); color: #475569; }
+
+    .plan-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: .25rem .7rem;
+      border-radius: 999px;
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: .03em;
+      text-transform: uppercase;
+    }
+
+    .plan-badge.starter    { background: rgba(16,185,129,.12); color: #059669; }
+    .plan-badge.pro        { background: rgba(79,70,229,.12);  color: #4338ca; }
+    .plan-badge.enterprise { background: rgba(245,158,11,.12); color: #d97706; }
+    .plan-badge.default    { background: rgba(100,116,139,.12); color: #475569; }
+
+    /* ── No results row ── */
+    #no-results-row { display: none; }
+    #no-results-row.visible { display: table-row; }
+
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+      .sidebar { display: none; }
+      .main { margin-left: 0; }
+      .topbar, .page-body { padding-left: 1.25rem; padding-right: 1.25rem; }
+    }
+
+    @media (max-width: 480px) {
+      .filter-bar { flex-direction: column; align-items: stretch; }
+      .filter-bar .search-wrap { max-width: 100%; }
+      .filter-bar select { flex: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ══ Sidebar ══ -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-mark">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2L4 5.5V11c0 4.5 3.3 8.7 8 9.9 4.7-1.2 8-5.4 8-9.9V5.5L12 2z"/>
+        </svg>
+      </div>
+      <span class="brand">Norma<span>IA</span></span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section">Principal</div>
+      <a href="{% url 'dashboard_metricas' %}">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <rect x="3" y="3" width="7" height="7" rx="1"/>
+          <rect x="14" y="3" width="7" height="7" rx="1"/>
+          <rect x="3" y="14" width="7" height="7" rx="1"/>
+          <rect x="14" y="14" width="7" height="7" rx="1"/>
+        </svg>
+        Métricas
+      </a>
+      <a href="{% url 'dashboard_clientes' %}" class="active">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+        Clientes
+      </a>
+      <div class="nav-section">Configuración</div>
+      <a href="#">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+        Ajustes
+      </a>
+    </nav>
+  </aside>
+
+  <!-- ══ Main ══ -->
+  <div class="main">
+
+    <header class="topbar">
+      <h1 class="topbar-title">Clientes — <span>NormaIA</span></h1>
+      <span class="topbar-badge">Admin</span>
+    </header>
+
+    <div class="page-body">
+
+      <div class="section-title">
+        <span class="title-dot"></span> Directorio de clientes
+      </div>
+
+      <div class="section-card">
+        <div class="section-card-header">
+          <div class="section-title" style="margin-bottom:0;">
+            <span class="title-dot" style="background:#818cf8;"></span>
+            Lista de usuarios registrados
+          </div>
+          <span id="results-count" class="results-count"></span>
+        </div>
+
+        <!-- ── Filter bar ── -->
+        <div class="filter-bar">
+          <div class="filter-group">
+            <span class="filter-label">Buscar</span>
+            <div class="search-wrap">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+              <input type="text" id="search-input" placeholder="Usuario o email…" autocomplete="off">
+            </div>
+          </div>
+
+          <div class="filter-group">
+            <span class="filter-label">Estado</span>
+            <select id="filter-estado">
+              <option value="">Todos</option>
+              <option value="activo">Activo</option>
+              <option value="cancelado">Cancelado</option>
+              <option value="nunca">Nunca compró</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <span class="filter-label">Plan</span>
+            <select id="filter-plan">
+              <option value="">Todos</option>
+              <!-- populated by JS from table data -->
+            </select>
+          </div>
+        </div>
+
+        <!-- ── Table ── -->
+        <div class="table-wrap">
+          <table id="clientes-table">
+            <thead>
+              <tr>
+                <th>Usuario</th>
+                <th>Email</th>
+                <th>Fecha de registro</th>
+                <th>Estado</th>
+                <th>Plan</th>
+              </tr>
+            </thead>
+            <tbody id="clientes-tbody">
+              {% for cliente in clientes %}
+              <tr
+                data-usuario="{{ cliente.usuario|lower }}"
+                data-email="{{ cliente.email|lower }}"
+                data-estado="{{ cliente.estado }}"
+                data-plan="{{ cliente.plan|lower }}"
+              >
+                <td>
+                  <div class="user-cell">
+                    <div class="user-avatar">{{ cliente.usuario|slice:":2" }}</div>
+                    <span class="user-name">{{ cliente.usuario }}</span>
+                  </div>
+                </td>
+                <td class="td-muted">{{ cliente.email }}</td>
+                <td class="td-muted">{{ cliente.fecha_registro }}</td>
+                <td>
+                  {% if cliente.estado == 'activo' %}
+                    <span class="badge badge-activo">Activo</span>
+                  {% elif cliente.estado == 'cancelado' %}
+                    <span class="badge badge-cancelado">Cancelado</span>
+                  {% else %}
+                    <span class="badge badge-nunca">Nunca compró</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <span class="plan-badge {% if 'starter' in cliente.plan|lower %}starter{% elif 'pro' in cliente.plan|lower %}pro{% elif 'enterprise' in cliente.plan|lower %}enterprise{% else %}default{% endif %}">
+                    {{ cliente.plan }}
+                  </span>
+                </td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="5" class="td-empty">No hay usuarios registrados.</td></tr>
+              {% endfor %}
+              <tr id="no-results-row">
+                <td colspan="5" class="td-empty">
+                  Ningún cliente coincide con los filtros aplicados.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div><!-- /page-body -->
+  </div><!-- /main -->
+
+  <script>
+    (function () {
+      const tbody     = document.getElementById('clientes-tbody');
+      const searchEl  = document.getElementById('search-input');
+      const estadoEl  = document.getElementById('filter-estado');
+      const planEl    = document.getElementById('filter-plan');
+      const countEl   = document.getElementById('results-count');
+      const noResults = document.getElementById('no-results-row');
+
+      /* ── Populate Plan dropdown from table data ── */
+      const allRows = Array.from(tbody.querySelectorAll('tr[data-plan]'));
+      const plans = [...new Set(allRows.map(r => r.dataset.plan).filter(Boolean))].sort();
+      plans.forEach(function (p) {
+        const opt = document.createElement('option');
+        opt.value = p;
+        opt.textContent = p.charAt(0).toUpperCase() + p.slice(1);
+        planEl.appendChild(opt);
+      });
+
+      /* ── Filter logic ── */
+      function applyFilters() {
+        const q      = searchEl.value.trim().toLowerCase();
+        const estado = estadoEl.value.toLowerCase();
+        const plan   = planEl.value.toLowerCase();
+        let visible  = 0;
+
+        allRows.forEach(function (row) {
+          const matchSearch = !q ||
+            row.dataset.usuario.includes(q) ||
+            row.dataset.email.includes(q);
+
+          const matchEstado = !estado || row.dataset.estado === estado ||
+            (estado === 'nunca' && row.dataset.estado !== 'activo' && row.dataset.estado !== 'cancelado');
+
+          const matchPlan = !plan || row.dataset.plan === plan;
+
+          const show = matchSearch && matchEstado && matchPlan;
+          row.setAttribute('data-hidden', show ? 'false' : 'true');
+          if (show) visible++;
+        });
+
+        /* show/hide empty state */
+        noResults.classList.toggle('visible', visible === 0 && allRows.length > 0);
+
+        /* update count */
+        const total = allRows.length;
+        countEl.textContent = visible === total
+          ? total + ' cliente' + (total !== 1 ? 's' : '')
+          : visible + ' de ' + total + ' cliente' + (total !== 1 ? 's' : '');
+      }
+
+      searchEl.addEventListener('input',  applyFilters);
+      estadoEl.addEventListener('change', applyFilters);
+      planEl.addEventListener('change',   applyFilters);
+
+      /* initialise count */
+      applyFilters();
+    })();
+  </script>
+</body>
+</html>
