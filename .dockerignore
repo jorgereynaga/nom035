@@ -1,0 +1,17 @@
+.git
+.github
+.agents
+.claude
+venv
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+db.sqlite3
+.env
+media
+files
+staticfiles
+node_modules
+*.md
