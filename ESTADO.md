@@ -1895,3 +1895,82 @@ Rama fix/sec-009-stripe-webhook-duplicado, 1 commit:
    Pendiente a Corregido (pendiente hasta que se confirme el merge)
 3. Considerar si la limitacion conocida (renovacion con 2 planes
    simultaneos) amerita su propio hallazgo/lote a futuro
+
+# ============================================================
+# DASHBOARD DE METRICAS DE NEGOCIO — PROYECTO COMPLETO CERRADO EN PRODUCCION
+# Fecha: 21 Jul 2026
+# ============================================================
+
+## Resumen ejecutivo
+Iniciativa completa: vista interna `/metricas/` (protegida por is_superuser)
+con KPIs de negocio, mas la vista hermana `/metricas/clientes/`. Ya esta
+en produccion, mergeada y validada.
+
+## Cronologia completa (para referencia futura)
+1. v1 -- KPIs base: usuarios registrados, compraron alguna vez, clientes
+   activos, MRR estimado, distribucion de planes, profundidad de uso
+   (centros activos + evaluaciones NOM-035/psicometria por cliente activo).
+   Requirio el modelo nuevo PlanPurchaseEvent (append-only) para poder medir
+   "compro alguna vez" incluso despues de que el cliente cancela.
+2. SEC-009 (hallazgo encontrado en el camino, no parte original del dashboard):
+   /stripe/webhook/ estaba registrado 3 veces en urls.py, la implementacion
+   "correcta" (StripeWebhookView) nunca se ejecutaba con webhooks reales.
+   Diagnosticado, corregido (se elimino el codigo muerto y las rutas
+   duplicadas, se limpio la funcion activa en views.py: logging real,
+   fallback peligroso eliminado, manejo de invoice.paid/payment_failed/
+   subscription_change agregado), validado con 8 eventos de Stripe test
+   mode firmados criptograficamente contra la BD de staging.
+3. v2 -- Linea de tiempo de suscripciones nuevas por periodo (granularidad
+   automatica dia/semana segun el rango de fechas ya existente), usando
+   PlanPurchaseEvent.record_create.
+4. v3 -- Listado de clientes (/metricas/clientes/): todos los usuarios
+   registrados con 3 estados (Activo/Cancelado/Nunca compro) + plan
+   contratado (actual o el ultimo antes de cancelar) + busqueda/filtros
+   en tiempo real (JS puro, sin backend). Se extrajo SuperuserRequiredMixin
+   compartido entre las 2 vistas del dashboard.
+5. Rediseño visual completo con Replit (2 pasadas): identidad NormaIA
+   (sidebar oscuro, KPI cards, badges de color por estado/plan), gráfica
+   de suscripciones con área degradada y tooltips pulidos, búsqueda/filtros
+   con diseño completo en Clientes.
+
+## BUGS DE CSS ENCONTRADOS Y CORREGIDOS DURANTE EL REDISEÑO (leccion tecnica)
+Patron repetido 2 veces en `dashboard_clientes.html`: usar `flex: N M Xpx`
+en un elemento hijo de un contenedor `flex-direction: column` hace que el
+navegador interprete el `Xpx` del flex-basis como ALTURA, no como ancho
+(el flex-basis siempre actua sobre el eje principal del contenedor, que en
+una columna es vertical). Paso primero con el `<select>` de los filtros
+(`.filter-bar select { flex: 0 1 180px }` dentro de `.filter-group`
+columna -> altura de 177px en vez de 38px), luego con `.search-wrap`
+(mismo patron, `flex: 1 1 220px`). Fix en ambos casos: reemplazar `flex:`
+por `width:`/`max-width:` explicitos. LECCION para el futuro: si un
+`<select>`/input/div dentro de un contenedor `flex-direction: column` se ve
+con una altura rara, revisar primero si tiene una propiedad `flex:` con un
+valor pensado para ancho.
+
+## NOTA DE PROCESO
+Todo el trabajo de v2/v3/rediseño se hizo con el flujo normal (Codex
+implementa el codigo funcional, Replit hace el diseño visual, Claude
+escribe specs y revisa cada diff antes de commit). El unico tramo con
+Claude implementando directo fue SEC-009 y el v1 original, durante la
+ventana en que Codex se quedo sin creditos (ya resuelto, ver memoria de
+esa sesion).
+
+## Estado final
+- `auditoria-local` y `main` sincronizados, todo en produccion
+  (`www.sireed.com.mx` / `nom035-production.up.railway.app`)
+- Deploy de produccion confirmado limpio (gunicorn arriba, sin errores
+  nuevos, solo warnings W042 preexistentes)
+- Sin pendientes activos de este proyecto
+
+## PENDIENTES QUE QUEDAN FUERA DE ESTE PROYECTO (no tocar aqui)
+1. Vista de detalle por cliente (historial completo de cada
+   PlanPurchaseEvent, no solo el mas reciente) -- posible v4 futura
+2. "Clientes activos netos en el tiempo" (con cancelaciones restadas)
+   -- requeriria un modelo hermano de eventos de cancelacion con fecha
+3. Limitacion conocida de SEC-009: con 2 planes simultaneos (ej. NOM-035 +
+   psicometria por separado), una renovacion solo puede re-acreditar uno
+   de los dos (se prioriza stripe_plan_key) -- preexistente, no es
+   regresion de este lote
+4. Warning de Railway sobre migracion no reflejada (choices 'competencias'/
+   'comercial' en PsychoInstrument.TIPOS) -- sigue pendiente de sesiones
+   anteriores, sin relacion con este proyecto
