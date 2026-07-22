@@ -1974,3 +1974,62 @@ esa sesion).
 4. Warning de Railway sobre migracion no reflejada (choices 'competencias'/
    'comercial' en PsychoInstrument.TIPOS) -- sigue pendiente de sesiones
    anteriores, sin relacion con este proyecto
+
+# ============================================================
+# NORMAIA DESPLEGADO EN VPS PROPIO — https://normaia.ihes.mx
+# Fecha: 22 Jul 2026
+# ============================================================
+
+## Contexto importante descubierto en este proceso
+`035.ihes.mx` (dominio que usan los clientes reales hoy) NO apuntaba a
+Railway como se creia -- resuelve directo a un VPS compartido propio
+(DigitalOcean, 104.236.46.73, Ubuntu 18.04.3 LTS fuera de soporte oficial),
+sirviendo una instalacion OBSOLETA de nom035 (version anterior a
+psicometria, Python 3.6.9, venv compartido con otros sitios, gunicorn+
+supervisor+celery via RabbitMQ -- confirmado con Celery corriendo 334 dias,
+WeasyPrint funcional ahi a diferencia de Railway). Decision de Jorge:
+esa instalacion queda intacta y sin tocar, es obsoleta y no se usa
+activamente aunque tecnicamente sirve trafico. El plan es reemplazarla
+por NormaIA (este repo) bajo un dominio nuevo, y mover el dominio cuando
+este listo.
+
+## Despliegue completado
+- Docker Engine 24.0.2 + Docker Compose v2.18.1 instalados en el VPS
+  (el script oficial de Docker marca deprecation warning por Ubuntu 18.04,
+  pero la instalacion funciono correctamente)
+- Repo clonado en /webapps/NormaIA (carpeta nueva, separada de /webapps/nom35)
+- Postgres propio en contenedor Docker (no el Postgres compartido del VPS)
+- .env de produccion configurado: SECRET_KEY real, DATABASE_URL apuntando
+  al servicio `db` del compose, ANTHROPIC_API_KEY real (key nueva
+  "normaia-vps-api-key", sin vencimiento), SMTP real (Gmail con contraseña
+  de aplicacion), Stripe en placeholder (pendiente activar modo test
+  primero, luego modo live)
+- nginx: archivo nuevo /etc/nginx/sites-available/normaia (separado del
+  archivo "nom035" que en realidad contiene la config de muchos dominios
+  distintos, no se toco), proxy_pass a http://127.0.0.1:8010
+- DNS: registro A normaia.ihes.mx -> 104.236.46.73 creado y propagado
+- SSL: certificado real de Let's Encrypt via certbot --nginx, redirect
+  HTTP->HTTPS automatico configurado
+- Validado end-to-end: https://normaia.ihes.mx/login/ responde 200 OK,
+  migraciones y carga de instrumentos psicometricos corrieron limpias
+
+## PENDIENTE
+1. Activar Stripe: primero modo test para validar checkout/webhook en el
+   VPS (crear webhook nuevo en Stripe apuntando a
+   https://normaia.ihes.mx/stripe/webhook/), despues modo live cuando se
+   decida cobrar de verdad
+2. Probar el flujo completo de perfil narrativo con IA end-to-end (ya tiene
+   la ANTHROPIC_API_KEY real cargada, falta probarlo con una evaluacion
+   psicometrica real completa)
+3. Decidir que hacer con 035.ihes.mx/nom35 viejo una vez NormaIA este
+   validado (desactivarlo, o dejarlo corriendo indefinidamente)
+4. Por higiene de seguridad: rotar SECRET_KEY, POSTGRES_PASSWORD, y la
+   contraseña de aplicacion de Gmail del VPS -- quedaron visibles en el
+   chat de la sesion donde se configuraron
+5. Confirmar que el renovador automatico de certbot (ya activo para los
+   demas dominios del VPS) tambien cubre normaia.ihes.mx (deberia ser
+   automatico, mismo certbot global, pero no se confirmo explicitamente)
+6. Pendiente nuevo, fuera de este despliegue: actualizar la landing page
+   (pagina principal) con informacion real del sistema, precios de
+   paquetes actuales, mencion del perfil narrativo con IA, y beneficios --
+   se va a trabajar con Replit, en otra sesion
