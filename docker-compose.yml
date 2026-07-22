@@ -17,6 +17,7 @@ services:
   web:
     build:
       context: .
+      dockerfile: Dockerfile.vps
     depends_on:
       db:
         condition: service_healthy
