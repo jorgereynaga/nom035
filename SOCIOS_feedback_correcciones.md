@@ -243,6 +243,10 @@ No es un bug nuevo de código — es el mismo pendiente ya registrado desde el d
 
 **Corregido:** el link ahora apunta a `/password_recover/{{v_code}}/{{token}}`.
 
+**También corregido en el mismo lote:** año hardcodeado "COPYRIGHT © 2027" → dinámico (`{% now "Y" %}`) en `valid_email.html`, `password_recover.html` y `survey.html`; typo "nuesra aplicación móvil" → "nuestra aplicación móvil" en `valid_email.html`.
+
+**✅ Verificado en producción por Jorge (23 Jul 2026):** el link de recuperación ya lleva al formulario correcto de nueva contraseña, el copyright ya dice 2026, y el typo ya está corregido.
+
 ### Pendiente menor registrado (asset de imagen, no texto — para después)
 - El logo mostrado en las páginas de verificación de correo y recuperación de contraseña (`valid_email.html`, `password_recover.html`) sigue usando la imagen vieja `static/app-assets/images/pages/login_nom035.png` (diseño "NOM 035 / IHES"). Es un archivo de imagen, no texto — necesita un asset nuevo con la marca NormaIA (mismo flujo que usamos con Replit para la landing).
 - Nota aparte: el texto "NormalA" que se ve en la captura de esas páginas **sí dice "NormaIA" correctamente en el código** (`valid_email.html:62`) — es solo la tipografía de esa página, donde la "I" mayúscula se confunde visualmente con una "l" minúscula. No requiere corrección de texto, solo se resolvería si se actualiza la tipografía junto con el logo.
