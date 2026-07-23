@@ -161,22 +161,25 @@ class Index(LoginRequiredMixin,View):
 			else:
 				print("N")
 				survey_completed=0
-			# Calcular dimensiones para dashboard
+			# Calcular dominios para dashboard (mismos umbrales oficiales de la Guia II usados en get_chart_data)
 			dimensions_preview = []
 			col_map={0:"#9be5f7",1:"#6bf56e",2:"#ffff00",3:"#ffc000",4:"#ff7070"}
 			name_map={0:"Nulo",1:"Bajo",2:"Medio",3:"Alto",4:"Muy alto"}
 			domainsA_dash={"Condiciones en el ambiente de trabajo":["r2_p1","r2_p2","r2_p3"],"Carga de trabajo":["r2_p4","r2_p5","r2_p6","r2_p7","r2_p8","r2_p9","r2_p10","r2_p11","r2_p12","r2_p13","r2_p41","r2_p42","r2_p43"],"Falta de control":["r2_p18","r2_p19","r2_p20","r2_p21","r2_p22","r2_p26","r2_p27"],"Jornada de trabajo":["r2_p14","r2_p15"],"Interferencia trabajo-familia":["r2_p16","r2_p17"],"Liderazgo":["r2_p23","r2_p24","r2_p25","r2_p28","r2_p29"],"Relaciones en el trabajo":["r2_p30","r2_p31","r2_p32","r2_p44","r2_p45","r2_p46"],"Violencia":["r2_p33","r2_p34","r2_p35","r2_p36","r2_p37","r2_p38","r2_p39","r2_p40"]}
+			domainsA_dash_thresholds={"Condiciones en el ambiente de trabajo":[3,5,7,9],"Carga de trabajo":[12,16,20,24],"Falta de control":[5,8,11,14],"Jornada de trabajo":[1,2,4,6],"Interferencia trabajo-familia":[1,2,4,6],"Liderazgo":[3,5,8,11],"Relaciones en el trabajo":[5,8,11,14],"Violencia":[7,10,13,16]}
 			if item.survey_type() != 3 and survey_completed > 0:
 				survey_all=RiskSurveyA.objects.filter(evaluation=eval_to_check,employee_id__in=list(employees.values_list("id",flat=True)))
 				if survey_all.exists():
 					for domain,fields in domainsA_dash.items():
 						max_score=len(fields)*4
-						pcts=[]
+						sums=[]
 						for s in survey_all:
 							_sum=sum((getattr(s,f) or 0) for f in fields if hasattr(s,f))
-							pcts.append(round((_sum/max_score)*100) if max_score else 0)
-						pct=round(sum(pcts)/len(pcts)) if pcts else 0
-						color_idx=0 if pct<20 else (1 if pct<40 else (2 if pct<60 else (3 if pct<80 else 4)))
+							sums.append(_sum)
+						avg_sum=sum(sums)/len(sums) if sums else 0
+						pct=round((avg_sum/max_score)*100) if max_score else 0
+						t=domainsA_dash_thresholds[domain]
+						color_idx=0 if avg_sum<t[0] else (1 if avg_sum<t[1] else (2 if avg_sum<t[2] else (3 if avg_sum<t[3] else 4)))
 						dimensions_preview.append({"name":domain,"pct":pct,"color":col_map[color_idx],"nivel":name_map[color_idx]})
 
 			# Dimensiones clima laboral
@@ -1280,7 +1283,7 @@ def contact(request):
 		ctx={"cname":cname,"phone":phone,"email":email,"name":name,"type":1,"title":"Contacto","date_today":datetime.now().strftime('%d/%m/%Y')}
 	else:
 		ctx={"cname":cname,"phone":phone,"email":email,"name":name,"type":2,"title":"Contacto","date_today":datetime.now().strftime('%d/%m/%Y')}
-	send_mail(["n035.ihes@gmail.com"],ctx=ctx,subject=f'{name}, quiere ponerse en contacto con nosotros. (Prueba)')
+	send_mail(["normaia.sistemas@gmail.com"],ctx=ctx,subject=f'{name}, quiere ponerse en contacto con nosotros. (Prueba)')
 	return JsonResponse({'status':'ok'})
 
 def add_evidence(request):
@@ -1962,10 +1965,13 @@ class UserappList(generics.ListCreateAPIView):
 					user.delete()
 				return Response(e, status=status.HTTP_400_BAD_REQUEST)
 			verification_code,iv=encript(f"{user.id}<->{datetime.now().timestamp()}<->{new_user.record_create.timestamp()}")
-			# ctx={"v_code":verification_code,"token":iv,"username":user.username,"phone":new_user.phone,"email":user.email,"name":new_user.name,"title":"Gracias por registrarte con nosotros.","type":"new_user","date_today":datetime.now().strftime('%d/%m/%Y')}
-			# send_mail([user.email],ctx=ctx,template="register-template.html")
-			# ctx={"v_code":verification_code,"token":iv,"username":user.username,"phone":new_user.phone,"email":user.email,"name":new_user.name,"title":"Nuevo usuario registrado.","type":"new_user","date_today":datetime.now().strftime('%d/%m/%Y')}
-			# send_mail(["n035.ihes@gmail.com"],ctx=ctx,template="register-template.html",subject="Registro de nuevo usuario")
+			try:
+				ctx={"v_code":verification_code,"token":iv,"username":user.username,"phone":new_user.phone,"email":user.email,"name":new_user.name,"title":"Gracias por registrarte con nosotros.","type":"new_user","date_today":datetime.now().strftime('%d/%m/%Y')}
+				send_mail([user.email],ctx=ctx,template="register-template.html")
+				ctx={"v_code":verification_code,"token":iv,"username":user.username,"phone":new_user.phone,"email":user.email,"name":new_user.name,"title":"Nuevo usuario registrado.","type":"new_user","date_today":datetime.now().strftime('%d/%m/%Y')}
+				send_mail(["normaia.sistemas@gmail.com"],ctx=ctx,template="register-template.html",subject="Registro de nuevo usuario")
+			except Exception as mail_err:
+				print(f"Error enviando correo de bienvenida: {mail_err}")
 			print("serializer.errors")
 			return Response(serializer.data, status=status.HTTP_201_CREATED)
 		else:

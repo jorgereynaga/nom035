@@ -243,8 +243,8 @@
     {% for key, plan in planes.items %}
     {% if plan.modulo == 'nom035' and plan.visible %}
     <div class="col-12 col-md-4 mb-3">
-        <div class="plan-card {% if plan.periodo == 'anual' %}destacado{% endif %}">
-            {% if plan.periodo == 'anual' %}<span class="plan-tag">Más popular</span>{% endif %}
+        <div class="plan-card {% if key == 'nom035_empresarial' %}destacado{% endif %}">
+            {% if key == 'nom035_empresarial' %}<span class="plan-tag">Más popular</span>{% endif %}
             <div class="plan-nombre">{{ plan.name }}</div>
             <div class="plan-desc">{{ plan.descripcion }}</div>
             <div class="plan-precio">${{ plan.precio|intcomma }}<span> MXN / {{ plan.periodo }}</span></div>
@@ -273,8 +273,8 @@
     {% for key, plan in planes.items %}
     {% if plan.modulo == 'psicometria' %}
     <div class="col-12 col-md-4 mb-3">
-        <div class="plan-card {% if plan.periodo == 'mensual' and plan.evaluaciones_mes == 50 %}destacado{% endif %}">
-            {% if plan.periodo == 'mensual' and plan.evaluaciones_mes == 50 %}<span class="plan-tag">Más popular</span>{% endif %}
+        <div class="plan-card {% if key == 'psico_ilimitado_mensual' %}destacado{% endif %}">
+            {% if key == 'psico_ilimitado_mensual' %}<span class="plan-tag">Más popular</span>{% endif %}
             <div class="plan-nombre">{{ plan.name }}</div>
             <div class="plan-desc">{{ plan.descripcion }}</div>
             <div class="plan-precio">${{ plan.precio|intcomma }}<span> MXN / {{ plan.periodo }}</span></div>
@@ -301,8 +301,8 @@
     {% for key, plan in planes.items %}
     {% if plan.modulo == 'suite' and plan.visible %}
     <div class="col-12 col-md-6 mb-3">
-        <div class="plan-card {% if plan.periodo == 'anual' %}destacado{% endif %}">
-            {% if plan.periodo == 'anual' %}<span class="plan-tag">Mejor valor</span>{% endif %}
+        <div class="plan-card {% if key == 'suite_pro_100' %}destacado{% endif %}">
+            {% if key == 'suite_pro_100' %}<span class="plan-tag">Mejor valor</span>{% endif %}
             <div class="plan-nombre">{{ plan.name }}</div>
             <div class="plan-desc">{{ plan.descripcion }}</div>
             <div class="plan-precio">${{ plan.precio|intcomma }}<span> MXN / {{ plan.periodo }}</span></div>
