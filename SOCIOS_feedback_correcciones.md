@@ -235,6 +235,18 @@ Confirma que el límite de Stripe en placeholder (ver hallazgo previo sobre el e
 
 No es un bug nuevo de código — es el mismo pendiente ya registrado desde el despliegue del VPS (activar Stripe en modo test/live). Se deja aquí solo para dejar constancia de que afecta estas 2 pantallas específicas también, por si se prioriza activar Stripe antes que las demás correcciones de este documento.
 
+## ✅ RESUELTO — Bug funcional real: el link de "Recuperar contraseña" del correo llevaba a la página equivocada (23 Jul 2026)
+
+**Reportado por Jorge:** al dar clic en "Recuperar contraseña" en el correo, la página que abre dice "Verificación de correo electrónico... El correo fue verificado correctamente... Iniciar sesión" — y la contraseña nunca se actualiza ni se recupera.
+
+**Causa confirmada en el código:** `register-template.html` armaba el link de recuperación de contraseña apuntando a `/email_verification/{{v_code}}/{{token}}` (la vista `EmailVerification`) en vez de `/password_recover/{{v_code}}/{{token}}` (la vista `PasswordRecover`, que sí muestra el formulario para poner una contraseña nueva). Ambas rutas existen y están correctamente implementadas en `nom035/urls.py` — el error era únicamente en qué URL se generaba dentro del correo.
+
+**Corregido:** el link ahora apunta a `/password_recover/{{v_code}}/{{token}}`.
+
+### Pendiente menor registrado (asset de imagen, no texto — para después)
+- El logo mostrado en las páginas de verificación de correo y recuperación de contraseña (`valid_email.html`, `password_recover.html`) sigue usando la imagen vieja `static/app-assets/images/pages/login_nom035.png` (diseño "NOM 035 / IHES"). Es un archivo de imagen, no texto — necesita un asset nuevo con la marca NormaIA (mismo flujo que usamos con Replit para la landing).
+- Nota aparte: el texto "NormalA" que se ve en la captura de esas páginas **sí dice "NormaIA" correctamente en el código** (`valid_email.html:62`) — es solo la tipografía de esa página, donde la "I" mayúscula se confunde visualmente con una "l" minúscula. No requiere corrección de texto, solo se resolvería si se actualiza la tipografía junto con el logo.
+
 ## PENDIENTE: más observaciones por llegar (Jorge sigue enviando antes de armar el prompt final para Replit)
 
 Jorge las irá pasando conforme los socios se las compartan. Se agregan aquí mismo conforme lleguen, verificadas contra el código antes de anotarlas como "confirmado" o "por verificar".
