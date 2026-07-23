@@ -2033,3 +2033,117 @@ este listo.
    (pagina principal) con informacion real del sistema, precios de
    paquetes actuales, mencion del perfil narrativo con IA, y beneficios --
    se va a trabajar con Replit, en otra sesion
+
+# ============================================================
+# LANDING REDISENADA + STRIPE ACTIVADO + CORRECCIONES FASE 1
+# Fecha: 23 Jul 2026 (sesion 22)
+# ============================================================
+
+## Local oficial a partir de ahora
+`C:\NormaIA-Pruebas\nom035` -- reemplaza la ruta vieja de `Documents\nom 035\nom035`.
+Venv Python 3.10 ya reconstruido ahi (ver sesion de VPS arriba).
+
+## 1. Landing page -- rediseño completo en 2 rondas, ya en produccion (VPS)
+- **Ronda 1**: precios reales (los de `stripe_plans.py`, no inventados),
+  perfil narrativo con IA mencionado, 6 instrumentos correctos, Clima
+  Laboral marcado como incluido solo en NOM-035/Suite (no en Psicometria
+  sola -- verificado contra el codigo: el acceso depende de
+  `stripe_plan_key`, no de `psico_plan_key`).
+- **Ronda 2**: rediseño completo de 20 secciones (hero con mockup
+  ilustrativo, demo gratuita explicada, seccion propia de Perfil
+  Narrativo con IA + aviso de limites, seguridad y privacidad, FAQ con
+  10 preguntas verificadas contra el comportamiento real del sistema,
+  formulario de contacto conectado al endpoint real `/contact/`,
+  eventos de analitica via `trackEvent()` stub). Sin testimonios ni
+  logos de empresas ficticias mas alla de los ya existentes (se dejaron
+  como placeholder por decision de Jorge).
+- Ambas rondas se construyeron con prompts para Replit (mismo flujo que
+  las vistas anteriores), revisadas por Claude antes de integrar
+  (balance de tags, elementos funcionales, backups `_pre_*` creados).
+- **Bug encontrado y corregido en el camino**: renombrar `Dockerfile` a
+  `Dockerfile.vps` (+ actualizar `docker-compose.yml`) porque Railway
+  auto-detectaba el Dockerfile e ignoraba `railway.json` (que fuerza
+  NIXPACKS), causando "Application failed to respond" en Railway
+  staging y en el servicio Railway "produccion" de pruebas (ninguno es
+  la produccion real, que es el VPS). VPS no se vio afectado.
+
+## 2. Stripe activado en modo test en el VPS
+Llaves reales de Stripe test (`pk_test_`/`sk_test_`) y webhook
+(`whsec_`, apuntando a `https://normaia.ihes.mx/stripe/webhook/`,
+eventos: checkout.session.completed, invoice.paid,
+invoice.payment_failed, customer.subscription.updated) configuradas en
+el `.env` del VPS. Compra de prueba con tarjeta `4242 4242 4242 4242`
+confirmada funcionando end-to-end por Jorge.
+
+**Leccion tecnica importante**: `docker compose restart` NO relee el
+`.env` -- hay que usar `docker compose up -d web` (recrea el
+contenedor) para que tome variables de entorno nuevas. Aplica para
+cualquier cambio futuro de `.env` en el VPS.
+
+## 3. Documento nuevo: SOCIOS_feedback_correcciones.md
+Documento vivo en la raiz del repo donde Jorge va acumulando
+observaciones de los socios (screenshots, comentarios) conforme se las
+comparten. Cada observacion se verifica contra el codigo real antes de
+anotarla como confirmada. Incluye tambien un plan de 3 fases acordado
+con Jorge para no atrasar el trabajo: Fase 1 = correcciones puntuales
+(bugs), Fase 2 = indicador general + recomendaciones de solo lectura,
+Fase 3 = rediseño visual completo + funcionalidad con estado. Revisar
+ese archivo para la lista completa y detallada de hallazgos, incluyendo
+varias propuestas de mejora importantes (ej. "Riesgo General" tipo
+Cfinal de la norma, conteo de dominios por nivel, recomendaciones
+automaticas basadas en el numeral 8.2 de la NOM-035 -- pendientes,
+Fase 2/3).
+
+## 4. Fase 1 completa -- correcciones desplegadas en VPS y confirmadas por Jorge
+- Tarjeta "Dimensiones de riesgo" del Dashboard: calculaba el nivel con
+  un porcentaje generico (20/40/60/80%) en vez de los umbrales
+  oficiales por dominio de la Guia II de la norma (los mismos que ya
+  usaba correctamente `get_chart_data`) -- corregido, ahora usa los
+  umbrales reales de cada dominio.
+- Etiqueta "Dimensiones de riesgo" -> "Dominios de riesgo" (son 8
+  dominios, no dimensiones -- las dimensiones son 20, subdivisiones
+  dentro de los dominios; observacion correcta de un socio).
+- Insignia "Mas popular"/"Mejor valor" en `/planes/` aparecia en los 3
+  planes de cada tab a la vez (la condicion comparaba `periodo`, que
+  coincidia en los 3; en Psicometria la condicion nunca se cumplia,
+  bug opuesto) -- corregido para comparar contra el `plan_key`
+  especifico de cada tab.
+- Correo muerto `n035.ihes@gmail.com` (cuenta inexistente/sin acceso)
+  reemplazado por `normaia.sistemas@gmail.com` en 7 lugares del codigo,
+  incluyendo el destino real del formulario de contacto de la landing
+  (antes se perdian silenciosamente los mensajes).
+- Correo de bienvenida al registro activado (estaba comentado): llega
+  al usuario nuevo Y notificacion interna a
+  normaia.sistemas@gmail.com.
+- **Bug funcional serio encontrado y corregido**: el link de
+  "Recuperar contraseña" del correo apuntaba a
+  `/email_verification/<code>/<token>` (vista `EmailVerification`) en
+  vez de `/password_recover/<code>/<token>` (vista `PasswordRecover`,
+  la que muestra el formulario de contraseña nueva) -- por eso el
+  usuario llegaba a la pantalla de "correo verificado" y la contraseña
+  nunca se actualizaba. Confirmado corregido por Jorge en produccion.
+- Links de verificacion/recuperacion en el correo apuntaban al dominio
+  viejo `035.ihes.mx` en vez de `normaia.ihes.mx` -- corregido.
+- Marca "IHES" -> "NormaIA" en title/meta de `register-template.html`.
+- Copyright hardcodeado a "2027" -> dinamico (`{% now "Y" %}`) en
+  `valid_email.html`, `password_recover.html`, `survey.html`. Typo
+  "nuesra aplicacion movil" -> "nuestra aplicacion movil".
+- Todo Fase 1 confirmado funcionando en produccion (VPS) por Jorge.
+
+## PENDIENTE (para la proxima sesion)
+1. Seguir recibiendo y registrando observaciones de los socios en
+   `SOCIOS_feedback_correcciones.md` (Jorge las sigue mandando).
+2. Fase 2 del plan: implementar el indicador "Riesgo General" (Cfinal,
+   umbrales ya definidos por la norma), conteo/distribucion de
+   dominios por nivel, recomendaciones de solo lectura basadas en el
+   numeral 8.2 de la norma, y enlaces directos a Evidencias/Clima
+   Laboral desde la ficha del centro de trabajo.
+3. Logo viejo "NOM 035/IHES" (`static/app-assets/images/pages/login_nom035.png`,
+   usado en `valid_email.html` y `password_recover.html`) -- pendiente
+   de reemplazar por un asset con la marca NormaIA.
+4. Railway staging sigue con el problema de Nixpacks/python no
+   detectado correctamente (quedo pendiente de resolver, no bloqueante
+   ya que la produccion real es el VPS).
+5. Pendientes menores de sesiones previas siguen sin resolver: warning
+   de migracion no reflejada (choices PsychoInstrument), division
+   float en employees_dt, rotar credenciales del VPS por higiene.
