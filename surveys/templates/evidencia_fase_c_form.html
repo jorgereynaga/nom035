@@ -49,23 +49,9 @@
     <div class="section-card-title">{{ tipo_display }} — {{ workplace.name }}</div>
   </div>
   <div class="section-card-body">
-    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">Sube el archivo correspondiente a esta evidencia. Formatos permitidos: PDF, JPG, PNG. Tamaño máximo: 10 MB.</p>
+    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">Marca el estado de este elemento documental. Este dato alimenta el % de cumplimiento documental del centro de trabajo.</p>
 
-    {% if evidencias %}
-    <div style="margin-bottom:20px;">
-      {% for ev in evidencias %}
-      <div class="evidencia-item">
-        <div>
-          <div>{{ ev.archivo.name|slice:"20:" }}</div>
-          <div class="evidencia-meta">Subido el {{ ev.fecha_carga|date:"d/m/Y H:i" }}{% if ev.notas %} — {{ ev.notas }}{% endif %}</div>
-        </div>
-        <a href="{% url 'download_evidencia_fase_c' ev.id %}" target="_blank" class="evidencia-link">Ver archivo</a>
-      </div>
-      {% endfor %}
-    </div>
-    {% endif %}
-
-    <form method="post" enctype="multipart/form-data">
+    <form method="post">
       {% csrf_token %}
       {% for field in form %}
       <div class="form-group">
@@ -76,7 +62,7 @@
         {% endif %}
       </div>
       {% endfor %}
-      <button type="submit" class="btn btn-primary">Subir evidencia</button>
+      <button type="submit" class="btn btn-primary">Guardar estado</button>
     </form>
   </div>
 </div>

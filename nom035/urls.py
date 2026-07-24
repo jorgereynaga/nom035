@@ -99,7 +99,8 @@ urlpatterns = [
     path('get_portafolio_status/', get_portafolio_status, name='get_portafolio_status'),
     path('descargar/logo/', download_logo, name='download_logo'),
     path('descargar/resultado/<int:workplace_id>/<int:result_id>/', download_result_image, name='download_result_image'),
-    path('descargar/evidencia/<int:evidencia_id>/', download_evidencia_fase_c, name='download_evidencia_fase_c'),
+    # Reemplazado en Fase 2-B (2026-07) por checklist de estado. Descomentar si se revierte la eliminacion de subida de archivos.
+    # path('descargar/evidencia/<int:evidencia_id>/', download_evidencia_fase_c, name='download_evidencia_fase_c'),
     path('files/tmp/<int:user_id>/<str:file_name>', download_file),
     path('files/charts/<int:workplace_id>/<str:evaluation>/<str:file_name>', download_file2),
     #re_path(r'^(?:663egpo6oxo1uuwg7y2hcttf3hqcga.html)?$', serve, kwargs={'path': '/663egpo6oxo1uuwg7y2hcttf3hqcga.html'}),

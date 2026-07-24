@@ -281,7 +281,7 @@
         </div>
         <div class="compliance-banner-text">
           <p class="compliance-banner-title">Cumplimiento NOM-035</p>
-          <p class="compliance-banner-sub">Checklist de documentos y evidencias requeridos por la norma</p>
+          <p class="compliance-banner-sub">${cumplimiento_pct}% completado — Checklist de documentos y evidencias requeridos por la norma</p>
         </div>
       </div>
 
@@ -456,7 +456,8 @@ window.onload = function () {
     data: {
       workplace: null,
       results: [],
-      portafolio_status: []
+      portafolio_status: [],
+      cumplimiento_pct: 0
     },
     methods: {
       loadJsonData(){
@@ -484,6 +485,7 @@ window.onload = function () {
             dataType: 'json',
             success: function(data){
               dis.portafolio_status = data.items;
+              dis.cumplimiento_pct = data.porcentaje_cumplimiento || 0;
             }
           });
         });
