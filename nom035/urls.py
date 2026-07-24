@@ -84,6 +84,7 @@ urlpatterns = [
     # path('survey/<str:workplace_uuid>/', SurveyView.as_view(), name='survey'),
     path('get_questions/', get_questions, name='get_questions'),
     path('get_chart_data/', get_chart_data, name='get_chart_data'),
+    path('get_riesgo_general/', get_riesgo_general, name='get_riesgo_general'),
     path('get_results/', get_results, name='get_results'),
     path('add_evidence/', add_evidence, name='add_evidence'),
     path('get_workplaces/', get_workplaces, name='get_workplaces'),

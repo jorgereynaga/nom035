@@ -187,13 +187,31 @@
 .chart-tabs-nav label svg { width: 14px; height: 14px; }
 .chart-tabs-nav label:hover { background: rgba(79,70,229,.08); color: var(--primary); }
 .chart-tab-pair { display: none; flex-direction: column; gap: 18px; padding: 20px; }
+#tab-resumen:checked ~ .chart-tabs-body #pair-resumen,
 #tab-cat:checked ~ .chart-tabs-body #pair-cat,
 #tab-dom:checked ~ .chart-tabs-body #pair-dom,
 #tab-dim:checked ~ .chart-tabs-body #pair-dim { display: flex; }
+#tab-resumen:checked ~ .chart-tabs-nav label[for="tab-resumen"],
 #tab-cat:checked ~ .chart-tabs-nav label[for="tab-cat"],
 #tab-dom:checked ~ .chart-tabs-nav label[for="tab-dom"],
 #tab-dim:checked ~ .chart-tabs-nav label[for="tab-dim"] { background: var(--primary); color: #fff; }
 .chart-tab-pair .chart-card { box-shadow: none; border-color: var(--border); }
+.resumen-card { display: flex; flex-direction: column; gap: 14px; }
+.resumen-card h3 { margin: 0; font-size: 16px; color: var(--text-primary); }
+.resumen-card p { margin: 0; line-height: 1.65; color: var(--text-secondary); }
+.resumen-card ul { margin: 0; padding-left: 20px; color: var(--text-secondary); }
+.resumen-riesgo-badge {
+  display: inline-flex; align-items: baseline; gap: 10px; align-self: flex-start;
+  padding: 12px 18px; border-radius: var(--radius-md);
+  color: #1f2937; font-size: 20px; font-weight: 800;
+}
+.resumen-riesgo-badge small { font-size: 12px; font-weight: 700; }
+.dominio-recomendacion-item {
+  border-left: 5px solid var(--border); background: var(--bg-surface);
+  border-radius: var(--radius-md); padding: 14px 16px; margin-bottom: 12px;
+}
+.dominio-recomendacion-item:last-child { margin-bottom: 0; }
+.dominio-recomendacion-item strong { display: block; margin-bottom: 6px; color: var(--text-primary); }
 
 /* ── DataTable card ──────────────────────────────────────── */
 .dt-card {
@@ -355,11 +373,16 @@ table.dataTable tbody tr:last-child td { border-bottom: none !important; }
 <!-- ── Charts (agrupadas en pestañas: Categoría / Dominio / Dimensión) ── -->
 <div class="charts-section">
   <div class="chart-tabs">
-    <input type="radio" name="chart-tab" id="tab-cat" checked>
+    <input type="radio" name="chart-tab" id="tab-resumen" checked>
+    <input type="radio" name="chart-tab" id="tab-cat">
     <input type="radio" name="chart-tab" id="tab-dom">
     <input type="radio" name="chart-tab" id="tab-dim">
 
     <div class="chart-tabs-nav">
+      <label for="tab-resumen">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V9"/><path d="M10 19V5"/><path d="M16 19v-7"/><path d="M22 19H2"/></svg>
+        Resumen
+      </label>
       <label for="tab-cat">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
         Categoría
@@ -375,6 +398,26 @@ table.dataTable tbody tr:last-child td { border-bottom: none !important; }
     </div>
 
     <div class="chart-tabs-body">
+      <div class="chart-tab-pair" id="pair-resumen">
+        <div class="chart-card resumen-card" id="resumen-riesgo">
+          <h3>Riesgo psicosocial</h3>
+          <div id="resumen-riesgo-contenido"></div>
+          <ul id="resumen-distribucion"></ul>
+        </div>
+        <div class="chart-card resumen-card" id="resumen-dominios">
+          <h3>Dominios por nivel de riesgo</h3>
+          <ul id="resumen-dominios-conteo"></ul>
+        </div>
+        <div class="chart-card resumen-card" id="resumen-recomendacion-general">
+          <h3>Qué exige la norma en este nivel</h3>
+          <p id="resumen-recomendacion-texto"></p>
+        </div>
+        <div class="chart-card resumen-card" id="resumen-recomendaciones-dominios">
+          <h3>Acciones recomendadas por dominio</h3>
+          <div id="resumen-recomendaciones-lista"></div>
+        </div>
+      </div>
+
       <div class="chart-tab-pair" id="pair-cat">
         <div class="chart-card">
           <p class="chart-card-title">
@@ -507,7 +550,6 @@ table.dataTable tbody tr:last-child td { border-bottom: none !important; }
                 success: function(data){
                     if (data.status=="no_data"){
                         $("#status").text("No existen suficientes datos")
-                        $(".charts-section").empty()
                         myChart.clear();
                         myChart2.clear();
                         myChart3.clear();
@@ -719,7 +761,63 @@ table.dataTable tbody tr:last-child td { border-bottom: none !important; }
                 }
             })
         }
+        function loadRiesgoGeneral() {
+            $.ajax({
+                url: "{% url 'get_riesgo_general' %}",
+                data:{"workplace_id":"{{workplace_id}}","evaluation":"{{evaluation}}"},
+                dataType: 'json',
+                success: function(data){
+                    if (data.status=="no_data"){
+                        $("#pair-resumen").html('<div class="chart-card resumen-card"><p>No existen suficientes datos</p></div>');
+                        return;
+                    }
+                    if (data.status!="ok"){
+                        return;
+                    }
+
+                    var niveles = {0:"Nulo",1:"Bajo",2:"Medio",3:"Alto",4:"Muy alto"};
+                    var colores = {0:"#9be5f7",1:"#6bf56e",2:"#ffff00",3:"#ffc000",4:"#ff7070"};
+                    var riesgo = data.riesgo_general;
+                    var badge = $("<div>", {"class":"resumen-riesgo-badge"}).css("background", colores[riesgo.nivel]);
+                    badge.append($("<span>").text(riesgo.nivel_nombre));
+                    badge.append($("<small>").text("Promedio: "+riesgo.promedio));
+                    $("#resumen-riesgo-contenido").empty().append(badge);
+                    $("#resumen-riesgo-contenido").append(
+                        $("<p>").text("Este indicador resume el nivel de riesgo psicosocial detectado en las respuestas del cuestionario. El cumplimiento de la NOM-035 depende de las acciones documentales del Capítulo 5 (política, difusión, programa de intervención), no de este resultado.")
+                    );
+
+                    var distribucion = $("#resumen-distribucion").empty();
+                    $.each(niveles, function(nivel, nombre){
+                        var cantidad = riesgo.distribucion[nivel] || 0;
+                        if (cantidad>0){
+                            distribucion.append($("<li>").text(cantidad+" de "+riesgo.total_empleados+" empleados en "+nombre));
+                        }
+                    });
+
+                    $("#resumen-recomendacion-texto").text(data.recomendacion_general);
+                    var conteo = $("#resumen-dominios-conteo").empty();
+                    $.each(niveles, function(nivel, nombre){
+                        var cantidad = data.dominios.conteo_por_nivel[nivel] || 0;
+                        if (cantidad>0){
+                            conteo.append($("<li>").text(cantidad+" dominios en "+nombre));
+                        }
+                    });
+
+                    var recomendaciones = $("#resumen-recomendaciones-lista").empty();
+                    $.each(data.dominios.detalle, function(_, dominio){
+                        if (!dominio.recomendacion){
+                            return;
+                        }
+                        var item = $("<div>", {"class":"dominio-recomendacion-item"}).css("border-left-color", colores[dominio.nivel]);
+                        item.append($("<strong>").text(dominio.nombre+" — "+dominio.nivel_nombre));
+                        item.append($("<p>").text(dominio.recomendacion));
+                        recomendaciones.append(item);
+                    });
+                }
+            })
+        }
         loadChart();
+        loadRiesgoGeneral();
         $("#dept_id").change(function(){ loadChart(); });
         if (typeof $.fn.tooltip === 'function') { $('[data-toggle="tooltip"]').tooltip(); }
         var table=$("#list").DataTable({

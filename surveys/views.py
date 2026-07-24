@@ -1841,6 +1841,151 @@ def get_chart_data(request):
 		status="no_data"
 	return JsonResponse({"status":status,'count':e_count,'data':data,'total_level':data3,'total_cat':data4,'data2':data2,'total_dim':data6,'data5':data5,'employees':employee_names,'cat':cat,'dimensions':dimensions,'domains':domains})
 
+def get_riesgo_general(request):
+	workplace_id=request.GET.get('workplace_id',None)
+	if not Workplace.objects.filter(id=workplace_id, user=request.user).exists():
+		return JsonResponse({'error':'not_found'}, status=403)
+	evaluation=request.GET.get('evaluation',None)
+	wk=Workplace.objects.filter(id=workplace_id).last()
+	if evaluation is None:
+		evaluation=wk.evaluation
+	employees=Employee.objects.filter(workplace_id=workplace_id)
+	guia3 = wk.survey_type()==3
+
+	domainsB={"Condiciones en el ambiente de trabajo":["r3_p1","r3_p2","r3_p3","r3_p4","r3_p5"],
+		"Carga de trabajo":["r3_p6","r3_p7","r3_p8","r3_p9","r3_p10","r3_p11","r3_p12","r3_p13","r3_p14","r3_p15","r3_p16","r3_p65","r3_p66","r3_p67","r3_p68"],
+		"Falta de control sobre el trabajo":["r3_p23","r3_p24","r3_p25","r3_p26","r3_p27","r3_p28","r3_p29","r3_p30","r3_p35","r3_p36",],
+		"Jornada de trabajo":["r3_p17","r3_p18",],
+		"Interferencia en la relación trabajo-familia":["r3_p19","r3_p20","r3_p21","r3_p22"],
+		"Liderazgo":["r3_p31","r3_p32","r3_p33","r3_p34","r3_p37","r3_p38","r3_p39","r3_p40","r3_p41"],
+		"Relaciones en el trabajo":["r3_p42","r3_p43","r3_p44","r3_p45","r3_p46","r3_p69","r3_p70","r3_p71","r3_p72",],
+		"Violencia":["r3_p57","r3_p58","r3_p59","r3_p60","r3_p61","r3_p62","r3_p63","r3_p64",],
+		"Reconocimiento del desempeño":["r3_p47","r3_p48","r3_p49","r3_p50","r3_p51","r3_p52",],
+		"Insuficiente sentido de pertenencia e inestabilidad":["r3_p53","r3_p54","r3_p55","r3_p56",]
+	}
+	domainsA={"Condiciones en el ambiente de trabajo":["r2_p1","r2_p2","r2_p3"],
+		"Carga de trabajo":["r2_p4","r2_p5","r2_p6","r2_p7","r2_p8","r2_p9","r2_p10","r2_p11","r2_p12","r2_p13","r2_p41","r2_p42","r2_p43"],
+		"Falta de control sobre el trabajo":["r2_p18","r2_p19","r2_p20","r2_p21","r2_p22","r2_p26","r2_p27",],
+		"Jornada de trabajo":["r2_p14","r2_p15"],
+		"Interferencia en la relación trabajo-familia":["r2_p16","r2_p17"],
+		"Liderazgo":["r2_p23","r2_p24","r2_p25","r2_p28","r2_p29"],
+		"Relaciones en el trabajo":["r2_p30","r2_p31","r2_p32","r2_p44","r2_p45","r2_p46"],
+		"Violencia":["r2_p33","r2_p34","r2_p35","r2_p36","r2_p37","r2_p38","r2_p39","r2_p40"],
+	}
+
+	UMBRALES_DOMINIO_GUIA_II = {
+		"Condiciones en el ambiente de trabajo": [3,5,7,9],
+		"Carga de trabajo": [12,16,20,24],
+		"Falta de control sobre el trabajo": [5,8,11,14],
+		"Jornada de trabajo": [1,2,4,6],
+		"Interferencia en la relación trabajo-familia": [1,2,4,6],
+		"Liderazgo": [3,5,8,11],
+		"Relaciones en el trabajo": [5,8,11,14],
+		"Violencia": [7,10,13,16],
+	}
+	UMBRALES_DOMINIO_GUIA_III = {
+		"Condiciones en el ambiente de trabajo": [5,9,11,14],
+		"Carga de trabajo": [15,21,27,37],
+		"Falta de control sobre el trabajo": [11,16,21,25],
+		"Jornada de trabajo": [1,2,4,6],
+		"Interferencia en la relación trabajo-familia": [4,6,8,10],
+		"Liderazgo": [9,12,16,20],
+		"Relaciones en el trabajo": [10,13,17,21],
+		"Violencia": [7,10,13,16],
+		"Reconocimiento del desempeño": [6,10,14,18],
+		"Insuficiente sentido de pertenencia e inestabilidad": [4,6,8,10],
+	}
+	UMBRALES_CFINAL_GUIA_II = [20,45,70,90]
+	UMBRALES_CFINAL_GUIA_III = [50,75,99,140]
+	NIVEL_NOMBRE = {0:"Nulo",1:"Bajo",2:"Medio",3:"Alto",4:"Muy alto"}
+
+	def clasificar_nivel(valor, umbrales):
+		if valor < umbrales[0]: return 0
+		if valor < umbrales[1]: return 1
+		if valor < umbrales[2]: return 2
+		if valor < umbrales[3]: return 3
+		return 4
+
+	RECOMENDACION_NIVEL_GENERAL = {
+		4: "Se requiere realizar el análisis de cada categoría y dominio para establecer las acciones de intervención apropiadas, mediante un Programa de intervención que deberá incluir evaluaciones específicas, y contemplar campañas de sensibilización, revisar la política de prevención de riesgos psicosociales y programas para la prevención de los factores de riesgo psicosocial, la promoción de un entorno organizacional favorable y la prevención de la violencia laboral, así como reforzar su aplicación y difusión.",
+		3: "Se requiere realizar un análisis de cada categoría y dominio, de manera que se puedan determinar las acciones de intervención apropiadas a través de un Programa de intervención, que podrá incluir una evaluación específica y deberá incluir una campaña de sensibilización, revisar la política de prevención de riesgos psicosociales y programas para la prevención de los factores de riesgo psicosocial, la promoción de un entorno organizacional favorable y la prevención de la violencia laboral, así como reforzar su aplicación y difusión.",
+		2: "Se requiere revisar la política de prevención de riesgos psicosociales y programas para la prevención de los factores de riesgo psicosocial, la promoción de un entorno organizacional favorable y la prevención de la violencia laboral, así como reforzar su aplicación y difusión, mediante un Programa de intervención.",
+		1: "Es necesario una mayor difusión de la política de prevención de riesgos psicosociales y programas para: la prevención de los factores de riesgo psicosocial, la promoción de un entorno organizacional favorable y la prevención de la violencia laboral.",
+		0: "El riesgo resulta despreciable por lo que no se requiere medidas adicionales.",
+	}
+	RECOMENDACION_DOMINIO_82 = {
+		"Condiciones en el ambiente de trabajo": "El numeral 8.2 de la norma no contempla un catálogo específico para este dominio (regula prevención psicosocial y violencia, no condiciones físicas del lugar de trabajo). Se recomienda revisar las condiciones de seguridad e higiene del centro conforme a la normatividad aplicable (ej. NOM-030-STPS).",
+		"Carga de trabajo": "Numeral 8.2 b): revisión y supervisión de que la distribución de la carga de trabajo se realice de forma equitativa, considerando el número de trabajadores, actividades a desarrollar, alcance de la actividad y su capacitación; planificar el trabajo con las pausas o periodos necesarios de descanso y rotación de tareas para evitar ritmos acelerados; e instructivos o procedimientos que definan claramente las tareas y responsabilidades.",
+		"Falta de control sobre el trabajo": "Numeral 8.2 c): involucrar a los trabajadores en la toma de decisiones sobre la organización de su trabajo y en la mejora de las condiciones de trabajo y la productividad; acordar y mejorar el margen de libertad y control sobre su trabajo, impulsando el desarrollo de nuevas competencias; y reuniones para abordar áreas de oportunidad y determinar soluciones.",
+		"Jornada de trabajo": "Numeral 8.2 e), numeral 2): establecer lineamientos con medidas y límites que eviten las jornadas de trabajo superiores a las previstas en la Ley Federal del Trabajo.",
+		"Interferencia en la relación trabajo-familia": "Numeral 8.2 e): involucrar a los trabajadores en la definición de los horarios de trabajo cuando las condiciones lo permitan; apoyos para atender emergencias familiares comprobables; y promoción de actividades de integración familiar previo acuerdo con los trabajadores.",
+		"Liderazgo": "Numeral 8.2 a): acciones para el manejo de conflictos, distribución de tiempos y determinación de prioridades en el trabajo; lineamientos contra la discriminación que fomenten equidad y respeto; mecanismos de comunicación entre supervisores/gerentes y trabajadores; instrucciones claras para atender problemas que limiten el trabajo; y capacitación/sensibilización de directivos, gerentes y supervisores.",
+		"Relaciones en el trabajo": "Numerales 8.2 a) y d): además de lo señalado para Liderazgo, fomentar el apoyo social — relaciones entre trabajadores, supervisores, gerentes y patrones; reuniones periódicas (semestrales o anuales) de seguimiento; promoción de la ayuda mutua e intercambio de experiencias; y fomento de actividades culturales y deportivas.",
+		"Violencia": "Numeral 8.2 g): difundir información para sensibilizar sobre violencia laboral a trabajadores, directivos, gerentes y supervisores; establecer procedimientos de actuación y seguimiento capacitando al responsable de su implementación; e informar sobre cómo denunciar actos de violencia laboral.",
+		"Reconocimiento del desempeño": "Numeral 8.2 f): reconocer el desempeño sobresaliente de los trabajadores, difundir sus logros y, en su caso, expresarles sus posibilidades de desarrollo.",
+		"Insuficiente sentido de pertenencia e inestabilidad": "Numerales 8.2 h) y f): promover comunicación directa y frecuente sobre problemas que afecten el trabajo, difundir cambios en la organización, dar oportunidad a los trabajadores de expresar opiniones sobre mejoras, y reforzar el reconocimiento del desempeño (ver dominio Reconocimiento).",
+	}
+
+	domains_dict = domainsB if guia3 else domainsA
+	umbrales_dominio = UMBRALES_DOMINIO_GUIA_III if guia3 else UMBRALES_DOMINIO_GUIA_II
+	umbrales_cfinal = UMBRALES_CFINAL_GUIA_III if guia3 else UMBRALES_CFINAL_GUIA_II
+	survey_model = RiskSurveyB if guia3 else RiskSurveyA
+
+	cfinal_por_empleado = []
+	sumas_por_dominio = {d: [] for d in domains_dict}
+
+	for emp in employees:
+		survey = emp.surveyB.filter(evaluation=evaluation).last() if guia3 else emp.surveyA.filter(evaluation=evaluation).last()
+		if not survey:
+			continue
+		emp_cfinal = 0
+		for domain, preguntas in domains_dict.items():
+			_sum = 0
+			for question in preguntas:
+				_sum += getattr(survey, survey_model._meta.get_field(question).attname) or 0
+			sumas_por_dominio[domain].append(_sum)
+			emp_cfinal += _sum
+		cfinal_por_empleado.append(emp_cfinal)
+
+	if not cfinal_por_empleado:
+		return JsonResponse({'status': 'no_data'})
+
+	promedio_cfinal = sum(cfinal_por_empleado) / len(cfinal_por_empleado)
+	nivel_general = clasificar_nivel(promedio_cfinal, umbrales_cfinal)
+	distribucion = {0:0, 1:0, 2:0, 3:0, 4:0}
+	for c in cfinal_por_empleado:
+		distribucion[clasificar_nivel(c, umbrales_cfinal)] += 1
+
+	dominios_detalle = []
+	conteo_dominios_nivel = {0:0, 1:0, 2:0, 3:0, 4:0}
+	for domain in domains_dict:
+		valores = sumas_por_dominio[domain]
+		promedio_dom = sum(valores) / len(valores) if valores else 0
+		nivel_dom = clasificar_nivel(promedio_dom, umbrales_dominio[domain])
+		conteo_dominios_nivel[nivel_dom] += 1
+		dominios_detalle.append({'nombre': domain, 'nivel': nivel_dom, 'nivel_nombre': NIVEL_NOMBRE[nivel_dom]})
+
+	for d in dominios_detalle:
+		if d['nivel'] >= 2:
+			d['recomendacion'] = RECOMENDACION_DOMINIO_82.get(d['nombre'], '')
+
+	return JsonResponse({
+		'status': 'ok',
+		'guia': 3 if guia3 else 2,
+		'riesgo_general': {
+			'promedio': round(promedio_cfinal, 1),
+			'nivel': nivel_general,
+			'nivel_nombre': NIVEL_NOMBRE[nivel_general],
+			'distribucion': distribucion,
+			'total_empleados': len(cfinal_por_empleado),
+		},
+		'recomendacion_general': RECOMENDACION_NIVEL_GENERAL[nivel_general],
+		'dominios': {
+			'conteo_por_nivel': conteo_dominios_nivel,
+			'detalle': dominios_detalle,
+		},
+	})
+
 class ValidateCodeList(generics.ListCreateAPIView):
 	queryset = Workplace.objects.all()
 	serializer_class = WorkplaceSerializer
