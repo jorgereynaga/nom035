@@ -1,4 +1,8 @@
+from django.conf import settings
+from django.core.files.storage import FileSystemStorage
 from django.db import migrations, models
+
+protected_storage = FileSystemStorage(location=settings.PROTECTED_MEDIA_ROOT)
 
 
 def borrar_evidencias_fase_c(apps, schema_editor):
@@ -32,5 +36,15 @@ class Migration(migrations.Migration):
 		migrations.AlterUniqueTogether(
 			name='evidenciafasec',
 			unique_together={('workplace', 'tipo')},
+		),
+		# El campo 'archivo' se comento en el modelo (Fase 2-B), pero la columna
+		# de la BD seguia siendo NOT NULL desde la migracion 0037 -- sin esto,
+		# cualquier fila nueva fallaria al insertarse porque el ORM ya no la
+		# puebla. No se elimina la columna (se conserva por si se revierte el
+		# cambio), solo se relaja la restriccion.
+		migrations.AlterField(
+			model_name='evidenciafasec',
+			name='archivo',
+			field=models.FileField(blank=True, null=True, storage=protected_storage, upload_to='evidencias_fase_c/%Y/%m/', verbose_name='Archivo'),
 		),
 	]
