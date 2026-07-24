@@ -13,7 +13,7 @@
 
 Los socios pidieron un indicador de riesgo general del centro de trabajo, un conteo de cuántos dominios caen en cada nivel, y recomendaciones automáticas de intervención. La propuesta fue documentada, revisada externamente (incluye una revisión con ChatGPT) y aprobada por Jorge — ver `SOCIOS_feedback_correcciones.md` hallazgo 5.2/5.3 y el documento `Propuesta_Fase2_NOM035_v2.docx` compartido con los socios (no está en el repo, es solo contexto de la decisión).
 
-**Principio no negociable**: esta pantalla muestra **riesgo psicosocial**, no cumplimiento normativo. El cumplimiento documental es un indicador *separado* (ver Fase 2-B, `FASE2_B_especificacion_cumplimiento_documental.md`, lote aparte). En ningún texto de este lote debe aparecer la palabra "Cumplimiento" — usar siempre "Riesgo".
+**Principio no negociable**: esta pantalla muestra **riesgo psicosocial**, no cumplimiento normativo. El cumplimiento documental es un indicador *separado* (ver Fase 2-B, `FASE2_B_especificacion_cumplimiento_documental.md`, lote aparte). La regla exacta es: **ningún badge, número, título o card de este lote puede estar ETIQUETADO con la palabra "Cumplimiento"** (siempre "Riesgo" para lo que aquí se calcula — ej. nunca "Cumplimiento: Medio" ni "Cumplimiento NOM-035: X%" aplicado a datos de riesgo). Esto NO prohíbe la palabra dentro de oraciones explicativas que aclaren la diferencia entre ambos conceptos — de hecho la leyenda fija del punto 3.3 la usa correctamente para eso, y debe conservarse literal.
 
 La norma (NOM-035-STPS-2018, Guías II y III) define `Cdom` (calificación por dominio), `Ccat` (por categoría) y `Cfinal` (calificación total del cuestionario) **por cuestionario individual**, no agregado entre empleados. No existe una fórmula oficial para agregar varios empleados en un solo número por centro. La decisión de producto (confirmada con los socios) es: **promediar** la suma cruda de cada empleado (por dominio y total) y clasificar ese promedio contra los rangos oficiales — mostrando SIEMPRE junto al promedio la distribución real (cuántos empleados cayeron en cada nivel), para no esconder casos individuales graves.
 
@@ -225,7 +225,7 @@ No es necesario usar ECharts para esta pestaña — es contenido de texto/badges
 3. Confirmar que las otras 3 pestañas (Categoría/Dominio/Dimensión) siguen funcionando exactamente igual que antes (sin regresión) — clic en cada una, las gráficas ECharts se muestran y redimensionan correctamente.
 4. Probar un centro sin datos suficientes (`status: no_data`) y confirmar que el mensaje se muestra sin errores de JS en consola.
 5. Verificar manualmente 2-3 casos del cálculo con lápiz y papel contra un empleado de prueba conocido, comparando el Cfinal calculado por `get_riesgo_general` contra la suma manual de sus respuestas, para descartar un error de signo/índice en el bucle.
-6. Confirmar que en ningún texto visible de la nueva pestaña aparece la palabra "Cumplimiento".
+6. Confirmar que ningún badge/título/número de la nueva pestaña usa la palabra "Cumplimiento" como etiqueta (ej. el badge de Riesgo General se titula "Riesgo psicosocial" o similar, nunca "Cumplimiento"). La leyenda fija del punto 3.3 SÍ debe contener la frase completa tal cual está escrita, incluyendo la palabra "cumplimiento" dentro de la oración — eso es intencional, no es un error a corregir.
 
 ## Fuera de alcance de este lote (no tocar)
 - El checklist de evidencias / cumplimiento documental — es el lote `FASE2_B_especificacion_cumplimiento_documental.md`, aparte.
