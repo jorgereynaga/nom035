@@ -41,21 +41,36 @@ class PoliticaPrevencionForm(forms.Form):
     periodicidad_revision = forms.CharField(label='Periodicidad de revisión', max_length=50, initial='Anual', widget=forms.TextInput(attrs=_cls))
 
 
-class EvidenciaFaseCForm(forms.Form):
+class EvidenciaEstadoForm(forms.Form):
     _cls = {'class': 'form-control'}
-    archivo = forms.FileField(label='Archivo', widget=forms.ClearableFileInput(attrs=_cls))
+    estado = forms.ChoiceField(label='Estado', widget=forms.RadioSelect)
     notas = forms.CharField(label='Notas', required=False, widget=forms.Textarea(attrs=_cls))
-    def clean_archivo(self):
-        archivo = self.cleaned_data.get('archivo')
-        if archivo:
-            if archivo.size > 10 * 1024 * 1024:
-                raise forms.ValidationError('El archivo no debe superar 10 MB.')
-            ext = archivo.name.split('.')[-1].lower()
-            if ext not in ('pdf', 'jpg', 'jpeg', 'png'):
-                raise forms.ValidationError('Solo se permiten archivos PDF, JPG o PNG.')
-            from surveys.models import validar_contenido_archivo
-            try:
-                validar_contenido_archivo(archivo, ['pdf', 'jpg', 'jpeg', 'png'])
-            except ValidationError as e:
-                raise forms.ValidationError(str(e))
-        return archivo
+
+    def __init__(self, *args, binario=False, **kwargs):
+        super().__init__(*args, **kwargs)
+        from surveys.models import EvidenciaFaseC
+        if binario:
+            self.fields['estado'].choices = [('tienen', 'Realizado'), ('falta', 'No realizado')]
+        else:
+            self.fields['estado'].choices = EvidenciaFaseC.ESTADO_CHOICES
+
+
+# Reemplazado por EvidenciaEstadoForm en Fase 2-B (2026-07). Descomentar si se revierte la eliminacion de subida de archivos.
+# class EvidenciaFaseCForm(forms.Form):
+#     _cls = {'class': 'form-control'}
+#     archivo = forms.FileField(label='Archivo', widget=forms.ClearableFileInput(attrs=_cls))
+#     notas = forms.CharField(label='Notas', required=False, widget=forms.Textarea(attrs=_cls))
+#     def clean_archivo(self):
+#         archivo = self.cleaned_data.get('archivo')
+#         if archivo:
+#             if archivo.size > 10 * 1024 * 1024:
+#                 raise forms.ValidationError('El archivo no debe superar 10 MB.')
+#             ext = archivo.name.split('.')[-1].lower()
+#             if ext not in ('pdf', 'jpg', 'jpeg', 'png'):
+#                 raise forms.ValidationError('Solo se permiten archivos PDF, JPG o PNG.')
+#             from surveys.models import validar_contenido_archivo
+#             try:
+#                 validar_contenido_archivo(archivo, ['pdf', 'jpg', 'jpeg', 'png'])
+#             except ValidationError as e:
+#                 raise forms.ValidationError(str(e))
+#         return archivo

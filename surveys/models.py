@@ -1011,14 +1011,26 @@ class EvidenciaFaseC(models.Model):
 		('examen_medico', 'Examen medico/evaluacion psicologica'),
 		('medida_control', 'Medida de control/Programa de intervencion'),
 		('difusion', 'Evidencia de difusion de la politica'),
+		('registros', 'Registros de resultados y medidas de control'),
+		('mecanismos_queja', 'Mecanismos de queja/denuncia de violencia laboral'),
 	)
+	ESTADO_CHOICES = (
+		('tienen', 'Tienen'),
+		('trabajando', 'Lo estan trabajando'),
+		('falta', 'Les falta'),
+	)
+	# ESTADO_CHOICES_BINARIO se usa en el form para 'registros' y 'mecanismos_queja' (solo 2 opciones, ver forms.py)
 	workplace=models.ForeignKey(Workplace,related_name="evidencias_fase_c",verbose_name='Centro de trabajo', on_delete=models.CASCADE)
 	tipo=models.CharField(u'Tipo de evidencia', max_length=30, choices=TIPO_CHOICES)
-	archivo=models.FileField(u'Archivo', upload_to='evidencias_fase_c/%Y/%m/', storage=protected_storage)
+	estado=models.CharField(u'Estado', max_length=20, choices=ESTADO_CHOICES, default='falta')
+	# archivo=models.FileField(u'Archivo', upload_to='evidencias_fase_c/%Y/%m/', storage=protected_storage)  # eliminado 2026-07 (Fase 2-B): se reemplazo por checklist de estado para evitar crecimiento de disco. Descomentar si se decide revertir.
 	notas=models.TextField(u'Notas', blank=True)
 	fecha_carga=models.DateTimeField(auto_now_add=True)
+	fecha_actualizacion=models.DateTimeField(auto_now=True)
+	class Meta:
+		unique_together = ('workplace', 'tipo')
 	def __str__(self):
-		return f"{self.get_tipo_display()} - {self.workplace.name}"
+		return f"{self.get_tipo_display()} - {self.workplace.name} - {self.get_estado_display()}"
 
 
 class PlanPurchaseEvent(models.Model):
