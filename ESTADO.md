@@ -2507,10 +2507,49 @@ archivo, ni el extremo completo del kanban):**
 Detalle completo de esta decision en `SOCIOS_feedback_correcciones.md`,
 seccion "ACTUALIZACIÓN — Fase 3 dividida".
 
+## Fase 3-B — analisis jerarquico + comparativo historico — IMPLEMENTADA, MERGEADA A auditoria-local, PROBADA LOCAL (25 jul 2026)
+Spec `FASE3_B_especificacion_analisis_jerarquico_comparativo.md`, implementada por
+Codex, revisada por Claude (1 bug encontrado y corregido: `</div>` faltante en
+`chart-tabs-nav` de `workplace_results.html` que rompia el toggle CSS de las
+pestanas), commit `dd94cc40` en `fix/fase3-b-analisis-jerarquico-comparativo`,
+mergeada con `--no-ff` a `auditoria-local` (commit `b63683f1`). Validado con
+Django real (venv local): `py_compile`, `manage.py check`, `makemigrations --check`,
+`migrate`, y pruebas funcionales con datos reales (Guia II: 4 categorias/8
+dominios/20 dimensiones; Guia III: 5 categorias/10 dominios/25 dimensiones,
+dimensiones sin nivel de riesgo solo `%`). Prueba visual en navegador (jerarquia
+expandible, comparativo, sin errores de consola). Jorge probo tambien en local
+con datos de prueba y confirmo el comportamiento correcto de las pestanas nuevas.
+**Pendiente:** push de `auditoria-local` a GitHub y merge a `main` (deploy manual
+al VPS), sujeto a confirmacion explicita de Jorge.
+
+### HALLAZGO NUEVO durante pruebas locales de Fase 3-B — EndEvaluation no valida que la evaluacion actual este completa antes de avanzar
+Jorge detecto (probando el centro "Centro Riesgo B 5211016def", id 14) que el
+sistema permitio avanzar a "Evaluacion #2" aunque la Evaluacion #1 solo tenia
+1 de 51 empleados con encuesta contestada. Confirmado en codigo: `EndEvaluation`
+(`surveys/views.py`) solo bloquea centros demo (`workplace.es_demo`) antes de
+incrementar `workplace.evaluation` -- no valida ningun umbral de completitud
+(ej. % de empleados que contestaron) de la evaluacion que se esta cerrando.
+
+**Por que importa:** la logica de negocio de una segunda evaluacion es dar
+seguimiento a la primera ya completa -- si se permite avanzar sin datos
+suficientes, se pierde la comparacion util y el Comparativo de Fase 3-B mostraria
+evaluaciones "finalizadas" sin informacion real detras.
+
+**Nota operativa:** el estado "Evaluacion #2" de ese centro en la base local es
+un efecto secundario de las pruebas de Claude durante la revision de Fase 3-B
+(se llamo manualmente el endpoint `EndEvaluation` para verificar el registro de
+`EvaluationHistory`), no un flujo real de usuario -- no afecta produccion.
+
+**DECISION DE JORGE (25 jul 2026):** registrar este hallazgo para atacarlo
+despues, no bloquea el merge/deploy de Fase 3-B. Pendiente de definir el umbral
+exacto de "completa" (100% de empleados, o un % minimo) cuando se escriba la
+spec de correccion.
+
 ## PENDIENTE (para la proxima sesion)
-1. **Fase 3-B** (siguiente a implementar, confirmado por Jorge): navegacion
-   jerarquica Dominio -> Categoria -> Dimension + comparativo historico
-   en `workplace_results.html`. Sin spec ni mockup todavia.
+1. **Validar que `EndEvaluation` no permita avanzar de evaluacion si la actual
+   no esta completa** (ver hallazgo arriba, encontrado 25 jul 2026 durante
+   pruebas de Fase 3-B). Sin spec todavia -- definir primero el umbral de
+   "completa" con Jorge.
 2. **PRIORIDAD ALTA, bloqueante antes de vender (confirmado por Jorge,
    24 jul 2026):** carga masiva de empleados por centro de trabajo
    (Excel/CSV), con plantilla descargable con 1-2 filas de ejemplo.
