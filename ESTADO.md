@@ -2507,20 +2507,25 @@ archivo, ni el extremo completo del kanban):**
 Detalle completo de esta decision en `SOCIOS_feedback_correcciones.md`,
 seccion "ACTUALIZACIÓN — Fase 3 dividida".
 
-## Fase 3-B — analisis jerarquico + comparativo historico — IMPLEMENTADA, MERGEADA A auditoria-local, PROBADA LOCAL (25 jul 2026)
+## Fase 3-B — analisis jerarquico + comparativo historico — COMPLETADA Y DESPLEGADA EN PRODUCCION (VPS) ✅ (25 jul 2026)
 Spec `FASE3_B_especificacion_analisis_jerarquico_comparativo.md`, implementada por
 Codex, revisada por Claude (1 bug encontrado y corregido: `</div>` faltante en
 `chart-tabs-nav` de `workplace_results.html` que rompia el toggle CSS de las
 pestanas), commit `dd94cc40` en `fix/fase3-b-analisis-jerarquico-comparativo`,
-mergeada con `--no-ff` a `auditoria-local` (commit `b63683f1`). Validado con
-Django real (venv local): `py_compile`, `manage.py check`, `makemigrations --check`,
-`migrate`, y pruebas funcionales con datos reales (Guia II: 4 categorias/8
-dominios/20 dimensiones; Guia III: 5 categorias/10 dominios/25 dimensiones,
-dimensiones sin nivel de riesgo solo `%`). Prueba visual en navegador (jerarquia
-expandible, comparativo, sin errores de consola). Jorge probo tambien en local
-con datos de prueba y confirmo el comportamiento correcto de las pestanas nuevas.
-**Pendiente:** push de `auditoria-local` a GitHub y merge a `main` (deploy manual
-al VPS), sujeto a confirmacion explicita de Jorge.
+mergeada con `--no-ff` a `auditoria-local` (commit `b63683f1`) y despues a `main`
+(commit `cfdda39c`). Validado con Django real (venv local): `py_compile`,
+`manage.py check`, `makemigrations --check`, `migrate`, y pruebas funcionales con
+datos reales (Guia II: 4 categorias/8 dominios/20 dimensiones; Guia III: 5
+categorias/10 dominios/25 dimensiones, dimensiones sin nivel de riesgo solo `%`).
+Prueba visual en navegador local (jerarquia expandible, comparativo, sin errores
+de consola) confirmada por Jorge con datos de prueba.
+
+**Deploy al VPS confirmado exitoso:** `git pull` + `docker compose up -d --build web`,
+migracion `0043_evaluation_history` aplicada correctamente (`Applying
+surveys.0043_evaluation_history... OK`, confirmado tambien con `showmigrations`),
+gunicorn arriba sin tracebacks (solo warnings W042 preexistentes). Jorge confirmo
+visualmente en `https://normaia.ihes.mx` que las pestanas "Analisis por dominio"
+y "Comparativo" funcionan correctamente en produccion real.
 
 ### HALLAZGO NUEVO durante pruebas locales de Fase 3-B — EndEvaluation no valida que la evaluacion actual este completa antes de avanzar
 Jorge detecto (probando el centro "Centro Riesgo B 5211016def", id 14) que el
