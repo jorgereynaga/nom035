@@ -2409,16 +2409,47 @@ como NO clicable en el centro sin datos (no aparece en el arbol de
 elementos interactivos de la pagina, no solo visualmente atenuado).
 Deploy en VPS confirmado sin errores.
 
+## Fixes de flujo encontrados por Jorge probando Fase 2-C/3-A en local -- CORREGIDOS Y DESPLEGADOS
+Dos bugs reales, corregidos directo por Claude (sin pasar por Codex, cambios
+pequeños ya validados en navegador antes del merge):
+1. **"Ver evidencias" no precargaba el centro** -- llevaba a `/evidence/`
+   vacio, obligando a reseleccionar el centro en el combo. `EvidenceView`
+   ahora acepta `?workplace_id=` (valida ownership), `evidence.html`
+   preselecciona esa opcion en el select2 y dispara la carga del
+   checklist/resultados automaticamente al montar. Sin el parametro,
+   sigue funcionando exactamente igual que antes.
+2. **"Clima Laboral" se duplicaba en el sidebar, uno por cada centro de
+   trabajo** (`index.html`) -- con muchos centros habria inundado el
+   menu. Se elimino ese loop; el acceso ya vive en la ficha de cada
+   centro ("Ver clima laboral", agregado en Fase 2-C), no hace falta en
+   el menu global.
+
+Validado en navegador real (usuario y 3 centros de prueba): el
+deep-link carga el checklist de inmediato, el sidebar ya no repite
+Clima Laboral. Deploy en VPS confirmado sin errores.
+
 ## PENDIENTE (para la proxima sesion)
 1. Seguir recibiendo y registrando observaciones de los socios en
    `SOCIOS_feedback_correcciones.md`.
-2. Logo viejo "NOM 035/IHES" pendiente de reemplazar (sin cambios desde
-   sesion 22).
-3. Railway staging con el problema de Nixpacks -- sin cambios, no
+2. Del backlog de socios, lo que sigue de la "Fase 3" original (mayor
+   esfuerzo, requiere nuevo modelo de datos): "Tablero Ejecutivo"
+   completo con navegacion Dominio -> Categoria -> Dimension y
+   comparativo historico (hallazgo 5.3), y Plan de accion con
+   seguimiento de estado (numeral 8.4, hallazgo 5.3) -- ninguno de los
+   dos se ha iniciado.
+3. Pendientes menores ya registrados en `SOCIOS_feedback_correcciones.md`
+   sin resolver: referencias al dominio viejo `035.ihes.mx` en
+   `survey.html:289` y `tyc.html:172`; logo viejo "NOM 035/IHES"
+   (`static/app-assets/images/pages/login_nom035.png`, usado en
+   `valid_email.html`/`password_recover.html`) pendiente de reemplazar
+   por un asset con la marca NormaIA; bug reportado en el prototipo de
+   tarjetas de planes (boton se oculta al seleccionar, hallazgo #7, aun
+   no verificable contra codigo real).
+4. Railway staging con el problema de Nixpacks -- sin cambios, no
    bloqueante.
-4. Pendientes menores de sesiones previas sin resolver: warning de
+5. Pendientes menores de sesiones previas sin resolver: warning de
    migracion no reflejada (choices PsychoInstrument), division float en
    `employees_dt`, rotar credenciales del VPS por higiene.
-5. Poppler (`pdftoppm`) sigue sin instalar -- Claude puede generar y
+6. Poppler (`pdftoppm`) sigue sin instalar -- Claude puede generar y
    editar PDFs/Word pero no renderizarlos a imagen para autoverificacion
    visual antes de entregarlos.
