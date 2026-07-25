@@ -96,7 +96,7 @@
 
 .checklist { display: flex; flex-direction: column; gap: 10px; margin-bottom: 26px; }
 .checklist-item {
-  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  display: grid; grid-template-columns: 1fr 172px 128px; align-items: center; gap: 14px;
   padding: 16px 18px;
   background: var(--bg-base);
   border: 1px solid var(--border);
@@ -106,6 +106,7 @@
 }
 .checklist-item:hover { box-shadow: var(--shadow-sm); transform: translateY(-1px); }
 .checklist-item.is-complete { border-left-color: #16a34a; }
+.checklist-item.is-na { border-left-color: #94a3b8; }
 .checklist-item-left { display: flex; align-items: center; gap: 14px; min-width: 0; }
 .checklist-status-badge {
   width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0;
@@ -114,6 +115,7 @@
   background: #fef3c7; color: #d97706;
 }
 .checklist-item.is-complete .checklist-status-badge { background: #dcfce7; color: #16a34a; }
+.checklist-item.is-na .checklist-status-badge { background: #f1f5f9; color: #475569; }
 .checklist-item-info { min-width: 0; }
 .checklist-item-title {
   font-size: 13px; font-weight: 700; color: var(--text-primary);
@@ -125,7 +127,26 @@
   background: #fef3c7; color: #b45309; flex-shrink: 0;
 }
 .checklist-item.is-complete .checklist-pill { background: #dcfce7; color: #15803d; }
+.checklist-item.is-na .checklist-pill { background: #f1f5f9; color: #475569; }
 .checklist-item-meta { font-size: 11.5px; color: var(--text-muted); }
+.checklist-state-select {
+  appearance: none; -webkit-appearance: none; width: 100%;
+  border: 1px solid var(--border); border-radius: var(--radius-md);
+  padding: 8px 32px 8px 12px; font-size: 12.5px; font-weight: 600; color: var(--text-primary);
+  background: var(--bg-base) url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="%23475569" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>') no-repeat right 10px center;
+  cursor: pointer;
+}
+.checklist-state-select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79,70,229,.12); }
+.checklist-save-btn { width: 100%; }
+.checklist-save-btn[disabled] { opacity: .45; cursor: not-allowed; }
+.checklist-col-placeholder { font-size: 11px; color: var(--text-muted); font-style: italic; }
+.checklist-instruction-banner {
+  display: flex; gap: 12px; align-items: flex-start;
+  background: #eef2ff; border: 1px solid #c7d2fe;
+  border-radius: var(--radius-md); padding: 14px 16px; margin-bottom: 16px;
+}
+.checklist-instruction-banner svg { width: 20px; height: 20px; color: #4338ca; flex-shrink: 0; margin-top: 1px; }
+.checklist-instruction-banner p { margin: 0; font-size: 13px; color: #4338ca; line-height: 1.55; }
 
 .checklist-empty-hint {
   font-size: 11.5px; color: var(--text-muted); text-align: center;
@@ -286,27 +307,49 @@
       </div>
 
       <!-- Portafolio de Evidencias NOM-035 -->
+      <div class="checklist-instruction-banner" v-if="workplace">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        <p>Para cada entregable que ya tengas listo, selecciona <strong>"Completado"</strong> en el menu correspondiente y haz clic en <strong>Guardar estado</strong>. Si aun lo estas preparando, marca <strong>"En proceso"</strong>. Esto actualiza tu porcentaje de cumplimiento documental al instante.</p>
+      </div>
       <p class="checklist-section-label" v-if="workplace">Documentos requeridos</p>
       <div class="checklist">
-        <div class="checklist-item" :class="{ 'is-complete': item.estado === 'completo' }" v-for="item in portafolio_status" v-if="workplace">
+        <div class="checklist-item" :class="{ 'is-complete': item.estado === 'completo', 'is-na': item.estado === 'no_aplica' }" v-for="item in portafolio_status" v-if="workplace">
           <div class="checklist-item-left">
             <div class="checklist-status-badge">
               <span v-if="item.estado === 'completo'">&#10003;</span>
+              <span v-else-if="item.estado === 'no_aplica'">&#8211;</span>
               <span v-else>&#9888;</span>
             </div>
             <div class="checklist-item-info">
               <p class="checklist-item-title">
                 ${item.nombre}
                 <span class="checklist-pill" v-if="item.estado === 'completo'">Completo</span>
+                <span class="checklist-pill" v-else-if="item.estado === 'no_aplica'">No aplica</span>
                 <span class="checklist-pill" v-else>Pendiente</span>
               </p>
               <p class="checklist-item-meta">${item.detalle}</p>
             </div>
           </div>
-          <a :href="item.url" target="_blank" class="result-download">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-            Abrir
-          </a>
+          <template v-if="item.control === 'checklist'">
+            <select class="checklist-state-select" v-model="item.estado_valor">
+              <option value="en_proceso">En proceso</option>
+              <option value="completado">Completado</option>
+              <option value="no_aplica" v-if="item.permite_no_aplica">No aplica</option>
+            </select>
+            <button
+              class="btn btn-primary checklist-save-btn"
+              type="button"
+              :disabled="item.estado_valor === item.estado_guardado"
+              @click="guardarEstadoChecklist(item)"
+            >Guardar estado</button>
+          </template>
+          <template v-else>
+            <span class="checklist-col-placeholder">(automatico)</span>
+            <a :href="item.url" target="_blank" class="btn checklist-save-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+              Abrir
+            </a>
+          </template>
         </div>
       </div>
 
@@ -476,18 +519,38 @@ window.onload = function () {
         this.get_results();
       },
       get_portafolio_status(){
-        var dis = this;
-        $(function(){
-          $.ajax({
+        var dis=this;
+        if(!dis.workplace){ return; }
+        $.ajax({
             url: "{% url 'get_portafolio_status' %}",
-            method: 'GET',
             data: {'workplace_id': dis.workplace},
             dataType: 'json',
             success: function(data){
+              data.items.forEach(function(item){
+                if (item.control === 'checklist') {
+                  item.estado_guardado = item.estado_valor;
+                }
+              });
               dis.portafolio_status = data.items;
               dis.cumplimiento_pct = data.porcentaje_cumplimiento || 0;
             }
-          });
+        });
+      },
+      guardarEstadoChecklist(item){
+        var dis=this;
+        $.ajax({
+          type: 'POST',
+          url: '/guardar_estado_evidencia/' + dis.workplace + '/' + item.tipo + '/',
+          data: {'estado': item.estado_valor},
+          dataType: 'json',
+          success: function(resp){
+            if (resp.ok) {
+              dis.get_portafolio_status();
+            }
+          },
+          error: function(){
+            alert('No se pudo guardar el estado, intenta de nuevo.');
+          }
         });
       },
       get_results(){
