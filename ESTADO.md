@@ -2429,15 +2429,24 @@ deep-link carga el checklist de inmediato, el sidebar ya no repite
 Clima Laboral. Deploy en VPS confirmado sin errores.
 
 ## PENDIENTE (para la proxima sesion)
-1. Seguir recibiendo y registrando observaciones de los socios en
+1. **PRIORIDAD ALTA, bloqueante antes de vender (confirmado por Jorge,
+   24 jul 2026):** carga masiva de empleados por centro de trabajo
+   (Excel/CSV), con plantilla descargable con 1-2 filas de ejemplo.
+   Hoy el alta es 100% manual, uno por uno -- inviable para clientes
+   medianos/grandes con muchos empleados o muchos centros. Detalle y
+   consideraciones tecnicas ya en `SOCIOS_feedback_correcciones.md`
+   hallazgo #2 (columnas = mismos campos que `Employee` en
+   `cargar_datos_demo.py`, validacion de la plantilla, definir que
+   pasa con filas invalidas). Sin specs ni mockup todavia.
+2. Seguir recibiendo y registrando observaciones de los socios en
    `SOCIOS_feedback_correcciones.md`.
-2. Del backlog de socios, lo que sigue de la "Fase 3" original (mayor
+3. Del backlog de socios, lo que sigue de la "Fase 3" original (mayor
    esfuerzo, requiere nuevo modelo de datos): "Tablero Ejecutivo"
    completo con navegacion Dominio -> Categoria -> Dimension y
    comparativo historico (hallazgo 5.3), y Plan de accion con
    seguimiento de estado (numeral 8.4, hallazgo 5.3) -- ninguno de los
    dos se ha iniciado.
-3. Pendientes menores ya registrados en `SOCIOS_feedback_correcciones.md`
+4. Pendientes menores ya registrados en `SOCIOS_feedback_correcciones.md`
    sin resolver: referencias al dominio viejo `035.ihes.mx` en
    `survey.html:289` y `tyc.html:172`; logo viejo "NOM 035/IHES"
    (`static/app-assets/images/pages/login_nom035.png`, usado en
@@ -2445,11 +2454,11 @@ Clima Laboral. Deploy en VPS confirmado sin errores.
    por un asset con la marca NormaIA; bug reportado en el prototipo de
    tarjetas de planes (boton se oculta al seleccionar, hallazgo #7, aun
    no verificable contra codigo real).
-4. Railway staging con el problema de Nixpacks -- sin cambios, no
+5. Railway staging con el problema de Nixpacks -- sin cambios, no
    bloqueante.
-5. Pendientes menores de sesiones previas sin resolver: warning de
+6. Pendientes menores de sesiones previas sin resolver: warning de
    migracion no reflejada (choices PsychoInstrument), division float en
    `employees_dt`, rotar credenciales del VPS por higiene.
-6. Poppler (`pdftoppm`) sigue sin instalar -- Claude puede generar y
+7. Poppler (`pdftoppm`) sigue sin instalar -- Claude puede generar y
    editar PDFs/Word pero no renderizarlos a imagen para autoverificacion
    visual antes de entregarlos.

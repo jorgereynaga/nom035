@@ -52,6 +52,8 @@ Fecha de inicio: 22 Jul 2026.
 
 **Estado:** no existe hoy. Es una funcionalidad nueva, no una corrección de bug.
 
+**⚠️ PRIORIDAD ALTA (confirmado por Jorge, 24 jul 2026):** este es un cambio importante que debe resolverse **antes de empezar a vender**. Para un centro con muchos empleados, o una empresa con varios centros y muchos empleados cada uno, el alta manual uno por uno es una carga de trabajo enorme que hoy la plataforma no ayuda a resolver — bloqueante real para clientes medianos/grandes, no solo una mejora de conveniencia.
+
 **Consideraciones para la especificación futura (a definir cuando se ataque):**
 - Plantilla descargable (XLSX o CSV) con las columnas que ya usa el alta individual de empleado (nombre, género, edad, estado civil, escolaridad, ocupación, departamento, tipo de puesto, tipo de contrato, tipo de empleado, turno, rotación de turno, tiempo en el puesto, experiencia — mismos campos que `Employee`/`EMPLEADOS_DEMO` en `cargar_datos_demo.py`), con 1-2 filas de ejemplo ya llenas.
 - Validación de la plantilla al subir (columnas correctas, filas vacías, límites de plan vigentes, etc.)
