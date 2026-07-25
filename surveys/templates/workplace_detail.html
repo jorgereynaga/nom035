@@ -296,6 +296,16 @@ table.dataTable tbody tr:last-child td { border-bottom: none !important; }
 .dataTables_wrapper .dataTables_paginate { list-style: none !important; padding-left: 0 !important; }
 .dataTables_wrapper .dataTables_paginate span { list-style: none !important; }
 .dataTables_wrapper ul, .dataTables_wrapper li { list-style: none !important; padding-left: 0 !important; }
+.meta-nuevo { position: relative; }
+.risk-chip { display: flex; align-items: center; gap: 7px; }
+.risk-dot { width: 11px; height: 11px; border-radius: 50%; flex-shrink: 0; }
+.risk-dot.nivel-0 { background: #9be5f7; }
+.risk-dot.nivel-1 { background: #6bf56e; }
+.risk-dot.nivel-2 { background: #eab308; }
+.risk-dot.nivel-3 { background: #ffc000; }
+.risk-dot.nivel-4 { background: #ff7070; }
+.compliance-bar-track { width: 100%; height: 6px; border-radius: 999px; background: rgba(255,255,255,.16); margin-top: 4px; overflow: hidden; }
+.compliance-bar-fill { height: 100%; background: #fff; border-radius: 999px; transition: width .3s ease; }
 {% endblock %}
 
 {% block dashboard %}
@@ -365,6 +375,18 @@ table.dataTable tbody tr:last-child td { border-bottom: none !important; }
       <span class="detail-meta-label">Total empleados</span>
       <span class="detail-meta-value">{{employees_total}}</span>
     </div>
+    <div class="detail-meta-item meta-nuevo" id="badge-riesgo" style="display:none;">
+      <span class="detail-meta-label">Riesgo psicosocial</span>
+      <span class="detail-meta-value risk-chip">
+        <span class="risk-dot" id="riesgo-dot"></span>
+        <span id="riesgo-nivel">—</span>
+      </span>
+    </div>
+    <div class="detail-meta-item meta-nuevo" id="badge-cumplimiento" style="display:none;">
+      <span class="detail-meta-label">Cumplimiento documental</span>
+      <span class="detail-meta-value"><span id="cumplimiento-pct">—</span>%</span>
+      <div class="compliance-bar-track"><div class="compliance-bar-fill" id="cumplimiento-bar" style="width:0%"></div></div>
+    </div>
   </div>
 
   <!-- Evaluation navigation -->
@@ -413,6 +435,14 @@ table.dataTable tbody tr:last-child td { border-bottom: none !important; }
                 {% else %}
                 <button disabled class="btn btn-outline btn-sm">Ver resultados</button>
                 {% endif %}
+    <a href="{% url 'evidence' %}" class="btn btn-outline btn-sm">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6z"/></svg>
+      Ver evidencias
+    </a>
+    <a href="{% url 'clima_resultados' workplace_id %}" class="btn btn-outline btn-sm">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+      Ver clima laboral
+    </a>
   </div>
 
 </div>
@@ -491,6 +521,33 @@ $(document).ready(function(){
         },
         "sSearch": "Buscar"
       }
+  });
+
+  $.ajax({
+    url: "{% url 'get_riesgo_general' %}",
+    data: {"workplace_id": "{{workplace_id}}", "evaluation": "{{evaluation}}"},
+    dataType: 'json',
+    success: function(data){
+      if (data.status === 'ok') {
+        var nivel = data.riesgo_general.nivel;
+        $("#riesgo-dot").removeClass().addClass("risk-dot nivel-" + nivel);
+        $("#riesgo-nivel").text(data.riesgo_general.nivel_nombre);
+        $("#badge-riesgo").show();
+      }
+    }
+  });
+
+  $.ajax({
+    url: "{% url 'get_portafolio_status' %}",
+    data: {"workplace_id": "{{workplace_id}}"},
+    dataType: 'json',
+    success: function(data){
+      if (typeof data.porcentaje_cumplimiento !== 'undefined') {
+        $("#cumplimiento-pct").text(data.porcentaje_cumplimiento);
+        $("#cumplimiento-bar").css("width", data.porcentaje_cumplimiento + "%");
+        $("#badge-cumplimiento").show();
+      }
+    }
   });
 
   $(document).on('change', '#list_length select', function() {
