@@ -2130,7 +2130,7 @@ Fase 2/3).
   "nuesra aplicacion movil" -> "nuestra aplicacion movil".
 - Todo Fase 1 confirmado funcionando en produccion (VPS) por Jorge.
 
-## PENDIENTE (para la proxima sesion)
+## PENDIENTE (para la proxima sesion) -- superado por la sesion 23, ver abajo
 1. Seguir recibiendo y registrando observaciones de los socios en
    `SOCIOS_feedback_correcciones.md` (Jorge las sigue mandando).
 2. Fase 2 del plan: implementar el indicador "Riesgo General" (Cfinal,
@@ -2147,3 +2147,231 @@ Fase 2/3).
 5. Pendientes menores de sesiones previas siguen sin resolver: warning
    de migracion no reflejada (choices PsychoInstrument), division
    float en employees_dt, rotar credenciales del VPS por higiene.
+
+# ============================================================
+# FASE 2 (Riesgo General + Cumplimiento documental) -- IMPLEMENTADA
+# Y DESPLEGADA EN VPS, salvo Fase 2-C pendiente
+# Fecha: 23-24 Jul 2026 (sesion 23)
+# ============================================================
+
+## Contexto de arranque de la sesion
+Retomada en cuenta nueva de Claude para ahorrar consumo, con instruccion
+explicita de leer `ESTADO.md` y `SOCIOS_feedback_correcciones.md`
+completos antes de actuar. Local oficial confirmado: `C:\NormaIA-Pruebas\nom035`.
+Produccion real: VPS (`https://normaia.ihes.mx`, SSH/MobaXTerm), NO
+Railway (Railway solo corre servicios de prueba, uno con el problema de
+Nixpacks ya documentado, no bloqueante).
+
+## 1. Revision externa de la propuesta de Fase 2 (con ChatGPT) -- validada
+Jorge le paso la propuesta de Fase 2 y `SOCIOS_feedback_correcciones.md`
+a ChatGPT para una segunda opinion contra el texto de la norma. Conclusion:
+el diseño ya armado (Riesgo General con escala oficial de 5 niveles,
+recomendaciones basadas en reglas del numeral 8.2, no en IA libre) esta
+alineado. Un solo ajuste incorporado: la escala oficial de 5 niveles
+(Nulo/Bajo/Medio/Alto/Muy alto) siempre debe ser el dato normativo
+principal en pantalla; cualquier simplificacion visual tipo
+"Favorable/Adecuada/En riesgo/Critica" solo puede ser una traduccion
+secundaria, nunca reemplazar la escala oficial.
+
+## 2. Nueva observacion de los socios: eliminar subida de archivos
+Los socios pidieron quitar la subida de archivos del Portafolio de
+Evidencias (Fase C) por riesgo de costo de hosting a futuro, y
+reemplazarla por un checklist de estado. Verificado en codigo: el temor
+es real -- los archivos se guardaban en `FileSystemStorage` sobre un
+Volume de Railway, sin S3 ni storage externo, sin limite de cantidad por
+tipo/centro. Esto se convirtio en la Fase 2-B (ver abajo). Tambien se
+aprovecho para agregar 2 items del checklist que la norma exige y nunca
+se habian rastreado: Registros (numeral 5.8) y Mecanismos de queja
+(numeral 8.1 inciso b).
+
+## 3. Documento para socios: `Propuesta_Fase2_NOM035_v2.docx`
+Generado en Descargas del usuario, con: metodologia de Riesgo General
+(promedio + distribucion, ya que la norma no define formula de agregacion
+entre empleados), tabla de rangos oficiales de Cfinal, texto oficial
+completo de la Tabla 4/7 (recomendacion por nivel) y del numeral 8.2
+completo (recomendacion por dominio), catalogo del checklist documental,
+y las 3 decisiones ya confirmadas con Jorge (eliminar upload dejando el
+campo comentado en el codigo -no borrado-, borrar evidencias de prueba
+existentes ya que no hay clientes reales, agregar los 2 items nuevos).
+
+**Nota de entorno importante:** esta maquina no tenia Node.js ni
+LibreOffice instalados, lo que impidio usar el flujo estandar de
+generacion/verificacion de Word. Con autorizacion de Jorge se instalaron
+ambos via `winget` (`OpenJS.NodeJS.LTS`, `TheDocumentFoundation.LibreOffice`),
+sin necesitar UAC. Poppler (`pdftoppm`, para render de PDF a imagen)
+quedo sin instalar por decision de Jorge (solo tiene paquetes de
+terceros en winget, no oficiales) -- por eso Claude puede generar y leer
+PDFs pero no renderizarlos a imagen para revision visual propia.
+
+## 4. Diseño de las vistas -- mockups aprobados antes de escribir specs
+Se establecio un patron nuevo para este tipo de cambios: mockup HTML
+(Artifact) -> revision de Jorge -> ajustes -> aprobado -> spec formal ->
+Codex implementa. Se disenaron y aprobaron:
+- Ficha de detalle del centro (`workplace_detail.html`): 2 badges nuevos
+  en el header (Riesgo psicosocial, Cumplimiento documental) + 2 botones
+  nuevos (Ver evidencias, Ver clima laboral). Queda como Fase 2-C,
+  **su spec ya esta escrita pero AUN NO IMPLEMENTADA** (ver pendientes).
+- Checklist de `/evidence/` con selector inline (ver Fase 2-B2 abajo) --
+  se iteraron 3 versiones de mockup (botones segmentados, selector
+  dropdown, selector alineado con grid) hasta la aprobada.
+
+## 5. Specs escritas y comiteadas al repo (root del proyecto)
+Para evitar el problema de que Codex no pueda leer texto largo pegado
+directo en su tarea (le fallaba/truncaba), se adopto el patron de
+comitear el `.md` de la especificacion a una rama y pedirle a Codex que
+lo lea directo del repo:
+- `FASE2_A_especificacion_riesgo_general_recomendaciones.md`
+- `FASE2_B_especificacion_cumplimiento_documental.md`
+- `FASE2_C_especificacion_ficha_centro_badges_enlaces.md` (spec lista,
+  implementacion pendiente)
+- `FASE2_B2_especificacion_checklist_inline.md` (ajuste de UX sobre 2-B,
+  ver abajo)
+
+## 6. Fase 2-A -- Riesgo General, dominios, recomendaciones -- IMPLEMENTADA Y DESPLEGADA
+Nueva funcion `get_riesgo_general` (`surveys/views.py`), endpoint
+`get_riesgo_general/`, pestaña "Resumen" nueva (primera, abre por
+default) en `workplace_results.html`. Calcula, por Guia II o III segun
+`workplace.survey_type()`: Cfinal promedio + distribucion real de
+empleados por nivel, conteo de dominios por nivel (promedio por dominio
+contra su propio umbral oficial), recomendacion general (texto literal
+de Tabla 4/7 segun el nivel) y recomendaciones por dominio (texto
+literal del numeral 8.2, solo para dominios en Medio/Alto/Muy alto).
+No toca `get_chart_data` (se duplican intencionalmente los diccionarios
+de dominios y umbrales para no arriesgar regresion en el reporte ya
+probado). Sin migracion.
+
+**Contradiccion detectada por Codex y corregida en la spec antes de
+implementar:** la regla "nunca la palabra Cumplimiento" se malinterpreto
+como prohibicion total, pero la leyenda fija del badge SI debe decir
+"El cumplimiento de la NOM-035 depende de..." para aclarar la diferencia
+con el riesgo. Se corrigio la spec: la palabra no puede ser ETIQUETA de
+un dato de riesgo, pero si puede aparecer en oraciones aclaratorias.
+
+**Validacion:** aplicado el patch de Codex localmente (`git am`), 5 casos
+de calculo verificados a mano contra la base Postgres local
+(`normaia_pruebas`, ver nota de entorno abajo), incluyendo Guia II y
+Guia III, casos limite (todo minimo/maximo), ownership (403) y sin datos
+(`no_data`). Merge a `auditoria-local` -> `main` -> deploy manual VPS
+confirmado sin errores.
+
+## 7. Fase 2-B -- Checklist documental, elimina subida de archivos -- IMPLEMENTADA Y DESPLEGADA
+`EvidenciaFaseC.archivo` comentado (no borrado, columna de BD conservada).
+Migracion `0041_evidencia_fase_c_estado`: borra TODAS las evidencias
+existentes (decision explicita de Jorge, solo eran datos de prueba),
+agrega campo `estado` (`tienen`/`trabajando`/`falta`), agrega 2 tipos
+nuevos (`registros`, `mecanismos_queja`), `unique_together`. Nuevo form
+`EvidenciaEstadoForm`, vista `SubirEvidenciaFaseCView` reescrita con
+`update_or_create`. `get_portafolio_status` extendido con
+`porcentaje_cumplimiento`.
+
+**BUG REAL encontrado en revision (no en el `py_compile` de Codex, solo
+detectable contra BD real):** la columna `archivo` seguia siendo
+`NOT NULL` en la base de datos (heredado de la migracion 0037) aunque el
+campo ya no existiera en el modelo -- cualquier insercion nueva de
+`EvidenciaFaseC` habria fallado con `IntegrityError`. Corregido
+agregando un `AlterField` a la misma migracion 0041 que hace la columna
+`nullable` sin eliminarla. Sin este fix, el checklist habria estado
+roto en produccion desde el primer clic.
+
+**Validacion:** 9 casos end-to-end contra la BD local (checklist inicial,
+formularios de 3 y 2 estados, guardado, pre-seleccion de estado,
+calculo de %, `update_or_create` sin duplicar filas, render de
+`/evidence/`). Migracion aplicada y confirmada en VPS
+(`showmigrations` -> `0041 [X]`).
+
+## 8. Fase 2-B2 -- Checklist con selector inline (ajuste de UX) -- IMPLEMENTADA Y DESPLEGADA
+Jorge probo Fase 2-B visualmente en el VPS y penso que el flujo de
+"Abrir en otra pantalla solo para marcar un radio button" era poco
+amigable. Se rediseño (mockups en Artifact, 3 iteraciones) a un
+selector `<select>` + boton "Guardar estado" inline, en la misma
+tarjeta del checklist, sin navegar. De paso se redefinieron los estados:
+
+- **Grupo A -- siempre obligatorios por la norma, SIN "No aplica"**
+  (`en_proceso`/`completado`): Evidencia de Difusion (5.7a), Registros
+  (5.8), Mecanismos de queja (8.1b) -- son obligaciones incondicionales,
+  nunca se les debe permitir auto-eximirse. Examen medico y Medida de
+  control tambien caen aqui (sin "No aplica" manual) porque su
+  condicionalidad YA la calcula el sistema automaticamente
+  (`requiere_intervencion`, sin cambios) -- dejar que el usuario decida
+  "No aplica" ahi seria dejarlo contradecir un calculo de riesgo real.
+- **Grupo B -- condicionado a un evento real, CON "No aplica"**: solo
+  Canalizaciones Guia I (numeral 5.5), porque depende de si hubo
+  trabajadores con acontecimientos traumaticos identificados, algo que
+  el sistema no calcula automaticamente hoy.
+
+Esta distincion se verifico leyendo el texto oficial completo de la
+norma (no se asumio), especificamente los numerales 5.4-5.8 y 8.1-8.4.
+
+Migracion `0042_evidencia_fase_c_estados_reetiquetados`: remapea datos
+reales (`tienen`->`completado`, `trabajando`/`falta`->`en_proceso`, ya
+NO borra nada -- a diferencia de 0041, para este punto ya podia haber
+datos reales cargados). Nuevo endpoint AJAX `guardar_estado_evidencia`
+(`POST /guardar_estado_evidencia/<workplace_id>/<tipo>/`) que **valida
+en el servidor** que `no_aplica` solo se acepte para `canalizacion` --
+regla de cumplimiento normativo, no solo de UI, no se confia en que el
+`<select>` del frontend ya filtro las opciones.
+
+**Validacion:** 9 casos end-to-end (incluyendo el intento deliberado de
+mandar `no_aplica` a un tipo que no lo permite -> rechazado con 400 sin
+guardar el cambio; ownership; metodo HTTP invalido; y el % excluyendo
+correctamente los items en `no_aplica` del calculo). Cero bugs
+encontrados esta vez. Ademas se sembraron datos con los valores viejos
+manualmente antes de migrar, para confirmar el remapeo real. Jorge
+probo visualmente en local (usuario de prueba `demo_jorge` creado ad
+hoc) antes de aprobar el merge. Migracion `0042` confirmada aplicada en
+VPS.
+
+## Nota tecnica -- entorno local para pruebas reales contra base de datos
+Se descubrio que `.env` local ya apunta a una base **Postgres local real**
+(`postgresql://normaia_test:***@localhost:5432/normaia_pruebas`, NO
+sqlite, NO staging/produccion) -- permite validar especificaciones de
+Codex de extremo a extremo (migraciones, ORM, vistas via
+`django.test.Client`) sin tocar datos reales. Patron usado en toda la
+sesion: crear objetos de prueba con prefijo `_QA`/`_qa` (usuarios,
+workplaces), correr el caso, borrar todo al final -- confirmado sin
+residuos despues de cada validacion. Recomendado seguir este patron en
+sesiones futuras antes de aprobar cualquier patch de Codex.
+
+## Nota de flujo -- Codex sin acceso a red
+Confirmado en esta sesion: el entorno de Codex a veces no tiene salida a
+internet (falla `git pull`/`git push` con "Failed to connect to
+github.com port 443"), y a veces si (puede leer directo de GitHub aunque
+no pueda hacer push). Cuando el push falla, el flujo que funciono fue:
+Codex corre `git format-patch -1 HEAD --stdout` y pega el resultado
+completo en el chat; Claude lo guarda como archivo `.patch` y lo aplica
+localmente con `git am --keep-cr`, preservando autor y mensaje de commit
+originales. Igual de importante: **las specs largas (`.md`) deben
+comitearse al repo y pedirle a Codex que las lea del repo directo**, no
+pegarlas por chat -- el cuadro de tarea de Codex tiene un limite de
+caracteres que trunca specs largas sin avisar, causando bloqueos donde
+Codex reporta "no encuentro el archivo".
+
+## Nota de flujo -- VPS deploy path
+Ruta del proyecto en el VPS: `/webapps/NormaIA` (encontrada con
+`find / -maxdepth 5 -iname "docker-compose.yml"` la primera vez que se
+perdio -- el mismo VPS tambien hospeda `/webapps/ihes_prospecta`, un
+proyecto distinto, no confundir). Deploy: `cd /webapps/NormaIA && git
+pull && docker compose up -d --build web`. Nunca `restart` (no relee
+`.env`). Guardado en memoria de Claude para no volver a perderlo.
+
+## PENDIENTE (para la proxima sesion)
+1. **Fase 2-C** (badges de Riesgo/Cumplimiento + enlaces a
+   Evidencias/Clima Laboral en `workplace_detail.html`) -- spec ya
+   escrita y comiteada (`FASE2_C_especificacion_ficha_centro_badges_enlaces.md`),
+   mockup ya aprobado por Jorge, **pero NUNCA se le pidio a Codex que la
+   implementara** -- quedo pendiente de iniciar.
+2. Rediseño de la lista de "Centros de Trabajo" (tarjetas con KPIs,
+   hallazgo 5.1 del backlog de socios) -- Jorge decidio posponerlo
+   explicitamente (23 jul 2026) para despues de Fase 2-C, no se toco.
+3. Seguir recibiendo y registrando observaciones de los socios en
+   `SOCIOS_feedback_correcciones.md`.
+4. Logo viejo "NOM 035/IHES" pendiente de reemplazar (sin cambios desde
+   sesion 22).
+5. Railway staging con el problema de Nixpacks -- sin cambios, no
+   bloqueante.
+6. Pendientes menores de sesiones previas sin resolver: warning de
+   migracion no reflejada (choices PsychoInstrument), division float en
+   `employees_dt`, rotar credenciales del VPS por higiene.
+7. Poppler (`pdftoppm`) sigue sin instalar -- Claude puede generar y
+   editar PDFs/Word pero no renderizarlos a imagen para autoverificacion
+   visual antes de entregarlos.
