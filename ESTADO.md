@@ -2428,6 +2428,31 @@ Validado en navegador real (usuario y 3 centros de prueba): el
 deep-link carga el checklist de inmediato, el sidebar ya no repite
 Clima Laboral. Deploy en VPS confirmado sin errores.
 
+## Reorganizacion del menu lateral NOM-035 -- CORREGIDO Y DESPLEGADO
+Otro hallazgo de Jorge probando en local el mismo dia: la seccion
+"Principal" del menu mezclaba Dashboard con "Centros de Trabajo" y
+"Añadir un Centro" (deberian vivir bajo NOM-035, es un concepto de ese
+servicio); y la seccion "NOM-035" listaba cada centro de trabajo por
+nombre (redundante, ya se navega igual desde "Centros de Trabajo") mas
+un link aparte "Portafolio de evidencias" (redundante desde Fase 2-C).
+
+Estructura final:
+- **Principal**: solo "Dashboard".
+- **NOM-035**: "Centros de Trabajo" + "Añadir un Centro" (Jorge decidio
+  conservar este ultimo por ahora, como acceso rapido para cuando el
+  cliente aun no tiene ningun centro -- **revisar en produccion mas
+  adelante si de verdad se usa, antes de decidir si se queda**).
+- Se elimino el listado de cada centro por nombre y "Portafolio de
+  evidencias" del menu global -- todo eso ya se accede entrando a un
+  centro especifico desde "Centros de Trabajo".
+- El boton en `workplace_detail.html` (Fase 2-C) cambio de "Ver
+  evidencias" a **"Portafolio de evidencias"**, conservando el
+  deep-link `?workplace_id=` del fix anterior.
+
+Validado en navegador real: estructura del sidebar exactamente como se
+pidio, boton renombrado conserva el deep-link. Deploy en VPS
+confirmado sin errores.
+
 ## PENDIENTE (para la proxima sesion)
 1. **PRIORIDAD ALTA, bloqueante antes de vender (confirmado por Jorge,
    24 jul 2026):** carga masiva de empleados por centro de trabajo
@@ -2454,11 +2479,15 @@ Clima Laboral. Deploy en VPS confirmado sin errores.
    por un asset con la marca NormaIA; bug reportado en el prototipo de
    tarjetas de planes (boton se oculta al seleccionar, hallazgo #7, aun
    no verificable contra codigo real).
-5. Railway staging con el problema de Nixpacks -- sin cambios, no
+5. Evaluar en produccion si "Añadir un Centro" en el menu NOM-035 de
+   verdad se usa (ya existe tambien como boton "+ Nuevo centro" en la
+   lista de Centros de Trabajo, Fase 3-A) -- si no se usa, se quita del
+   menu.
+6. Railway staging con el problema de Nixpacks -- sin cambios, no
    bloqueante.
-6. Pendientes menores de sesiones previas sin resolver: warning de
+7. Pendientes menores de sesiones previas sin resolver: warning de
    migracion no reflejada (choices PsychoInstrument), division float en
    `employees_dt`, rotar credenciales del VPS por higiene.
-7. Poppler (`pdftoppm`) sigue sin instalar -- Claude puede generar y
+8. Poppler (`pdftoppm`) sigue sin instalar -- Claude puede generar y
    editar PDFs/Word pero no renderizarlos a imagen para autoverificacion
    visual antes de entregarlos.
