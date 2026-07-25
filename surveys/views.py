@@ -36,6 +36,10 @@ from .models import *
 from .serializers import *
 from .tasks import pdf_reports_task
 from math import ceil
+from io import BytesIO
+import openpyxl
+from openpyxl.worksheet.datavalidation import DataValidation
+from openpyxl.styles import Font, PatternFill, Alignment
 from django.template.loader import get_template
 from django.core.mail import EmailMultiAlternatives
 
@@ -1153,6 +1157,181 @@ class TestView(LoginRequiredMixin,View):
 	def get(self, request, *args, **kwargs):
 		return render(request, 'pdf/muestra_chart.html')
 
+EMPLEADO_CAMPOS_CARGA_MASIVA = [
+	("Nombre completo", "name", None),
+	("Sexo", "gender", [("Masculino", 1), ("Femenino", 2)]),
+	("Edad", "age", [
+		("15–19 años", 0), ("20–24 años", 1), ("25–29 años", 2), ("30–34 años", 3),
+		("35–39 años", 4), ("40–44 años", 5), ("45–49 años", 6), ("50–54 años", 7),
+		("55–59 años", 8), ("60–64 años", 9), ("65–69 años", 10), ("70 o más años", 11),
+	]),
+	("Estado civil", "civil_state", [
+		("Casado", 0), ("Divorciado", 1), ("Soltero", 2), ("Viudo", 3), ("Unión Libre", 4),
+	]),
+	("Nivel de estudios", "study_level", [
+		("Sin formación", 0), ("Primaria", 1), ("Secundaria", 2),
+		("Preparatoria o Bachillerato", 3), ("Técnico superior", 4),
+		("Licenciatura", 5), ("Maestría", 6), ("Doctorado", 7),
+	]),
+	("Ocupación, Profesión o Puesto", "ocupation", None),
+	("Departamento, Sección o Área", "department", None),
+	("Tipo de puesto", "charge_type", [
+		("Operativo", 0), ("Supervisor", 1), ("Profesional o Técnico", 2), ("Gerente", 3),
+	]),
+	("Tipo de contratación", "contract_type", [
+		("Por obra o proyecto", 0), ("Por tiempo determinado (Temporal)", 1),
+		("Por tiempo indeterminado", 2), ("Por Honorarios", 3),
+	]),
+	("Tipo de personal", "employee_type", [
+		("Sindicalizado", 0), ("Confianza", 1), ("Ninguno", 2),
+	]),
+	("Tipo de jornada", "shift_type", [
+		("Fijo Nocturno (20:00 – 06:00 hrs)", 0), ("Fijo Diurno (06:00 – 20:00 hrs)", 1),
+		("Fijo Mixto (Combinación)", 2),
+	]),
+	("Rotación de turnos", "shift_rotation", [("Sí", 0), ("No", 1)]),
+	("Tiempo en el puesto actual", "time_in_charge", [
+		("Menos de 6 meses", 0), ("Entre 6 meses y un año", 1), ("Entre 1 a 4 años", 2),
+		("Entre 5 a 9 años", 3), ("Entre 10 a 14 años", 4), ("Entre 15 a 19 años", 5),
+		("Entre 20 a 24 años", 6), ("25 años o más", 7),
+	]),
+	("Tiempo de experiencia laboral", "exp", [
+		("Menos de 6 meses", 0), ("Entre 6 meses y un año", 1), ("Entre 1 a 4 años", 2),
+		("Entre 5 a 9 años", 3), ("Entre 10 a 14 años", 4), ("Entre 15 a 19 años", 5),
+		("Entre 20 a 24 años", 6), ("25 años o más", 7),
+	]),
+]
+CARGA_MASIVA_MAX_FILAS = 500
+
+def download_employee_template(request, workplace_id):
+	if not request.user.is_authenticated:
+		return HttpResponseRedirect(reverse_lazy('login'))
+	if not request.user.workplaces.filter(id=workplace_id).exists():
+		return HttpResponseRedirect(reverse_lazy('workplaces'))
+	wk = Workplace.objects.filter(id=workplace_id).last()
+
+	wb = openpyxl.Workbook()
+	ws = wb.active
+	ws.title = "Empleados"
+	header_fill = PatternFill(start_color="2563EB", end_color="2563EB", fill_type="solid")
+	header_font = Font(color="FFFFFF", bold=True)
+	example_fill = PatternFill(start_color="FFF9DB", end_color="FFF9DB", fill_type="solid")
+	for col_idx, (label, field, opciones) in enumerate(EMPLEADO_CAMPOS_CARGA_MASIVA, start=1):
+		cell = ws.cell(row=1, column=col_idx, value=label)
+		cell.font = header_font
+		cell.fill = header_fill
+		cell.alignment = Alignment(wrap_text=True, vertical="center")
+		ws.column_dimensions[cell.column_letter].width = 26
+
+	ejemplos = [
+		["EJEMPLO 1 — borra esta fila antes de subir", "Masculino", "30–34 años", "Casado", "Licenciatura", "Operador", "Producción", "Operativo", "Por tiempo indeterminado", "Sindicalizado", "Fijo Diurno (06:00 – 20:00 hrs)", "No", "Entre 1 a 4 años", "Entre 1 a 4 años"],
+		["EJEMPLO 2 — borra esta fila antes de subir", "Femenino", "40–44 años", "Soltero", "Técnico superior", "Supervisora", "Logística", "Supervisor", "Por tiempo indeterminado", "Confianza", "Fijo Nocturno (20:00 – 06:00 hrs)", "Sí", "Entre 5 a 9 años", "Entre 10 a 14 años"],
+	]
+	for row_idx, fila in enumerate(ejemplos, start=2):
+		for col_idx, valor in enumerate(fila, start=1):
+			cell = ws.cell(row=row_idx, column=col_idx, value=valor)
+			cell.fill = example_fill
+
+	ws_listas = wb.create_sheet("Listas")
+	ws_listas.sheet_state = "hidden"
+	for col_idx, (label, field, opciones) in enumerate(EMPLEADO_CAMPOS_CARGA_MASIVA, start=1):
+		if not opciones:
+			continue
+		for row_idx, (texto, _codigo) in enumerate(opciones, start=1):
+			ws_listas.cell(row=row_idx, column=col_idx, value=texto)
+		col_letter = ws_listas.cell(row=1, column=col_idx).column_letter
+		rango = f"Listas!${col_letter}$1:${col_letter}${len(opciones)}"
+		dv = DataValidation(type="list", formula1=f"={rango}", allow_blank=False, showErrorMessage=True)
+		dv.error = "Selecciona una opción de la lista."
+		dv.errorTitle = "Valor no válido"
+		main_col_letter = ws.cell(row=1, column=col_idx).column_letter
+		dv.add(f"{main_col_letter}4:{main_col_letter}{CARGA_MASIVA_MAX_FILAS + 3}")
+		ws.add_data_validation(dv)
+	ws.freeze_panes = "A2"
+
+	buffer = BytesIO()
+	wb.save(buffer)
+	buffer.seek(0)
+	response = HttpResponse(buffer.getvalue(), content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+	nombre_archivo = f"plantilla_empleados_{wk.name}.xlsx".replace(" ", "_")
+	response['Content-Disposition'] = f'attachment; filename="{nombre_archivo}"'
+	return response
+
+def upload_employees_bulk(request):
+	if request.method != 'POST':
+		return JsonResponse({'status': 'error', 'error': 'Método no permitido'}, status=405)
+	if not request.user.is_authenticated:
+		return JsonResponse({'status': 'error', 'error': 'No autenticado'}, status=401)
+	workplace_id = request.POST.get('workplace_id')
+	if not request.user.workplaces.filter(id=workplace_id).exists():
+		return JsonResponse({'status': 'error', 'error': 'Centro de trabajo no encontrado'}, status=403)
+	wk = Workplace.objects.filter(id=workplace_id).last()
+	archivo = request.FILES.get('file')
+	if not archivo:
+		return JsonResponse({'status': 'error', 'error': 'No se recibió ningún archivo'}, status=400)
+	if not archivo.name.lower().endswith('.xlsx'):
+		return JsonResponse({'status': 'error', 'error': 'El archivo debe ser .xlsx (el generado por "Descargar plantilla")'}, status=400)
+	if archivo.size > 5 * 1024 * 1024:
+		return JsonResponse({'status': 'error', 'error': 'El archivo excede el tamaño máximo permitido (5 MB)'}, status=400)
+	try:
+		wb = openpyxl.load_workbook(archivo, data_only=True)
+		ws = wb["Empleados"] if "Empleados" in wb.sheetnames else wb.active
+	except Exception:
+		return JsonResponse({'status': 'error', 'error': 'No se pudo leer el archivo. Verifica que sea un .xlsx válido y no esté dañado.'}, status=400)
+	encabezados_esperados = [campo[0] for campo in EMPLEADO_CAMPOS_CARGA_MASIVA]
+	encabezados_archivo = [cell.value for cell in ws[1]][:len(encabezados_esperados)]
+	if encabezados_archivo != encabezados_esperados:
+		return JsonResponse({'status': 'error', 'error': 'Los encabezados del archivo no coinciden con la plantilla. Descarga la plantilla actual y no modifiques los nombres de columna.'}, status=400)
+	filas_datos = list(ws.iter_rows(min_row=2, values_only=False))
+	if len(filas_datos) > CARGA_MASIVA_MAX_FILAS:
+		return JsonResponse({'status': 'error', 'error': f'El archivo tiene más de {CARGA_MASIVA_MAX_FILAS} filas. Divide la carga en varios archivos.'}, status=400)
+	mapas_por_columna = []
+	for label, field, opciones in EMPLEADO_CAMPOS_CARGA_MASIVA:
+		mapas_por_columna.append({texto.strip().lower(): codigo for texto, codigo in opciones} if opciones else None)
+	creados = 0
+	errores = []
+	cupo_restante = wk.employee_num - wk.employees.count()
+	for fila in filas_datos:
+		numero_fila_excel = fila[0].row
+		valores = [c.value for c in fila]
+		if all((v is None or str(v).strip() == '') for v in valores):
+			continue
+		nombre = str(valores[0]).strip() if valores[0] is not None else ''
+		if nombre.upper().startswith('EJEMPLO '):
+			continue
+		datos_limpios = {}
+		error_fila = None
+		for idx, (label, field, opciones) in enumerate(EMPLEADO_CAMPOS_CARGA_MASIVA):
+			valor_crudo = valores[idx]
+			valor_txt = str(valor_crudo).strip() if valor_crudo is not None else ''
+			if not valor_txt:
+				error_fila = f'"{label}" no puede quedar vacío.'
+				break
+			if field == 'name':
+				if len(valor_txt) < 6:
+					error_fila = '"Nombre completo" debe tener al menos 6 caracteres.'
+					break
+				datos_limpios['name'] = valor_txt
+			elif opciones is None:
+				datos_limpios[field] = valor_txt
+			else:
+				codigo = mapas_por_columna[idx].get(valor_txt.lower())
+				if codigo is None:
+					opciones_validas = ', '.join(texto for texto, _c in opciones)
+					error_fila = f'"{label}" — "{valor_txt}" no coincide con ninguna opción. Usa una del menú desplegable: {opciones_validas}.'
+					break
+				datos_limpios[field] = codigo
+		if error_fila:
+			errores.append({'fila': numero_fila_excel, 'empleado': nombre or '(fila sin nombre)', 'error': error_fila})
+			continue
+		if cupo_restante <= 0:
+			errores.append({'fila': numero_fila_excel, 'empleado': nombre, 'error': f'Límite del centro — ya se alcanzó el máximo de {wk.employee_num} empleados para este centro de trabajo.'})
+			continue
+		Employee.objects.create(workplace=wk, **datos_limpios)
+		creados += 1
+		cupo_restante -= 1
+	return JsonResponse({'status': 'ok', 'creados': creados, 'errores': errores})
+
 class EmployeeFormView(LoginRequiredMixin,View):
 	login_url = reverse_lazy('login')
 	redirect_field_name = 'redirect_to'
@@ -1165,6 +1344,9 @@ class EmployeeFormView(LoginRequiredMixin,View):
 			ctx['workplace_id']=kwargs['workplace_id']
 			if not request.user.workplaces.filter(id=kwargs['workplace_id']).exists():
 				return HttpResponseRedirect(reverse_lazy('workplaces'))
+			wk = Workplace.objects.filter(id=kwargs['workplace_id']).last()
+			ctx['employee_num'] = wk.employee_num
+			ctx['employee_current_count'] = wk.employees.count()
 		else:
 			return HttpResponseRedirect(reverse_lazy('workplaces'))
 		return render(request, 'employeeform.html',ctx)
