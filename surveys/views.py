@@ -935,17 +935,17 @@ class CuestionariosAplicadosView(LoginRequiredMixin,View):
 class SubirEvidenciaFaseCView(LoginRequiredMixin,View):
 	login_url = reverse_lazy('login')
 	redirect_field_name = 'redirect_to'
-	TIPOS_BINARIOS = ('registros', 'mecanismos_queja')
+	TIPOS_PERMITE_NO_APLICA = ('canalizacion',)
 	def get(self, request, *args, **kwargs):
 		workplace_id = kwargs.get('workplace_id')
 		tipo = kwargs.get('tipo')
 		workplace = Workplace.objects.filter(id=workplace_id, user_id=request.user.id).first()
 		if not workplace:
 			return HttpResponseRedirect(reverse_lazy('workplaces'))
-		binario = tipo in self.TIPOS_BINARIOS
+		permite_no_aplica = tipo in self.TIPOS_PERMITE_NO_APLICA
 		instancia = EvidenciaFaseC.objects.filter(workplace=workplace, tipo=tipo).first()
 		initial = {'estado': instancia.estado, 'notas': instancia.notas} if instancia else {}
-		form = EvidenciaEstadoForm(initial=initial, binario=binario)
+		form = EvidenciaEstadoForm(initial=initial, permite_no_aplica=permite_no_aplica)
 		tipo_display = dict(EvidenciaFaseC.TIPO_CHOICES).get(tipo, tipo)
 		ctx = {'workplace': workplace, 'form': form, 'instancia': instancia, 'tipo': tipo, 'tipo_display': tipo_display}
 		return render(request, 'evidencia_fase_c_form.html', ctx)
@@ -955,8 +955,8 @@ class SubirEvidenciaFaseCView(LoginRequiredMixin,View):
 		workplace = Workplace.objects.filter(id=workplace_id, user_id=request.user.id).first()
 		if not workplace:
 			return HttpResponseRedirect(reverse_lazy('workplaces'))
-		binario = tipo in self.TIPOS_BINARIOS
-		form = EvidenciaEstadoForm(request.POST, binario=binario)
+		permite_no_aplica = tipo in self.TIPOS_PERMITE_NO_APLICA
+		form = EvidenciaEstadoForm(request.POST, permite_no_aplica=permite_no_aplica)
 		if form.is_valid():
 			EvidenciaFaseC.objects.update_or_create(
 				workplace=workplace, tipo=tipo,
@@ -967,6 +967,26 @@ class SubirEvidenciaFaseCView(LoginRequiredMixin,View):
 		tipo_display = dict(EvidenciaFaseC.TIPO_CHOICES).get(tipo, tipo)
 		ctx = {'workplace': workplace, 'form': form, 'instancia': instancia, 'tipo': tipo, 'tipo_display': tipo_display}
 		return render(request, 'evidencia_fase_c_form.html', ctx)
+
+@login_required
+def guardar_estado_evidencia(request, workplace_id, tipo):
+	if request.method != 'POST':
+		return JsonResponse({'error': 'method_not_allowed'}, status=405)
+	workplace = Workplace.objects.filter(id=workplace_id, user_id=request.user.id).first()
+	if not workplace:
+		return JsonResponse({'error': 'not_found'}, status=404)
+	estado = request.POST.get('estado')
+	permite_no_aplica = tipo in SubirEvidenciaFaseCView.TIPOS_PERMITE_NO_APLICA
+	choices_validas = [c[0] for c in EvidenciaFaseC.ESTADO_CHOICES if permite_no_aplica or c[0] != 'no_aplica']
+	if estado not in choices_validas:
+		return JsonResponse({'error': 'estado_invalido'}, status=400)
+	if tipo not in dict(EvidenciaFaseC.TIPO_CHOICES):
+		return JsonResponse({'error': 'tipo_invalido'}, status=400)
+	EvidenciaFaseC.objects.update_or_create(
+		workplace=workplace, tipo=tipo,
+		defaults={'estado': estado},
+	)
+	return JsonResponse({'ok': True})
 def get_portafolio_status(request):
 	workplace_id = request.GET.get('workplace_id')
 	workplace = Workplace.objects.filter(id=workplace_id, user_id=request.user.id).first()
@@ -982,6 +1002,7 @@ def get_portafolio_status(request):
 		'estado': 'completo' if politica_completa else 'pendiente',
 		'detalle': 'Version ' + portafolio.version_politica if politica_completa else 'No generada aun',
 		'url': '/generar_politica/' + str(workplace.id) + '/',
+		'control': 'sistema',
 	})
 	# 2. Informe de Resultados
 	from django.test import RequestFactory
@@ -996,6 +1017,7 @@ def get_portafolio_status(request):
 		'estado': 'completo' if informe_completo else 'pendiente',
 		'detalle': 'Datos disponibles' if informe_completo else 'Sin respuestas suficientes',
 		'url': '/generar_informe_resultados/' + str(workplace.id) + '/',
+		'control': 'sistema',
 	})
 	# 3. Cuestionarios Aplicados
 	evaluation = eval_to_check
@@ -1018,27 +1040,38 @@ def get_portafolio_status(request):
 		'estado': 'completo' if cuestionarios_completo else 'pendiente',
 		'detalle': str(respondieron) + ' de ' + str(convocados) + ' (' + str(porcentaje) + '%)',
 		'url': '/cuestionarios_aplicados/' + str(workplace.id) + '/',
+		'control': 'sistema',
 	})
-	# 4. Canalizacion Guia I (siempre aplica)
-	canalizacion_ev = EvidenciaFaseC.objects.filter(workplace=workplace, tipo='canalizacion').first()
-	canalizacion_completo = canalizacion_ev is not None and canalizacion_ev.estado == 'tienen'
-	items.append({
-		'nombre': 'Canalizaciones Guia I',
-		'estado': 'completo' if canalizacion_completo else 'pendiente',
-		'detalle': canalizacion_ev.get_estado_display() if canalizacion_ev else 'Sin estado registrado',
-		'url': '/subir_evidencia_fase_c/' + str(workplace.id) + '/canalizacion/',
-	})
-	# 5. Evidencia de difusion (siempre aplica)
-	difusion_ev = EvidenciaFaseC.objects.filter(workplace=workplace, tipo='difusion').first()
-	difusion_completo = difusion_ev is not None and difusion_ev.estado == 'tienen'
-	items.append({
-		'nombre': 'Evidencia de Difusion',
-		'estado': 'completo' if difusion_completo else 'pendiente',
-		'detalle': difusion_ev.get_estado_display() if difusion_ev else 'Sin estado registrado',
-		'url': '/subir_evidencia_fase_c/' + str(workplace.id) + '/difusion/',
-	})
-	# 6 y 7. Solo si el diagnostico muestra nivel Medio/Alto/Muy alto en alguna dimension
-	niveles_riesgo = ['Nulo', 'Bajo']
+
+	def _item_checklist(tipo, nombre, permite_no_aplica=False):
+		ev = EvidenciaFaseC.objects.filter(workplace=workplace, tipo=tipo).first()
+		estado_valor = ev.estado if ev else 'en_proceso'
+		if estado_valor == 'completado':
+			estado_badge = 'completo'
+		elif estado_valor == 'no_aplica':
+			estado_badge = 'no_aplica'
+		else:
+			estado_badge = 'pendiente'
+		return {
+			'nombre': nombre,
+			'estado': estado_badge,
+			'estado_valor': estado_valor,
+			'control': 'checklist',
+			'tipo': tipo,
+			'permite_no_aplica': permite_no_aplica,
+			'detalle': ev.get_estado_display() if ev else 'Sin estado registrado',
+			'url': '/subir_evidencia_fase_c/' + str(workplace.id) + '/' + tipo + '/',
+		}
+
+	# Grupo A: siempre obligatorios, sin "No aplica"
+	items.append(_item_checklist('difusion', 'Evidencia de Difusion'))
+	items.append(_item_checklist('registros', 'Registros de resultados y medidas de control'))
+	items.append(_item_checklist('mecanismos_queja', 'Mecanismos de queja/denuncia de violencia laboral'))
+
+	# Grupo B: condicionado a un evento real, con "No aplica"
+	items.append(_item_checklist('canalizacion', 'Canalizaciones Guia I', permite_no_aplica=True))
+
+	# Automaticos: solo aparecen si el diagnostico muestra nivel Medio/Alto/Muy alto en alguna dimension
 	requiere_intervencion = False
 	if chart_data.get('status') == 'ok':
 		for item in chart_data.get('total_dim', []):
@@ -1047,39 +1080,13 @@ def get_portafolio_status(request):
 				requiere_intervencion = True
 				break
 	if requiere_intervencion:
-		examen_ev = EvidenciaFaseC.objects.filter(workplace=workplace, tipo='examen_medico').first()
-		examen_completo = examen_ev is not None and examen_ev.estado == 'tienen'
-		items.append({
-			'nombre': 'Examenes Medicos/Evaluaciones Psicologicas',
-			'estado': 'completo' if examen_completo else 'pendiente',
-			'detalle': examen_ev.get_estado_display() if examen_ev else 'Sin estado registrado',
-			'url': '/subir_evidencia_fase_c/' + str(workplace.id) + '/examen_medico/',
-		})
-		medida_ev = EvidenciaFaseC.objects.filter(workplace=workplace, tipo='medida_control').first()
-		medida_completo = medida_ev is not None and medida_ev.estado == 'tienen'
-		items.append({
-			'nombre': 'Medidas de Control/Programa de Intervencion',
-			'estado': 'completo' if medida_completo else 'pendiente',
-			'detalle': medida_ev.get_estado_display() if medida_ev else 'Sin estado registrado',
-			'url': '/subir_evidencia_fase_c/' + str(workplace.id) + '/medida_control/',
-		})
-	registros_ev = EvidenciaFaseC.objects.filter(workplace=workplace, tipo='registros').first()
-	items.append({
-		'nombre': 'Registros de resultados y medidas de control',
-		'estado': 'completo' if (registros_ev and registros_ev.estado == 'tienen') else 'pendiente',
-		'detalle': registros_ev.get_estado_display() if registros_ev else 'Sin estado registrado',
-		'url': '/subir_evidencia_fase_c/' + str(workplace.id) + '/registros/',
-	})
-	queja_ev = EvidenciaFaseC.objects.filter(workplace=workplace, tipo='mecanismos_queja').first()
-	items.append({
-		'nombre': 'Mecanismos de queja/denuncia de violencia laboral',
-		'estado': 'completo' if (queja_ev and queja_ev.estado == 'tienen') else 'pendiente',
-		'detalle': queja_ev.get_estado_display() if queja_ev else 'Sin estado registrado',
-		'url': '/subir_evidencia_fase_c/' + str(workplace.id) + '/mecanismos_queja/',
-	})
-	completos = sum(1 for i in items if i['estado'] == 'completo')
-	porcentaje_cumplimiento = round((completos / len(items)) * 100) if items else 0
-	return JsonResponse({'items': items, 'porcentaje_cumplimiento': porcentaje_cumplimiento, 'completos': completos, 'total': len(items)})
+		items.append(_item_checklist('examen_medico', 'Examenes Medicos/Evaluaciones Psicologicas'))
+		items.append(_item_checklist('medida_control', 'Medidas de Control/Programa de Intervencion'))
+
+	items_contables = [i for i in items if i['estado'] != 'no_aplica']
+	completos = sum(1 for i in items_contables if i['estado'] == 'completo')
+	porcentaje_cumplimiento = round((completos / len(items_contables)) * 100) if items_contables else 0
+	return JsonResponse({'items': items, 'porcentaje_cumplimiento': porcentaje_cumplimiento, 'completos': completos, 'total': len(items_contables)})
 class TestView(LoginRequiredMixin,View):
 	login_url = reverse_lazy('login')
 	redirect_field_name = 'redirect_to'
