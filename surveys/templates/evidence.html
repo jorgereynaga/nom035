@@ -290,7 +290,7 @@
         </label>
         <select id="select_workplace" class="select2" placeholder="Selecciona un centro de trabajo" v-select2 v-model="workplace" @change="on_workplace_change">
           {% for item in workplaces %}
-          <option value="{{item.id}}">{{item.name}}</option>
+          <option value="{{item.id}}" {% if item.id == preselected_workplace_id %}selected{% endif %}>{{item.name}}</option>
           {% endfor %}
         </select>
       </div>
@@ -497,7 +497,7 @@ window.onload = function () {
     el: '#app',
     delimiters: ['${','}'],
     data: {
-      workplace: null,
+      workplace: {% if preselected_workplace_id %}{{ preselected_workplace_id }}{% else %}null{% endif %},
       results: [],
       portafolio_status: [],
       cumplimiento_pct: 0
@@ -570,6 +570,7 @@ window.onload = function () {
     },
     computed: {},
     mounted: function () {
+      var dis = this;
       this.$nextTick(function () {
         setTimeout(function(){
           $(document).ready(function(){
@@ -577,6 +578,9 @@ window.onload = function () {
               dropdownAutoWidth: true,
               width: '100%'
             });
+            if (dis.workplace) {
+              dis.on_workplace_change();
+            }
           });
         }, 50);
         $(function(){
