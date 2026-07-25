@@ -1973,6 +1973,116 @@ def get_riesgo_general(request):
 		"Violencia":["r2_p33","r2_p34","r2_p35","r2_p36","r2_p37","r2_p38","r2_p39","r2_p40"],
 	}
 
+	dimensionA={
+		"Condiciones peligrosas e inseguras":["r2_p2"],
+		"Condiciones deficientes e insalubres":["r2_p1"],
+		"Trabajos peligrosas":["r2_p3"],
+		"Cargas cuantitativas":["r2_p4","r2_p9"],
+		"Ritmos de trabajo acelerado":["r2_p5","r2_p6"],
+		"Carga mental":["r2_p7","r2_p8"],
+		"Cargas psicológicas emocionales":["r2_p41","r2_p42","r2_p43"],
+		"Cargas de alta responsabilidad":["r2_p10","r2_p11"],
+		"Cargas contradictorias o inconsistentes":["r2_p12","r2_p13"],
+		"Falta de control y autonomía sobre el trabajo":["r2_p20","r2_p21","r2_p22"],
+		"Limitada o nula posibilidad de desarrollo":["r2_p18","r2_p19"],
+		"Limitada o inexistente capacitación":["r2_p26","r2_p27",],
+		"Jornadas de trabajo extensas":["r2_p14","r2_p15"],
+		"Influencia del trabajo fuera del centro laboral":["r2_p16"],
+		"Influencia de las responsabilidades familiares":["r2_p17"],
+		"Escasa claridad de funciones":["r2_p23","r2_p24","r2_p25"],
+		"Características del liderazgo":["r2_p28","r2_p29"],
+		"Relaciones sociales en el trabajo":["r2_p30","r2_p31","r2_p32"],
+		"Deficiente relación con los colaboradores que supervisa":["r2_p44","r2_p45","r2_p46"],
+		"Violencia laboral":["r2_p33","r2_p34","r2_p35","r2_p36","r2_p37","r2_p38","r2_p39","r2_p40"],
+	}
+	dimensionB={
+		"Condiciones peligrosas e inseguras":["r3_p1","r3_p3"],
+		"Condiciones deficientes e insalubres":["r3_p2","r3_p4"],
+		"Trabajos peligrosas":["r3_p5"],
+		"Cargas cuantitativas":["r3_p6","r3_p12"],
+		"Ritmos de trabajo acelerado":["r3_p7","r3_p8"],
+		"Carga mental":["r3_p9","r3_p10","r3_p11"],
+		"Cargas psicológicas emocionales":["r3_p65","r3_p66","r3_p67","r3_p68"],
+		"Cargas de alta responsabilidad":["r3_p13","r3_p14"],
+		"Cargas contradictorias o inconsistentes":["r3_p15","r3_p16"],
+		"Falta de control y autonomía sobre el trabajo":["r3_p25","r3_p26","r3_p27","r3_p28"],
+		"Limitada o nula posibilidad de desarrollo":["r3_p23","r3_p24"],
+		"Insuficiente participación y manejo del cambio":["r3_p29","r3_p30"],
+		"Limitada o inexistente capacitación":["r3_p35","r3_p36"],
+		"Jornadas de trabajo extensas":["r3_p17","r3_p18"],
+		"Influencia del trabajo fuera del centro laboral":["r3_p19","r3_p20"],
+		"Influencia de las responsabilidades familiares":["r3_p21","r3_p22"],
+		"Escasa claridad de funciones":["r3_p31","r3_p32","r3_p33","r3_p34"],
+		"Características del liderazgo":["r3_p37","r3_p38","r3_p39","r3_p40","r3_p41"],
+		"Relaciones sociales en el trabajo":["r3_p42","r3_p43","r3_p44","r3_p45","r3_p46"],
+		"Deficiente relación con los colaboradores que supervisa":["r3_p69","r3_p70","r3_p71","r3_p72"],
+		"Violencia laboral":["r3_p57","r3_p58","r3_p59","r3_p60","r3_p61","r3_p62","r3_p63","r3_p64"],
+		"Escasa o nula retroalimentación del desempeño":["r3_p47","r3_p48"],
+		"Escasa o nulo reconocimiento y compensación":["r3_p49","r3_p50","r3_p51","r3_p52"],
+		"Limitado sentido de pertenencia":["r3_p53","r3_p54"],
+		"Inestabilidad laboral":["r3_p55","r3_p56"],
+	}
+	catA={"Ambiente de trabajo":["r2_p1","r2_p2","r2_p3"],
+		"Factores propios de la actividad":["r2_p18","r2_p19","r2_p20","r2_p21","r2_p22","r2_p26","r2_p27","r2_p4","r2_p5","r2_p6","r2_p7","r2_p8","r2_p9","r2_p10","r2_p11","r2_p12","r2_p13","r2_p41","r2_p42","r2_p43"],
+		"Organización del tiempo de trabajo":["r2_p14","r2_p15","r2_p16","r2_p17"],
+		"Liderazgo y relaciones en el trabajo":["r2_p23","r2_p24","r2_p25","r2_p28","r2_p29","r2_p30","r2_p31","r2_p32","r2_p44","r2_p45","r2_p46","r2_p33","r2_p34","r2_p35","r2_p36","r2_p37","r2_p38","r2_p39","r2_p40"],
+	}
+	catB={"Ambiente de trabajo":["r3_p1","r3_p2","r3_p3","r3_p4","r3_p5"],
+		"Factores propios de la actividad":["r3_p23","r3_p24","r3_p25","r3_p26","r3_p27","r3_p28","r3_p29","r3_p30","r3_p35","r3_p36","r3_p6","r3_p7","r3_p8","r3_p9","r3_p10","r3_p11","r3_p12","r3_p13","r3_p14","r3_p15","r3_p16","r3_p65","r3_p66","r3_p67","r3_p68"],
+		"Organización del tiempo de trabajo":["r3_p17","r3_p18","r3_p19","r3_p20","r3_p21","r3_p22"],
+		"Liderazgo y relaciones en el trabajo":["r3_p57","r3_p58","r3_p59","r3_p60","r3_p61","r3_p62","r3_p63","r3_p64","r3_p31","r3_p32","r3_p33","r3_p34","r3_p37","r3_p38","r3_p39","r3_p40","r3_p41","r3_p42","r3_p43","r3_p44","r3_p45","r3_p46","r3_p69","r3_p70","r3_p71","r3_p72",],
+		"Entorno organizacional":["r3_p47","r3_p48","r3_p49","r3_p50","r3_p51","r3_p52","r3_p53","r3_p54","r3_p55","r3_p56",]}
+
+	CATEGORIA_DOMINIOS_A = {
+		"Ambiente de trabajo": ["Condiciones en el ambiente de trabajo"],
+		"Factores propios de la actividad": ["Carga de trabajo", "Falta de control sobre el trabajo"],
+		"Organización del tiempo de trabajo": ["Jornada de trabajo", "Interferencia en la relación trabajo-familia"],
+		"Liderazgo y relaciones en el trabajo": ["Liderazgo", "Relaciones en el trabajo", "Violencia"],
+	}
+	CATEGORIA_DOMINIOS_B = {
+		"Ambiente de trabajo": ["Condiciones en el ambiente de trabajo"],
+		"Factores propios de la actividad": ["Carga de trabajo", "Falta de control sobre el trabajo"],
+		"Organización del tiempo de trabajo": ["Jornada de trabajo", "Interferencia en la relación trabajo-familia"],
+		"Liderazgo y relaciones en el trabajo": ["Liderazgo", "Relaciones en el trabajo", "Violencia"],
+		"Entorno organizacional": ["Reconocimiento del desempeño", "Insuficiente sentido de pertenencia e inestabilidad"],
+	}
+	DOMINIO_DIMENSIONES_A = {
+		"Condiciones en el ambiente de trabajo": ["Condiciones peligrosas e inseguras", "Condiciones deficientes e insalubres", "Trabajos peligrosas"],
+		"Carga de trabajo": ["Cargas cuantitativas", "Ritmos de trabajo acelerado", "Carga mental", "Cargas psicológicas emocionales", "Cargas de alta responsabilidad", "Cargas contradictorias o inconsistentes"],
+		"Falta de control sobre el trabajo": ["Falta de control y autonomía sobre el trabajo", "Limitada o nula posibilidad de desarrollo", "Limitada o inexistente capacitación"],
+		"Jornada de trabajo": ["Jornadas de trabajo extensas"],
+		"Interferencia en la relación trabajo-familia": ["Influencia del trabajo fuera del centro laboral", "Influencia de las responsabilidades familiares"],
+		"Liderazgo": ["Escasa claridad de funciones", "Características del liderazgo"],
+		"Relaciones en el trabajo": ["Relaciones sociales en el trabajo", "Deficiente relación con los colaboradores que supervisa"],
+		"Violencia": ["Violencia laboral"],
+	}
+	DOMINIO_DIMENSIONES_B = {
+		"Condiciones en el ambiente de trabajo": ["Condiciones peligrosas e inseguras", "Condiciones deficientes e insalubres", "Trabajos peligrosas"],
+		"Carga de trabajo": ["Cargas cuantitativas", "Ritmos de trabajo acelerado", "Carga mental", "Cargas psicológicas emocionales", "Cargas de alta responsabilidad", "Cargas contradictorias o inconsistentes"],
+		"Falta de control sobre el trabajo": ["Falta de control y autonomía sobre el trabajo", "Limitada o nula posibilidad de desarrollo", "Insuficiente participación y manejo del cambio", "Limitada o inexistente capacitación"],
+		"Jornada de trabajo": ["Jornadas de trabajo extensas"],
+		"Interferencia en la relación trabajo-familia": ["Influencia del trabajo fuera del centro laboral", "Influencia de las responsabilidades familiares"],
+		"Liderazgo": ["Escasa claridad de funciones", "Características del liderazgo"],
+		"Relaciones en el trabajo": ["Relaciones sociales en el trabajo", "Deficiente relación con los colaboradores que supervisa"],
+		"Violencia": ["Violencia laboral"],
+		"Reconocimiento del desempeño": ["Escasa o nula retroalimentación del desempeño", "Escasa o nulo reconocimiento y compensación"],
+		"Insuficiente sentido de pertenencia e inestabilidad": ["Limitado sentido de pertenencia", "Inestabilidad laboral"],
+	}
+
+	UMBRALES_CATEGORIA_GUIA_II = {
+		"Ambiente de trabajo": [3,5,7,9],
+		"Factores propios de la actividad": [10,20,30,40],
+		"Organización del tiempo de trabajo": [4,6,9,12],
+		"Liderazgo y relaciones en el trabajo": [10,18,28,38],
+	}
+	UMBRALES_CATEGORIA_GUIA_III = {
+		"Ambiente de trabajo": [5,9,11,14],
+		"Factores propios de la actividad": [15,30,45,60],
+		"Organización del tiempo de trabajo": [5,7,10,13],
+		"Liderazgo y relaciones en el trabajo": [14,29,42,58],
+		"Entorno organizacional": [10,14,18,23],
+	}
+
 	UMBRALES_DOMINIO_GUIA_II = {
 		"Condiciones en el ambiente de trabajo": [3,5,7,9],
 		"Carga de trabajo": [12,16,20,24],
@@ -2027,12 +2137,19 @@ def get_riesgo_general(request):
 	}
 
 	domains_dict = domainsB if guia3 else domainsA
+	dimensions_dict = dimensionB if guia3 else dimensionA
+	cat_dict = catB if guia3 else catA
+	categoria_dominios = CATEGORIA_DOMINIOS_B if guia3 else CATEGORIA_DOMINIOS_A
+	dominio_dimensiones = DOMINIO_DIMENSIONES_B if guia3 else DOMINIO_DIMENSIONES_A
+	umbrales_categoria = UMBRALES_CATEGORIA_GUIA_III if guia3 else UMBRALES_CATEGORIA_GUIA_II
 	umbrales_dominio = UMBRALES_DOMINIO_GUIA_III if guia3 else UMBRALES_DOMINIO_GUIA_II
 	umbrales_cfinal = UMBRALES_CFINAL_GUIA_III if guia3 else UMBRALES_CFINAL_GUIA_II
 	survey_model = RiskSurveyB if guia3 else RiskSurveyA
 
 	cfinal_por_empleado = []
 	sumas_por_dominio = {d: [] for d in domains_dict}
+	sumas_por_categoria = {c: [] for c in cat_dict}
+	sumas_por_dimension = {dm: [] for dm in dimensions_dict}
 
 	for emp in employees:
 		survey = emp.surveyB.filter(evaluation=evaluation).last() if guia3 else emp.surveyA.filter(evaluation=evaluation).last()
@@ -2045,6 +2162,16 @@ def get_riesgo_general(request):
 				_sum += getattr(survey, survey_model._meta.get_field(question).attname) or 0
 			sumas_por_dominio[domain].append(_sum)
 			emp_cfinal += _sum
+		for categoria, preguntas in cat_dict.items():
+			_sum = 0
+			for question in preguntas:
+				_sum += getattr(survey, survey_model._meta.get_field(question).attname) or 0
+			sumas_por_categoria[categoria].append(_sum)
+		for dimension, preguntas in dimensions_dict.items():
+			_sum = 0
+			for question in preguntas:
+				_sum += getattr(survey, survey_model._meta.get_field(question).attname) or 0
+			sumas_por_dimension[dimension].append(_sum)
 		cfinal_por_empleado.append(emp_cfinal)
 
 	if not cfinal_por_empleado:
@@ -2069,6 +2196,45 @@ def get_riesgo_general(request):
 		if d['nivel'] >= 2:
 			d['recomendacion'] = RECOMENDACION_DOMINIO_82.get(d['nombre'], '')
 
+	categorias_detalle = []
+	nivel_por_categoria = {}
+	for categoria in cat_dict:
+		valores = sumas_por_categoria[categoria]
+		promedio_cat = sum(valores) / len(valores) if valores else 0
+		nivel_cat = clasificar_nivel(promedio_cat, umbrales_categoria[categoria])
+		nivel_por_categoria[categoria] = nivel_cat
+		categorias_detalle.append({'nombre': categoria, 'nivel': nivel_cat, 'nivel_nombre': NIVEL_NOMBRE[nivel_cat]})
+
+	nivel_por_dominio = {d['nombre']: d['nivel'] for d in dominios_detalle}
+
+	dimensiones_pct = {}
+	for dimension, preguntas in dimensions_dict.items():
+		valores = sumas_por_dimension[dimension]
+		promedio_dim = sum(valores) / len(valores) if valores else 0
+		maximo_dim = len(preguntas) * 4
+		dimensiones_pct[dimension] = round((promedio_dim / maximo_dim) * 100, 1) if maximo_dim else 0
+
+	jerarquia = []
+	for categoria, dominios_de_categoria in categoria_dominios.items():
+		dominios_json = []
+		for dominio in dominios_de_categoria:
+			dimensiones_json = [
+				{'nombre': dim, 'porcentaje': dimensiones_pct.get(dim, 0)}
+				for dim in dominio_dimensiones.get(dominio, [])
+			]
+			dominios_json.append({
+				'nombre': dominio,
+				'nivel': nivel_por_dominio.get(dominio),
+				'nivel_nombre': NIVEL_NOMBRE.get(nivel_por_dominio.get(dominio)),
+				'dimensiones': dimensiones_json,
+			})
+		jerarquia.append({
+			'nombre': categoria,
+			'nivel': nivel_por_categoria[categoria],
+			'nivel_nombre': NIVEL_NOMBRE[nivel_por_categoria[categoria]],
+			'dominios': dominios_json,
+		})
+
 	return JsonResponse({
 		'status': 'ok',
 		'guia': 3 if guia3 else 2,
@@ -2084,6 +2250,73 @@ def get_riesgo_general(request):
 			'conteo_por_nivel': conteo_dominios_nivel,
 			'detalle': dominios_detalle,
 		},
+		'jerarquia': jerarquia,
+	})
+
+def get_comparativo_evaluaciones(request):
+	from django.test import RequestFactory
+	workplace_id=request.GET.get('workplace_id',None)
+	if not Workplace.objects.filter(id=workplace_id, user=request.user).exists():
+		return JsonResponse({'error':'not_found'}, status=403)
+	wk=Workplace.objects.filter(id=workplace_id).last()
+	factory = RequestFactory()
+
+	historial = {h.numero_evaluacion: h.fecha_finalizacion for h in wk.evaluation_history.all()}
+	evaluaciones = []
+	for numero in range(1, wk.evaluation + 1):
+		fake_req = factory.get('/get_riesgo_general/', {'workplace_id': str(workplace_id), 'evaluation': str(numero)})
+		fake_req.user = request.user
+		data = json.loads(get_riesgo_general(fake_req).content)
+		if data.get('status') != 'ok':
+			continue
+		es_actual = (numero == wk.evaluation)
+		if es_actual:
+			etiqueta = "Actual (en curso)"
+		elif numero in historial:
+			etiqueta = historial[numero].strftime('%d/%m/%Y')
+		else:
+			etiqueta = f"Evaluación #{numero} (sin fecha registrada)"
+		evaluaciones.append({
+			'numero_evaluacion': numero,
+			'etiqueta': etiqueta,
+			'es_actual': es_actual,
+			'promedio': data['riesgo_general']['promedio'],
+			'nivel': data['riesgo_general']['nivel'],
+			'nivel_nombre': data['riesgo_general']['nivel_nombre'],
+			'dominios': data['dominios']['detalle'],
+		})
+
+	if len(evaluaciones) < 1:
+		return JsonResponse({'status': 'no_data'})
+
+	cambio_dominios = []
+	if len(evaluaciones) >= 2:
+		anterior = evaluaciones[-2]['dominios']
+		actual = evaluaciones[-1]['dominios']
+		anterior_por_nombre = {d['nombre']: d for d in anterior}
+		for dom_actual in actual:
+			dom_anterior = anterior_por_nombre.get(dom_actual['nombre'])
+			if not dom_anterior:
+				continue
+			if dom_actual['nivel'] > dom_anterior['nivel']:
+				tendencia = 'empeoro'
+			elif dom_actual['nivel'] < dom_anterior['nivel']:
+				tendencia = 'mejoro'
+			else:
+				tendencia = 'sin_cambio'
+			cambio_dominios.append({
+				'nombre': dom_actual['nombre'],
+				'nivel_anterior': dom_anterior['nivel_nombre'],
+				'nivel_actual': dom_actual['nivel_nombre'],
+				'tendencia': tendencia,
+			})
+
+	return JsonResponse({
+		'status': 'ok',
+		'evaluaciones': evaluaciones,
+		'cambio_dominios': cambio_dominios,
+		'etiqueta_anterior': evaluaciones[-2]['etiqueta'] if len(evaluaciones) >= 2 else None,
+		'etiqueta_actual': evaluaciones[-1]['etiqueta'],
 	})
 
 class ValidateCodeList(generics.ListCreateAPIView):
@@ -2644,6 +2877,11 @@ class EndEvaluation(APIView):
 			workplace=Workplace.objects.filter(id=workplace_id).last()
 			if workplace.es_demo:
 				return Response({'status':'error', 'error':'No es posible avanzar evaluacion en un centro de trabajo de demostracion.'})
+			EvaluationHistory.objects.create(
+				workplace=workplace,
+				numero_evaluacion=workplace.evaluation,
+				guia=workplace.survey_type(),
+			)
 			workplace.evaluation=workplace.evaluation+1
 			workplace.paid=False
 			workplace.save()
