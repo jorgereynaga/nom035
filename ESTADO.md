@@ -2354,22 +2354,42 @@ proyecto distinto, no confundir). Deploy: `cd /webapps/NormaIA && git
 pull && docker compose up -d --build web`. Nunca `restart` (no relee
 `.env`). Guardado en memoria de Claude para no volver a perderlo.
 
+## Fase 2-C -- IMPLEMENTADA Y DESPLEGADA (cierra Fase 2 completa)
+Agrega 2 badges al header de `workplace_detail.html` (Riesgo psicosocial,
+Cumplimiento documental, alimentados via AJAX por `get_riesgo_general` y
+`get_portafolio_status`, ya existentes de 2-A/2-B) y 2 botones nuevos
+(Ver evidencias, Ver clima laboral). 100% frontend, un solo archivo
+tocado, sin migracion.
+
+**Validacion:** `manage.py check` limpio, y por primera vez en la sesion
+se hizo la verificacion visual completa en navegador (no solo
+`django.test.Client`): login real, centro de prueba con encuesta
+completa, badges mostrando "Riesgo psicosocial: Muy alto" y
+"Cumplimiento documental: 38%" con datos reales, botones nuevos visibles,
+tabla de empleados intacta. Se verifico ademas, via CSS computado en el
+navegador, que el patron `style="display:none"` + `.show()` de jQuery
+restaura correctamente `display:flex` (no rompe el layout de
+`.detail-meta-item`) -- duda tecnica que se tenia desde que se escribio
+la spec, ahora confirmada sin riesgo.
+
+Deploy en VPS confirmado sin errores (`normaia-db-1` healthy,
+`normaia-web-1` started, sin migracion pendiente).
+
+**Fase 2 (Riesgo General + Cumplimiento documental) queda 100% completa
+y desplegada en produccion real: 2-A, 2-B, 2-B2 y 2-C.**
+
 ## PENDIENTE (para la proxima sesion)
-1. **Fase 2-C** (badges de Riesgo/Cumplimiento + enlaces a
-   Evidencias/Clima Laboral en `workplace_detail.html`) -- spec ya
-   escrita y comiteada (`FASE2_C_especificacion_ficha_centro_badges_enlaces.md`),
-   mockup ya aprobado por Jorge, **pero NUNCA se le pidio a Codex que la
-   implementara** -- quedo pendiente de iniciar.
-2. Rediseño de la lista de "Centros de Trabajo" (tarjetas con KPIs,
+1. Rediseño de la lista de "Centros de Trabajo" (tarjetas con KPIs,
    hallazgo 5.1 del backlog de socios) -- Jorge decidio posponerlo
-   explicitamente (23 jul 2026) para despues de Fase 2-C, no se toco.
-3. Seguir recibiendo y registrando observaciones de los socios en
+   explicitamente (23 jul 2026), ahora que Fase 2 esta completa es el
+   candidato natural a retomar si se prioriza.
+2. Seguir recibiendo y registrando observaciones de los socios en
    `SOCIOS_feedback_correcciones.md`.
-4. Logo viejo "NOM 035/IHES" pendiente de reemplazar (sin cambios desde
+3. Logo viejo "NOM 035/IHES" pendiente de reemplazar (sin cambios desde
    sesion 22).
-5. Railway staging con el problema de Nixpacks -- sin cambios, no
+4. Railway staging con el problema de Nixpacks -- sin cambios, no
    bloqueante.
-6. Pendientes menores de sesiones previas sin resolver: warning de
+5. Pendientes menores de sesiones previas sin resolver: warning de
    migracion no reflejada (choices PsychoInstrument), division float en
    `employees_dt`, rotar credenciales del VPS por higiene.
 7. Poppler (`pdftoppm`) sigue sin instalar -- Claude puede generar y
