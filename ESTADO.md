@@ -2378,20 +2378,47 @@ Deploy en VPS confirmado sin errores (`normaia-db-1` healthy,
 **Fase 2 (Riesgo General + Cumplimiento documental) queda 100% completa
 y desplegada en produccion real: 2-A, 2-B, 2-B2 y 2-C.**
 
+## Fase 3-A -- Rediseño de la lista de Centros de Trabajo -- IMPLEMENTADA Y DESPLEGADA
+Retomado el mismo dia (24 jul 2026) tras cerrar Fase 2. `WorkplaceView.get()`
+(`surveys/views.py`) ahora arma, por cada centro del usuario, el nivel de
+riesgo y el % de cumplimiento documental reutilizando `get_riesgo_general`
+y `get_portafolio_status` (Fase 2-A/2-B) via `RequestFactory` -- mismo
+patron que ya usaba `get_portafolio_status` internamente para llamar a
+`get_chart_data`, sin duplicar logica de calculo. `workplace.html` ahora
+muestra: 5 KPIs agregados (Centros de trabajo, Empleados totales,
+Evaluaciones aplicadas, Cumplimiento documental promedio, Riesgo
+predominante), busqueda + filtro por nivel de riesgo, y tarjetas con
+Empleados registrados / Evaluaciones aplicadas / % Cumplimiento / badge
+de Riesgo / botones "Ver detalle" y "Ver resultados" (deshabilitado si
+el centro no tiene datos de riesgo todavia). Sin migracion.
+
+**Decisiones de producto confirmadas:** "Riesgo predominante" = peor
+caso entre los centros del usuario (nunca promedio ni moda, para no
+esconder un centro grave). "Evaluaciones aplicadas" por centro =
+`max(0, workplace.evaluation - 1)` (evaluation es el ciclo actual, solo
+incrementa al finalizar uno). No existe campo real de "Estado/Activo"
+en el modelo `Workplace` -- se decidio no inventar esa columna en la UI,
+usar solo datos respaldados por el modelo real.
+
+**Validacion:** logica de agregacion verificada con 3 centros de prueba
+(riesgo Muy alto, Nulo, y sin datos) -- Empleados totales, Evaluaciones
+aplicadas y Riesgo predominante (peor caso, ignorando el centro sin
+datos) correctos. Verificacion visual real en navegador: filtro de
+riesgo probado en vivo (funciona), boton "Ver resultados" confirmado
+como NO clicable en el centro sin datos (no aparece en el arbol de
+elementos interactivos de la pagina, no solo visualmente atenuado).
+Deploy en VPS confirmado sin errores.
+
 ## PENDIENTE (para la proxima sesion)
-1. Rediseño de la lista de "Centros de Trabajo" (tarjetas con KPIs,
-   hallazgo 5.1 del backlog de socios) -- Jorge decidio posponerlo
-   explicitamente (23 jul 2026), ahora que Fase 2 esta completa es el
-   candidato natural a retomar si se prioriza.
-2. Seguir recibiendo y registrando observaciones de los socios en
+1. Seguir recibiendo y registrando observaciones de los socios en
    `SOCIOS_feedback_correcciones.md`.
-3. Logo viejo "NOM 035/IHES" pendiente de reemplazar (sin cambios desde
+2. Logo viejo "NOM 035/IHES" pendiente de reemplazar (sin cambios desde
    sesion 22).
-4. Railway staging con el problema de Nixpacks -- sin cambios, no
+3. Railway staging con el problema de Nixpacks -- sin cambios, no
    bloqueante.
-5. Pendientes menores de sesiones previas sin resolver: warning de
+4. Pendientes menores de sesiones previas sin resolver: warning de
    migracion no reflejada (choices PsychoInstrument), division float en
    `employees_dt`, rotar credenciales del VPS por higiene.
-7. Poppler (`pdftoppm`) sigue sin instalar -- Claude puede generar y
+5. Poppler (`pdftoppm`) sigue sin instalar -- Claude puede generar y
    editar PDFs/Word pero no renderizarlos a imagen para autoverificacion
    visual antes de entregarlos.
