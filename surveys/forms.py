@@ -46,13 +46,13 @@ class EvidenciaEstadoForm(forms.Form):
     estado = forms.ChoiceField(label='Estado', widget=forms.RadioSelect)
     notas = forms.CharField(label='Notas', required=False, widget=forms.Textarea(attrs=_cls))
 
-    def __init__(self, *args, binario=False, **kwargs):
+    def __init__(self, *args, permite_no_aplica=False, **kwargs):
         super().__init__(*args, **kwargs)
         from surveys.models import EvidenciaFaseC
-        if binario:
-            self.fields['estado'].choices = [('tienen', 'Realizado'), ('falta', 'No realizado')]
-        else:
-            self.fields['estado'].choices = EvidenciaFaseC.ESTADO_CHOICES
+        choices = list(EvidenciaFaseC.ESTADO_CHOICES)
+        if not permite_no_aplica:
+            choices = [c for c in choices if c[0] != 'no_aplica']
+        self.fields['estado'].choices = choices
 
 
 # Reemplazado por EvidenciaEstadoForm en Fase 2-B (2026-07). Descomentar si se revierte la eliminacion de subida de archivos.

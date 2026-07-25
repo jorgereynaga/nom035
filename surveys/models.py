@@ -1015,14 +1015,14 @@ class EvidenciaFaseC(models.Model):
 		('mecanismos_queja', 'Mecanismos de queja/denuncia de violencia laboral'),
 	)
 	ESTADO_CHOICES = (
-		('tienen', 'Tienen'),
-		('trabajando', 'Lo estan trabajando'),
-		('falta', 'Les falta'),
+		('en_proceso', 'En proceso'),
+		('completado', 'Completado'),
+		('no_aplica', 'No aplica'),
 	)
-	# ESTADO_CHOICES_BINARIO se usa en el form para 'registros' y 'mecanismos_queja' (solo 2 opciones, ver forms.py)
+	TIPOS_PERMITE_NO_APLICA = ('canalizacion',)
 	workplace=models.ForeignKey(Workplace,related_name="evidencias_fase_c",verbose_name='Centro de trabajo', on_delete=models.CASCADE)
 	tipo=models.CharField(u'Tipo de evidencia', max_length=30, choices=TIPO_CHOICES)
-	estado=models.CharField(u'Estado', max_length=20, choices=ESTADO_CHOICES, default='falta')
+	estado=models.CharField(u'Estado', max_length=20, choices=ESTADO_CHOICES, default='en_proceso')
 	# archivo=models.FileField(u'Archivo', upload_to='evidencias_fase_c/%Y/%m/', storage=protected_storage)  # eliminado 2026-07 (Fase 2-B): se reemplazo por checklist de estado para evitar crecimiento de disco. Descomentar si se decide revertir.
 	notas=models.TextField(u'Notas', blank=True)
 	fecha_carga=models.DateTimeField(auto_now_add=True)
