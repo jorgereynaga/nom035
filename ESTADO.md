@@ -2453,8 +2453,65 @@ Validado en navegador real: estructura del sidebar exactamente como se
 pidio, boton renombrado conserva el deep-link. Deploy en VPS
 confirmado sin errores.
 
+## Fase 3 dividida + alcance reducido del Plan de accion (8.4) -- DECIDIDO, sin implementar todavia
+Con Fase 1 y Fase 2 completas, se retomo el resto del backlog de Fase 3
+(`SOCIOS_feedback_correcciones.md`). Decisiones tomadas el 24 jul 2026,
+antes de escribir cualquier spec:
+
+**Fase 3 dividida en 2 sub-fases:**
+- **Fase 3-B** (siguiente a atacar): navegacion jerarquica Dominio ->
+  Categoria -> Dimension (reemplaza las 3 pestañas planas de hoy en
+  `workplace_results.html`) + comparativo historico entre evaluaciones
+  del mismo centro. Sin modelo de datos nuevo, solo presentacion sobre
+  datos que ya calcula Fase 2-A. Menor riesgo, mas rapido -- por eso va
+  primero.
+- **Fase 3-C** (Plan de accion, numeral 8.4): alcance reducido para el
+  arranque, ver decision abajo -- ya no es el CRUD tipo kanban
+  originalmente contemplado.
+
+**Decision sobre el Plan de accion (numeral 8.4) -- alcance v1 reducido:**
+En vez de un CRUD completo con tablero de estado (kanban), la Fase
+3-C v1 sera: el usuario descarga una plantilla (Excel/CSV) con las 6
+columnas que exige el numeral 8.4 (area/trabajadores sujetos, tipo de
+accion, fecha programada, responsable, estado, evaluacion posterior),
+la llena y el sistema **importa los renglones como datos estructurados**
+(no se guarda el archivo -- mismo principio ya aplicado en Fase 2-B
+para evitar crecimiento de disco). Cada accion importada queda con un
+selector de estado inline, reutilizando el mismo patron de UI que el
+checklist de evidencias (Fase 2-B2: selector + boton Guardar).
+
+**Por que este alcance reducido (no el extremo simple de solo subir un
+archivo, ni el extremo completo del kanban):**
+- Es defendible ante la norma: contiene los 6 datos que exige 8.4 y
+  permite "control de avances" real (estado editable por fila) -- a
+  diferencia de un simple checkbox de "si/no tengo programa" (lo unico
+  que existe hoy en el checklist de Fase 2-B para `medida_control`).
+- No reintroduce archivos en el servidor (a diferencia de la idea
+  original de "subir el archivo del plan tal cual").
+- Reutiliza 2 piezas de infraestructura que de todos modos se van a
+  construir: el importador de plantillas (compartido con la carga
+  masiva de empleados, ver pendiente #1 abajo) y el patron de selector
+  de estado inline (ya existe).
+- Como las acciones quedan como filas reales en BD (no en un archivo
+  opaco), invertir despues en una UI mas rica es una extension, no una
+  reescritura -- por eso el resto se puede diferir a v2.0 sin costo de
+  retrabajo.
+
+**Pendiente explicitamente para v2.0 (fuera de alcance del lanzamiento):**
+- Vista tipo kanban / tablero de arrastrar y soltar para cambiar estado.
+- Recordatorios o notificaciones basados en la fecha programada.
+- Grafica o reporte de avance historico del plan (% completado a
+  tiempo, tendencia entre evaluaciones).
+- Asignar responsables reales del sistema (usuarios) en vez de texto libre.
+
+Detalle completo de esta decision en `SOCIOS_feedback_correcciones.md`,
+seccion "ACTUALIZACIÓN — Fase 3 dividida".
+
 ## PENDIENTE (para la proxima sesion)
-1. **PRIORIDAD ALTA, bloqueante antes de vender (confirmado por Jorge,
+1. **Fase 3-B** (siguiente a implementar, confirmado por Jorge): navegacion
+   jerarquica Dominio -> Categoria -> Dimension + comparativo historico
+   en `workplace_results.html`. Sin spec ni mockup todavia.
+2. **PRIORIDAD ALTA, bloqueante antes de vender (confirmado por Jorge,
    24 jul 2026):** carga masiva de empleados por centro de trabajo
    (Excel/CSV), con plantilla descargable con 1-2 filas de ejemplo.
    Hoy el alta es 100% manual, uno por uno -- inviable para clientes
@@ -2462,16 +2519,14 @@ confirmado sin errores.
    consideraciones tecnicas ya en `SOCIOS_feedback_correcciones.md`
    hallazgo #2 (columnas = mismos campos que `Employee` en
    `cargar_datos_demo.py`, validacion de la plantilla, definir que
-   pasa con filas invalidas). Sin specs ni mockup todavia.
-2. Seguir recibiendo y registrando observaciones de los socios en
+   pasa con filas invalidas). Sin specs ni mockup todavia. El importador
+   de plantillas que se construya aqui se reutiliza para la Fase 3-C.
+3. **Fase 3-C** (Plan de accion, numeral 8.4): alcance reducido ya
+   decidido (ver arriba), pendiente de spec/mockup -- depende del
+   importador de plantillas del punto 2.
+4. Seguir recibiendo y registrando observaciones de los socios en
    `SOCIOS_feedback_correcciones.md`.
-3. Del backlog de socios, lo que sigue de la "Fase 3" original (mayor
-   esfuerzo, requiere nuevo modelo de datos): "Tablero Ejecutivo"
-   completo con navegacion Dominio -> Categoria -> Dimension y
-   comparativo historico (hallazgo 5.3), y Plan de accion con
-   seguimiento de estado (numeral 8.4, hallazgo 5.3) -- ninguno de los
-   dos se ha iniciado.
-4. Pendientes menores ya registrados en `SOCIOS_feedback_correcciones.md`
+5. Pendientes menores ya registrados en `SOCIOS_feedback_correcciones.md`
    sin resolver: referencias al dominio viejo `035.ihes.mx` en
    `survey.html:289` y `tyc.html:172`; logo viejo "NOM 035/IHES"
    (`static/app-assets/images/pages/login_nom035.png`, usado en
@@ -2479,15 +2534,15 @@ confirmado sin errores.
    por un asset con la marca NormaIA; bug reportado en el prototipo de
    tarjetas de planes (boton se oculta al seleccionar, hallazgo #7, aun
    no verificable contra codigo real).
-5. Evaluar en produccion si "Añadir un Centro" en el menu NOM-035 de
+6. Evaluar en produccion si "Añadir un Centro" en el menu NOM-035 de
    verdad se usa (ya existe tambien como boton "+ Nuevo centro" en la
    lista de Centros de Trabajo, Fase 3-A) -- si no se usa, se quita del
    menu.
-6. Railway staging con el problema de Nixpacks -- sin cambios, no
+7. Railway staging con el problema de Nixpacks -- sin cambios, no
    bloqueante.
-7. Pendientes menores de sesiones previas sin resolver: warning de
+8. Pendientes menores de sesiones previas sin resolver: warning de
    migracion no reflejada (choices PsychoInstrument), division float en
    `employees_dt`, rotar credenciales del VPS por higiene.
-8. Poppler (`pdftoppm`) sigue sin instalar -- Claude puede generar y
+9. Poppler (`pdftoppm`) sigue sin instalar -- Claude puede generar y
    editar PDFs/Word pero no renderizarlos a imagen para autoverificacion
    visual antes de entregarlos.

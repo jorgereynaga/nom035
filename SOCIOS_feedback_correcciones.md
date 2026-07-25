@@ -184,6 +184,26 @@ Dado que los hallazgos #3, #4, #5, #5.1, #5.2, #5.3 y #6 en el fondo son partes 
 
 **Pendiente de decidir con Jorge:** confirmar este orden de fases, o ajustarlo según lo que los socios consideren más urgente.
 
+**ACTUALIZACIÓN — Fase 3 dividida (24 jul 2026), tras confirmar Fase 1 y Fase 2 completas y desplegadas:**
+- **#5.1** (rediseño de lista de Centros de Trabajo) ya se implementó como **Fase 3-A**, desplegada en producción.
+- El resto de la Fase 3 se divide en:
+  - **Fase 3-B** (siguiente a atacar): navegación jerárquica Dominio → Categoría → Dimensión + comparativo histórico entre evaluaciones. Sin modelo de datos nuevo, solo presentación sobre datos ya calculados (Fase 2-A). Menor riesgo, más rápido.
+  - **Fase 3-C** (después de 3-B): Plan de acción para el numeral 8.4 — **con alcance reducido para el arranque**, ver decisión abajo.
+
+**DECISIÓN DE JORGE sobre el Plan de acción (numeral 8.4), 24 jul 2026:** en vez del CRUD completo con seguimiento de estado tipo kanban originalmente contemplado en la Fase 3, se reduce el alcance para v1 (lanzamiento): el usuario descarga una plantilla (Excel/CSV) con las 6 columnas que exige el numeral 8.4 (área/trabajadores sujetos, tipo de acción, fecha programada, responsable, estado, evaluación posterior), la llena y el sistema **importa los renglones como datos estructurados** (no se guarda el archivo, evita el problema de costo de hosting que ya se resolvió en Fase 2-B). Cada acción importada queda con un selector de estado inline (mismo patrón de UI que el checklist de Fase 2-B2), permitiendo actualizar el avance sin necesitar un dashboard tipo kanban.
+
+**Justificación:**
+- Es defendible ante la norma: contiene los 6 datos que exige 8.4 y sí permite "control de avances" real (estado editable por fila), a diferencia de solo tener un checkbox de "sí/no tengo programa" (que es lo único que existe hoy en el checklist de Fase 2-B).
+- No reintroduce archivos en el servidor — mismo principio que ya se aplicó al quitar la subida de evidencias.
+- Reutiliza dos piezas de infraestructura que de todos modos se van a construir: el importador de plantillas (compartido con la carga masiva de empleados, ver hallazgo #2, prioridad alta) y el patrón de selector de estado inline (ya existe en el checklist de evidencias).
+- Dado que las acciones importadas quedan como filas reales en base de datos (no en un archivo opaco), invertir después en una UI más rica (kanban, fechas con recordatorios, gráfica de avance histórico) es una extensión, no hay que rehacer nada — eso queda explícitamente para v2.0.
+
+**Pendiente para v2.0 (fuera de alcance del lanzamiento):**
+- Vista tipo kanban / tablero de arrastrar y soltar para cambiar el estado de cada acción.
+- Recordatorios o notificaciones basados en la fecha programada de cada acción.
+- Gráfica o reporte de avance histórico del plan de acción (qué % de acciones se completaron a tiempo, tendencia entre evaluaciones).
+- Posiblemente asignar responsables reales del sistema (usuarios) a cada acción, en vez de un campo de texto libre.
+
 **DECISIÓN DE JORGE (confirmada):** sí actualizar la vista actual de Resultados hacia algo similar a la propuesta del Tablero Ejecutivo, pero con estas condiciones:
 - Basarse en lo que la norma realmente pide (no inflar indicadores, ver notas de 5.2/5.3 sobre "cumplimiento" vs "riesgo")
 - Solo información relevante — el mockup se ve sobrecargado, simplificar
