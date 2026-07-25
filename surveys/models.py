@@ -1044,3 +1044,14 @@ class PlanPurchaseEvent(models.Model):
 	record_create=models.DateTimeField(auto_now_add=True)
 	def __str__(self):
 		return f"{self.user.username} - {self.plan_key} ({self.record_create.date()})"
+
+
+class EvaluationHistory(models.Model):
+	workplace = models.ForeignKey(Workplace, related_name="evaluation_history", on_delete=models.CASCADE)
+	numero_evaluacion = models.IntegerField(u'Número de evaluación')
+	guia = models.IntegerField(u'Guía aplicada (2 o 3)')
+	fecha_finalizacion = models.DateTimeField(u'Fecha de finalización', auto_now_add=True)
+	def __str__(self):
+		return f"{self.workplace.name} - Evaluación {self.numero_evaluacion}"
+	class Meta:
+		ordering = ['numero_evaluacion']

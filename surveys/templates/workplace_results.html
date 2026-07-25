@@ -188,14 +188,40 @@
 .chart-tabs-nav label:hover { background: rgba(79,70,229,.08); color: var(--primary); }
 .chart-tab-pair { display: none; flex-direction: column; gap: 18px; padding: 20px; }
 #tab-resumen:checked ~ .chart-tabs-body #pair-resumen,
-#tab-cat:checked ~ .chart-tabs-body #pair-cat,
-#tab-dom:checked ~ .chart-tabs-body #pair-dom,
-#tab-dim:checked ~ .chart-tabs-body #pair-dim { display: flex; }
+#tab-analisis:checked ~ .chart-tabs-body #pair-analisis,
+#tab-comparativo:checked ~ .chart-tabs-body #pair-comparativo { display: flex; }
 #tab-resumen:checked ~ .chart-tabs-nav label[for="tab-resumen"],
-#tab-cat:checked ~ .chart-tabs-nav label[for="tab-cat"],
-#tab-dom:checked ~ .chart-tabs-nav label[for="tab-dom"],
-#tab-dim:checked ~ .chart-tabs-nav label[for="tab-dim"] { background: var(--primary); color: #fff; }
+#tab-analisis:checked ~ .chart-tabs-nav label[for="tab-analisis"],
+#tab-comparativo:checked ~ .chart-tabs-nav label[for="tab-comparativo"] { background: var(--primary); color: #fff; }
 .chart-tab-pair .chart-card { box-shadow: none; border-color: var(--border); }
+.cat-pills { display: flex; flex-wrap: wrap; gap: 10px; margin: 14px 0; }
+.cat-pill { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--border); border-radius: 999px; padding: 8px 12px; cursor: pointer; color: var(--text-muted); background: var(--bg-base); font-size: 13px; transition: all .2s ease; }
+.cat-pill:hover, .cat-pill.active { border-color: var(--primary); color: var(--primary); background: rgba(79,70,229,.08); }
+.cat-badge { width: 10px; height: 10px; border-radius: 999px; border: 1px solid rgba(15,23,42,.12); }
+.breadcrumb { font-size: 12px; color: var(--text-muted); margin: 4px 0 14px; }
+.dom-row { border: 1px solid var(--border); border-radius: var(--radius-md); margin-bottom: 10px; background: var(--bg-base); overflow: hidden; }
+.dom-row-head { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 12px 14px; cursor: pointer; }
+.dom-row-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.dom-chevron { width: 16px; height: 16px; color: var(--text-muted); transition: transform .2s ease; flex: 0 0 auto; }
+.dom-row.expanded .dom-chevron { transform: rotate(90deg); }
+.dom-name { font-weight: 700; color: var(--text-main); }
+.level-pill { color: #111827; font-weight: 800; font-size: 11px; border-radius: 999px; padding: 4px 9px; white-space: nowrap; }
+.dim-list { display: none; border-top: 1px solid var(--border); padding: 10px 14px; background: var(--bg-surface); }
+.dom-row.expanded .dim-list { display: grid; gap: 8px; }
+.dim-item { display: flex; justify-content: space-between; gap: 14px; align-items: center; padding: 8px 10px; border-radius: var(--radius-sm); background: var(--bg-base); border: 1px solid var(--border); }
+.dim-name { color: var(--text-main); font-size: 12px; }
+.compare-chart { min-height: 170px; display: flex; align-items: flex-end; gap: 18px; padding: 20px 10px 8px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg-surface); overflow-x: auto; }
+.compare-bar-col { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; min-width: 95px; gap: 6px; }
+.compare-bar { width: 42px; min-height: 4px; border-radius: 10px 10px 4px 4px; border: 1px solid rgba(15,23,42,.12); }
+.compare-label { font-size: 11px; color: var(--text-muted); text-align: center; line-height: 1.3; }
+.compare-value { font-size: 12px; font-weight: 800; color: var(--text-main); }
+.compare-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.compare-table th, .compare-table td { border-bottom: 1px solid var(--border); padding: 10px 8px; text-align: left; }
+.compare-table th { color: var(--text-muted); font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+.trend { font-weight: 800; }
+.trend.up { color: #dc2626; }
+.trend.down { color: #16a34a; }
+.trend.same { color: var(--text-muted); }
 .resumen-card { display: flex; flex-direction: column; gap: 14px; }
 .resumen-card h3 { margin: 0; font-size: 16px; color: var(--text-primary); }
 .resumen-card p { margin: 0; line-height: 1.65; color: var(--text-secondary); }
@@ -374,26 +400,21 @@ table.dataTable tbody tr:last-child td { border-bottom: none !important; }
 <div class="charts-section">
   <div class="chart-tabs">
     <input type="radio" name="chart-tab" id="tab-resumen" checked>
-    <input type="radio" name="chart-tab" id="tab-cat">
-    <input type="radio" name="chart-tab" id="tab-dom">
-    <input type="radio" name="chart-tab" id="tab-dim">
+    <input type="radio" name="chart-tab" id="tab-analisis">
+    <input type="radio" name="chart-tab" id="tab-comparativo">
 
     <div class="chart-tabs-nav">
       <label for="tab-resumen">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V9"/><path d="M10 19V5"/><path d="M16 19v-7"/><path d="M22 19H2"/></svg>
         Resumen
       </label>
-      <label for="tab-cat">
+      <label for="tab-analisis">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
-        Categoría
+        Análisis por dominio
       </label>
-      <label for="tab-dom">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6z"/></svg>
-        Dominio
-      </label>
-      <label for="tab-dim">
+      <label for="tab-comparativo">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
-        Dimensión
+        Comparativo
       </label>
     </div>
 
@@ -418,54 +439,28 @@ table.dataTable tbody tr:last-child td { border-bottom: none !important; }
         </div>
       </div>
 
-      <div class="chart-tab-pair" id="pair-cat">
-        <div class="chart-card">
-          <p class="chart-card-title">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
-            Total por categoría — heatmap
-          </p>
-          <div id="chart4" style="width:100%; height:700px;"></div>
-        </div>
-        <div class="chart-card">
-          <p class="chart-card-title">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
-            Por categoría — empleados
-          </p>
-          <div id="chart2" style="width:100%; height:{{chart_hb}}px;"></div>
+      <div class="chart-tab-pair" id="pair-analisis">
+        <div class="chart-card" style="grid-column: 1 / -1;">
+          <p class="chart-card-title">Análisis por Categoría → Dominio → Dimensión</p>
+          <div id="analisis-status" style="font-size:13px;color:#94a3b8;"></div>
+          <div id="analisis-cat-pills" class="cat-pills"></div>
+          <div id="analisis-breadcrumb" class="breadcrumb"></div>
+          <div id="analisis-dominios"></div>
         </div>
       </div>
 
-      <div class="chart-tab-pair" id="pair-dom">
-        <div class="chart-card">
-          <p class="chart-card-title">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
-            Total por dominio — heatmap
-          </p>
-          <div id="chart3" style="width:100%; height:700px;"></div>
+      <div class="chart-tab-pair" id="pair-comparativo">
+        <div class="chart-card" style="grid-column: 1 / -1;">
+          <p class="chart-card-title">Riesgo General por evaluación</p>
+          <div id="comparativo-status" style="font-size:13px;color:#94a3b8;"></div>
+          <div id="comparativo-chart" class="compare-chart"></div>
         </div>
-        <div class="chart-card">
-          <p class="chart-card-title">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
-            Por dominio — empleados
-          </p>
-          <div id="chart" style="width:100%; height:{{chart_hb}}px;"></div>
-        </div>
-      </div>
-
-      <div class="chart-tab-pair" id="pair-dim">
-        <div class="chart-card">
-          <p class="chart-card-title">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
-            Total por dimensión — heatmap
-          </p>
-          <div id="chart5" style="width:100%; height:700px;"></div>
-        </div>
-        <div class="chart-card">
-          <p class="chart-card-title">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
-            Por dimensión — empleados
-          </p>
-          <div id="chart6" style="width:100%; height:{{chart_hb}}px;"></div>
+        <div class="chart-card" style="grid-column: 1 / -1;">
+          <p class="chart-card-title" id="comparativo-tabla-titulo">Cambio por dominio</p>
+          <table class="compare-table" id="comparativo-tabla">
+            <thead><tr id="comparativo-tabla-head"></tr></thead>
+            <tbody id="comparativo-tabla-body"></tbody>
+          </table>
         </div>
       </div>
     </div>
@@ -507,12 +502,6 @@ table.dataTable tbody tr:last-child td { border-bottom: none !important; }
 <script src="{% static 'app-assets/js/scripts/charts/echarts.min.js' %}"></script>
 
 <script type="text/javascript">
-    var myChart = echarts.init(document.getElementById('chart'));
-    var myChart2 = echarts.init(document.getElementById('chart2'));
-    var myChart3 = echarts.init(document.getElementById('chart3'));
-    var myChart4 = echarts.init(document.getElementById('chart4'));
-    var myChart5 = echarts.init(document.getElementById('chart5'));
-    var myChart6 = echarts.init(document.getElementById('chart6'));
     $(document).ready(function(){
         $.ajax({
             url: '{% url "get_departments" %}',
@@ -533,233 +522,90 @@ table.dataTable tbody tr:last-child td { border-bottom: none !important; }
                 console.log(xhr.responseText)
             }       
         })
-        myChart.showLoading();
-        myChart2.showLoading();
-        myChart3.showLoading();
-        myChart4.showLoading();
-        myChart5.showLoading();
-        myChart6.showLoading();
-        myChart.resize( {height:"{{chart_height}}"});
-        myChart2.resize({height:"{{chart_height}}"});
-        myChart5.resize({height:"{{chart_height}}"});
-        function loadChart() {
+        function nivelColor(nivel){
+            var colores = {0:'#9be5f7',1:'#6bf56e',2:'#eab308',3:'#ffc000',4:'#ff7070'};
+            return colores[nivel] || '#e5e7eb';
+        }
+
+        var jerarquiaData = null;
+        var catActiva = null;
+
+        function renderJerarquia(){
+            if (!jerarquiaData || !jerarquiaData.length) return;
+            if (catActiva === null) catActiva = jerarquiaData[0].nombre;
+            var cat = jerarquiaData.find(function(c){ return c.nombre === catActiva; });
+            var pillsHtml = jerarquiaData.map(function(c){
+                var activeCls = (c.nombre === catActiva) ? ' active' : '';
+                return '<div class="cat-pill' + activeCls + '" data-cat="' + c.nombre + '">' + '<span class="cat-badge" style="background:' + nivelColor(c.nivel) + '"></span>' + c.nombre + '</div>';
+            }).join('');
+            $('#analisis-cat-pills').html(pillsHtml);
+            $('#analisis-breadcrumb').html(cat.nombre + ' <b>&rarr;</b> ' + cat.dominios.length + ' dominio(s) en esta categoría');
+            var domHtml = cat.dominios.map(function(d, idx){
+                var dimHtml = d.dimensiones.map(function(dim){
+                    return '<div class="dim-item"><span class="dim-name">' + dim.nombre + '</span>' + '<span style="font-size:11px;color:var(--text-muted);">' + dim.porcentaje + '% del máximo</span></div>';
+                }).join('');
+                return '<div class="dom-row' + (idx === 0 ? ' expanded' : '') + '" data-dom-idx="' + idx + '"><div class="dom-row-head"><div class="dom-row-left"><svg class="dom-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg><span class="dom-name">' + d.nombre + '</span></div><span class="level-pill" style="background:' + nivelColor(d.nivel) + '">' + d.nivel_nombre + '</span></div><div class="dim-list">' + (dimHtml || '<div style="color:var(--text-muted);font-size:12px;">Sin dimensiones registradas.</div>') + '</div></div>';
+            }).join('');
+            $('#analisis-dominios').html(domHtml);
+            $('.cat-pill').off('click').on('click', function(){ catActiva = $(this).data('cat'); renderJerarquia(); });
+            $('.dom-row-head').off('click').on('click', function(){ $(this).parent('.dom-row').toggleClass('expanded'); });
+        }
+
+        function loadAnalisisJerarquico() {
             $.ajax({
-                url: "{% url 'get_chart_data' %}",
-                data:{"workplace_id":"{{workplace_id}}","evaluation":"{{evaluation}}",'dept_id': $('#dept_id').val()},
+                url: "{% url 'get_riesgo_general' %}",
+                data: {"workplace_id":"{{workplace_id}}","evaluation":"{{evaluation}}"},
                 dataType: 'json',
                 success: function(data){
-                    if (data.status=="no_data"){
-                        $("#status").text("No existen suficientes datos")
-                        myChart.clear();
-                        myChart2.clear();
-                        myChart3.clear();
-                        myChart4.clear();
-                        myChart5.clear();
-                        myChart6.clear();
-                        myChart.hideLoading();
-                        myChart2.hideLoading();
-                        myChart3.hideLoading();
-                        myChart4.hideLoading();
-                        myChart5.hideLoading();
-                        myChart6.hideLoading();
-
-                    }else{
-                        myChart.setOption({ tooltip:{position:'top'},animation: false,grid: {height: '50%',top: '10%'},
-                            textStyle:{color:'black'},itemStyle:{borderColor: 'white',borderWidth:2},
-                            title:{text:'Factores de riesgo psicosocial y entorno organizacional',subtext:'Dominio',left:'center'},
-                            xAxis: {type: 'category',data: data.domains,axisLabel:{rotate:70,},splitArea: {show: true},},
-                            yAxis:{type: 'category',data: data.employees,splitArea: {show: true},
-                                axisLabel:{formatter: function (value, index) {
-                                    if (value.length>12) return value.substring(0,12)+'...'
-                                    else return value
-                                },},
-                            },
-                            series: [{
-                                name: 'Dominio',type: 'heatmap',data: data.data,
-                                    label: {show: true,},
-                                emphasis: {itemStyle: {shadowBlur: 30,shadowColor: 'rgba(0, 0, 0, 0.5)'}},
-                                tooltip:{
-                                    formatter: (params) => {
-                                        var level=''
-                                        if (params.color=="#ff7070") level="muy alto"
-                                        else if (params.color=="#ffc000") level="alto"
-                                        else if (params.color=="#ffff00") level="medio"
-                                        else if (params.color=="#6bf56e") level="bajo"
-                                        else if (params.color=="#9be5f7") level="nulo"
-                                        var employee=data.employees[params.data.value[1]]
-                                        return params.seriesName+" - "+params.name+"</br>"+employee+": "+params.data.value[2]+"</br><i class='fa fa-circle' style='color:"+params.color+"'></i> Nivel de riesgo "+level;
-                                    }
-                                },
-                            }],
-                        });
-                        myChart2.setOption({
-                            tooltip:{position:'top'},animation: false,grid: {height: '50%',top: '10%'},
-                            textStyle:{color:'black'},itemStyle:{borderColor: 'white',borderWidth:2},
-                            title:{text:'Factores de riesgo psicosocial y entorno organizacional',subtext:'Categoría',left:'center'},
-                            xAxis: {type: 'category',data: data.cat,axisLabel:{rotate:70,},splitArea: {show: true},},
-                            yAxis:{type: 'category',data: data.employees,splitArea: {show: true},
-                                axisLabel:{formatter: function (value, index) {
-                                    if (value.length>12) return value.substring(0,12)+'...'
-                                    else return value
-                                },},
-                            },
-                            series: [{
-                                name: 'Categoría',type: 'heatmap',data: data.data2,
-                                    label: {show: true,},
-                                emphasis: {itemStyle: {shadowBlur: 30,shadowColor: 'rgba(0, 0, 0, 0.5)'}},
-                                tooltip:{
-                                    formatter: (params) => {
-                                        var level=''
-                                        if (params.color=="#ff7070") level="muy alto"
-                                        else if (params.color=="#ffc000") level="alto"
-                                        else if (params.color=="#ffff00") level="medio"
-                                        else if (params.color=="#6bf56e") level="bajo"
-                                        else if (params.color=="#9be5f7") level="nulo"
-                                        var employee=data.employees[params.data.value[1]]
-                                        return params.seriesName+" - "+params.name+"</br>"+employee+": "+params.data.value[2]+"</br><i class='fa fa-circle' style='color:"+params.color+"'></i> Nivel de riesgo "+level;
-                                    }
-                                },
-                            }],
-                        });
-                        myChart6.setOption({
-                            tooltip:{position:'top'},animation: false,grid: {height: '50%',top: '10%'},
-                            textStyle:{color:'black'},itemStyle:{borderColor: 'white',borderWidth:2},
-                            title:{text:'Factores de riesgo psicosocial y entorno organizacional',subtext:'Dimensión',left:'center'},
-                            xAxis: {type: 'category',data: data.dimensions,axisLabel:{rotate:70,},splitArea: {show: true},},
-                            yAxis:{type: 'category',data: data.employees,splitArea: {show: true},
-                                axisLabel:{formatter: function (value, index) {
-                                    if (value.length>12) return value.substring(0,12)+'...'
-                                    else return value
-                                },},
-                            },
-                            series: [{
-                                name: 'Dimensión',type: 'heatmap',data: data.data5,
-                                    label: {show: true,
-                                        formatter: (params) => {return params.data.value[2].toFixed(1);}
-                                    },
-                                emphasis: {itemStyle: {shadowBlur: 30,shadowColor: 'rgba(0, 0, 0, 0.5)'}},
-                                tooltip:{
-                                    formatter: (params) => {
-                                        var level=''
-                                        if (params.color=="#ff7070") level="muy alto"
-                                        else if (params.color=="#ffc000") level="alto"
-                                        else if (params.color=="#ffff00") level="medio"
-                                        else if (params.color=="#6bf56e") level="bajo"
-                                        else if (params.color=="#9be5f7") level="nulo"
-                                        var employee=data.employees[params.data.value[1]]
-                                        return params.seriesName+" - "+params.name+"</br>"+employee+": "+params.data.value[2].toFixed(2)+"</br><i class='fa fa-circle' style='color:"+params.color+"'></i> Nivel de riesgo "+level;
-                                    }
-                                },
-                            }],
-                        });
-                        var opt=["Nulo","Bajo","Medio","Alto","Muy alto"]
-                        myChart3.setOption({
-                            tooltip:{position:'top'},animation: false,grid: {height: '50%',top: '10%'},
-                            textStyle:{color:'black'},itemStyle:{borderColor: 'white',borderWidth:2},
-                            title:{text:'Factores de riesgo psicosocial y entorno organizacional',subtext:'Total dominio',left:'center'},
-                            xAxis: {type: 'category',data: data.domains,axisLabel:{rotate:70,},splitArea: {show: true},},
-                            yAxis:{type: 'category',data: opt,splitArea: {show: true},
-                                axisLabel:{formatter: function (value, index) {
-                                    if (value.length>12) return value.substring(0,12)+'...'
-                                    else return value
-                                },},
-                            },
-                            series: [{
-                                name: 'Total por dominio',type: 'heatmap',data: data.total_level,
-                                    label: {show: true,
-                                        formatter: (params) => {return params.data.value[2]+" ("+Math.round((params.data.value[2]/data.count)*1000)/10+"%)";}
-                                    },
-                                emphasis: {itemStyle: {shadowBlur: 30,shadowColor: 'rgba(0, 0, 0, 0.5)'}},
-                                tooltip:{
-                                    formatter: (params) => {
-                                        var level=''
-                                        if (params.color=="#ff7070") level="muy alto"
-                                        else if (params.color=="#ffc000") level="alto"
-                                        else if (params.color=="#ffff00") level="medio"
-                                        else if (params.color=="#6bf56e") level="bajo"
-                                        else if (params.color=="#9be5f7") level="nulo"
-                                        return params.seriesName+" - "+params.name+"</br>"+opt[params.data.value[1]]+": "+params.data.value[2]+"</br>Porcentaje: "+Math.round((params.data.value[2]/data.count)*1000)/10+"% </br><i class='fa fa-circle' style='color:"+params.color+"'></i> Nivel de riesgo "+level;
-                                    }
-                                },
-                            }],
-                        });
-                        myChart4.setOption({
-                            tooltip:{position:'top'},animation: false,grid: {height: '50%',top: '10%'},
-                            textStyle:{color:'black'},itemStyle:{borderColor: 'white',borderWidth:2},
-                            title:{text:'Factores de riesgo psicosocial y entorno organizacional',subtext:'Total categoría',left:'center'},
-                            xAxis: {type: 'category',data: data.cat,axisLabel:{rotate:70,},splitArea: {show: true},},
-                            yAxis:{type: 'category',data:opt,splitArea: {show: true},
-                                axisLabel:{formatter: function (value, index) {
-                                    if (value.length>12) return value.substring(0,12)+'...'
-                                    else return value
-                                },},
-                            },
-                            series: [{
-                                name: 'Total por categoría',type: 'heatmap',data: data.total_cat,
-                                    label: {show: true,
-                                        formatter: (params) => {return params.data.value[2]+" ("+Math.round((params.data.value[2]/data.count)*1000)/10+"%)";}
-                                    },
-                                emphasis: {itemStyle: {shadowBlur: 30,shadowColor: 'rgba(0, 0, 0, 0.5)'}},
-                                tooltip:{
-                                    formatter: (params) => {
-                                        var level=''
-                                        if (params.color=="#ff7070") level="muy alto"
-                                        else if (params.color=="#ffc000") level="alto"
-                                        else if (params.color=="#ffff00") level="medio"
-                                        else if (params.color=="#6bf56e") level="bajo"
-                                        else if (params.color=="#9be5f7") level="nulo"
-                                        return params.seriesName+" - "+params.name+"</br>"+opt[params.data.value[1]]+": "+params.data.value[2]+"</br>Porcentaje: "+Math.round((params.data.value[2]/data.count)*1000)/10+"% </br><i class='fa fa-circle' style='color:"+params.color+"'></i> Nivel de riesgo "+level;
-                                    }
-                                },
-                            }],
-                        });
-                        myChart5.setOption({
-                            tooltip:{position:'top'},animation: false,grid: {height: '50%',top: '10%'},
-                            textStyle:{color:'black'},itemStyle:{borderColor: 'white',borderWidth:2},
-                            title:{text:'Factores de riesgo psicosocial y entorno organizacional',subtext:'Total dimensión',left:'center'},
-                            xAxis: {type: 'category',data: data.dimensions,axisLabel:{rotate:70,},splitArea: {show: true},},
-                            yAxis:{type: 'category',data:opt,splitArea: {show: true},
-                                axisLabel:{formatter: function (value, index) {
-                                    if (value.length>12) return value.substring(0,12)+'...'
-                                    else return value
-                                },},
-                            },
-                            series: [{
-                                name: 'Total por dimensión',type: 'heatmap',data: data.total_dim,
-                                    label: {show: true,
-                                        formatter: (params) => {return params.data.value[2]+" ("+Math.round((params.data.value[2]/data.count)*1000)/10+"%)";}
-                                    },
-                                emphasis: {itemStyle: {shadowBlur: 30,shadowColor: 'rgba(0, 0, 0, 0.5)'}},
-                                tooltip:{
-                                    formatter: (params) => {
-                                        var level=''
-                                        if (params.color=="#ff7070") level="muy alto"
-                                        else if (params.color=="#ffc000") level="alto"
-                                        else if (params.color=="#ffff00") level="medio"
-                                        else if (params.color=="#6bf56e") level="bajo"
-                                        else if (params.color=="#9be5f7") level="nulo"
-                                        return params.seriesName+" - "+params.name+"</br>"+opt[params.data.value[1]]+": "+params.data.value[2]+"</br>Porcentaje: "+Math.round((params.data.value[2]/data.count)*1000)/10+"% </br><i class='fa fa-circle' style='color:"+params.color+"'></i> Nivel de riesgo "+level;
-                                    }
-                                },
-                            }],
-                        });
-
-                        myChart.resize();
-                        myChart.hideLoading();
-                        myChart.hideLoading();
-                        myChart2.resize();
-                        myChart2.hideLoading();
-                        myChart3.resize();
-                        myChart3.hideLoading();
-                        myChart4.resize();
-                        myChart4.hideLoading();
-                        myChart5.resize();
-                        myChart5.hideLoading();
-                        myChart6.resize();
-                        myChart6.hideLoading();
+                    if (data.status === 'no_data'){
+                        $('#analisis-status').text('No existen suficientes datos para este centro de trabajo.');
+                        $('#analisis-cat-pills, #analisis-breadcrumb, #analisis-dominios').empty();
+                        return;
                     }
-                }
-            })
+                    $('#analisis-status').empty();
+                    jerarquiaData = data.jerarquia;
+                    catActiva = null;
+                    renderJerarquia();
+                },
+                error:function(){ $('#analisis-status').text('Ocurrió un error al cargar el análisis.'); }
+            });
+        }
+
+        function loadComparativo() {
+            $.ajax({
+                url: "{% url 'get_comparativo_evaluaciones' %}",
+                data: {"workplace_id":"{{workplace_id}}"},
+                dataType: 'json',
+                success: function(data){
+                    if (data.status === 'no_data'){
+                        $('#comparativo-status').text('Aún no hay evaluaciones finalizadas con datos suficientes para comparar.');
+                        $('#comparativo-chart, #comparativo-tabla-head, #comparativo-tabla-body').empty();
+                        return;
+                    }
+                    $('#comparativo-status').empty();
+                    var maxProm = Math.max.apply(null, data.evaluaciones.map(function(e){ return e.promedio; }).concat([1]));
+                    var barsHtml = data.evaluaciones.map(function(e){
+                        var alturaPx = Math.max(4, Math.round((e.promedio / maxProm) * 100));
+                        return '<div class="compare-bar-col"><span class="compare-value">' + e.promedio + '</span><div class="compare-bar" style="height:' + alturaPx + 'px; background:' + nivelColor(e.nivel) + ';"></div><span class="compare-label">' + e.etiqueta + '<br>' + e.nivel_nombre + '</span></div>';
+                    }).join('');
+                    $('#comparativo-chart').html(barsHtml);
+                    if (data.cambio_dominios && data.cambio_dominios.length){
+                        $('#comparativo-tabla-titulo').text('Cambio por dominio — ' + data.etiqueta_anterior + ' vs ' + data.etiqueta_actual);
+                        $('#comparativo-tabla-head').html('<th>Dominio</th><th>' + data.etiqueta_anterior + '</th><th>' + data.etiqueta_actual + '</th><th>Cambio</th>');
+                        var filasHtml = data.cambio_dominios.map(function(c){
+                            var trendCls = c.tendencia === 'empeoro' ? 'up' : (c.tendencia === 'mejoro' ? 'down' : 'same');
+                            var trendTxt = c.tendencia === 'empeoro' ? '&uarr; Empeoró' : (c.tendencia === 'mejoro' ? '&darr; Mejoró' : '= Sin cambio');
+                            return '<tr><td>' + c.nombre + '</td><td>' + c.nivel_anterior + '</td><td>' + c.nivel_actual + '</td><td class="trend ' + trendCls + '">' + trendTxt + '</td></tr>';
+                        }).join('');
+                        $('#comparativo-tabla-body').html(filasHtml);
+                    } else {
+                        $('#comparativo-tabla-titulo').text('Cambio por dominio');
+                        $('#comparativo-tabla-head').empty();
+                        $('#comparativo-tabla-body').html('<tr><td style="color:var(--text-muted);">Se necesitan al menos 2 evaluaciones finalizadas para comparar dominios.</td></tr>');
+                    }
+                },
+                error:function(){ $('#comparativo-status').text('Ocurrió un error al cargar el comparativo.'); }
+            });
         }
         function loadRiesgoGeneral() {
             $.ajax({
@@ -816,9 +662,10 @@ table.dataTable tbody tr:last-child td { border-bottom: none !important; }
                 }
             })
         }
-        loadChart();
         loadRiesgoGeneral();
-        $("#dept_id").change(function(){ loadChart(); });
+        loadAnalisisJerarquico();
+        loadComparativo();
+        $("#dept_id").change(function(){ loadRiesgoGeneral(); });
         if (typeof $.fn.tooltip === 'function') { $('[data-toggle="tooltip"]').tooltip(); }
         var table=$("#list").DataTable({
             "lengthMenu": [[5,10,25,50,100], [5,10,25,50,100]],
@@ -863,14 +710,5 @@ table.dataTable tbody tr:last-child td { border-bottom: none !important; }
     });
     $(function(){
     });
-</script>
-<script>
-$(function(){
-    $('input[name="chart-tab"]').on('change', function(){
-        if (this.id === 'tab-cat') { myChart4.resize(); myChart2.resize(); }
-        else if (this.id === 'tab-dom') { myChart3.resize(); myChart.resize(); }
-        else if (this.id === 'tab-dim') { myChart5.resize(); myChart6.resize(); }
-    });
-});
 </script>
 {% endblock %}

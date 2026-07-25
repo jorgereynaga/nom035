@@ -273,6 +273,18 @@ No es un bug nuevo de código — es el mismo pendiente ya registrado desde el d
 - El logo mostrado en las páginas de verificación de correo y recuperación de contraseña (`valid_email.html`, `password_recover.html`) sigue usando la imagen vieja `static/app-assets/images/pages/login_nom035.png` (diseño "NOM 035 / IHES"). Es un archivo de imagen, no texto — necesita un asset nuevo con la marca NormaIA (mismo flujo que usamos con Replit para la landing).
 - Nota aparte: el texto "NormalA" que se ve en la captura de esas páginas **sí dice "NormaIA" correctamente en el código** (`valid_email.html:62`) — es solo la tipografía de esa página, donde la "I" mayúscula se confunde visualmente con una "l" minúscula. No requiere corrección de texto, solo se resolvería si se actualiza la tipografía junto con el logo.
 
+## 9. Bug real confirmado: `EndEvaluation` permite avanzar de evaluación sin que la anterior esté completa
+
+**Observación de Jorge (25 jul 2026):** probando en local el centro "Centro Riesgo B", detectó que el sistema mostraba "Evaluación #2" aunque la Evaluación #1 solo tenía 1 de 51 empleados con encuesta contestada. Según Jorge, el propósito de una segunda evaluación es dar seguimiento a la primera ya completa — no debería habilitarse sin ese requisito.
+
+**Verificado en código (`surveys/views.py`, clase `EndEvaluation`):** el endpoint solo bloquea centros de demostración (`workplace.es_demo`) antes de incrementar `workplace.evaluation` — no existe ninguna validación de completitud (por ejemplo, % de empleados que contestaron) de la evaluación que se está cerrando.
+
+**Por qué importa:** si se permite avanzar sin datos suficientes, se pierde el propósito de dar seguimiento, y features que comparan evaluaciones (como el Comparativo de Fase 3-B) mostrarían evaluaciones "finalizadas" sin información real detrás.
+
+**Nota operativa:** el estado "Evaluación #2" que vio Jorge en ese centro de prueba fue un efecto secundario de las pruebas de Claude durante la revisión de Fase 3-B (se llamó manualmente el endpoint para verificar el registro de `EvaluationHistory`), no un flujo real de usuario.
+
+**Decisión de Jorge:** registrar para atacar después, no bloquea el merge/deploy de Fase 3-B ya en curso. Falta definir con Jorge el umbral exacto de "completa" (¿100% de empleados, o un % mínimo?) antes de escribir la especificación de corrección.
+
 ## PENDIENTE: más observaciones por llegar (Jorge sigue enviando antes de armar el prompt final para Replit)
 
 Jorge las irá pasando conforme los socios se las compartan. Se agregan aquí mismo conforme lleguen, verificadas contra el código antes de anotarlas como "confirmado" o "por verificar".
