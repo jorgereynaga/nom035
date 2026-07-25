@@ -529,9 +529,69 @@ class WorkplaceView(LoginRequiredMixin,View):
 	login_url = reverse_lazy('login')
 	redirect_field_name = 'redirect_to'
 	def get(self, request, *args, **kwargs):
-		ctx={"workplaces":[{"id":item.id,"name":item.name,"employee_count":item.employee_num
-		} for item in Workplace.objects.filter(user_id=self.request.user.id)]}
-		return render(request, 'workplace.html',ctx)
+		from django.test import RequestFactory
+		factory = RequestFactory()
+		NIVEL_NOMBRE = {0:"Nulo",1:"Bajo",2:"Medio",3:"Alto",4:"Muy alto"}
+
+		workplaces_qs = Workplace.objects.filter(user_id=self.request.user.id)
+		workplaces = []
+		niveles_riesgo_presentes = []
+		suma_cumplimiento = 0
+		suma_evaluaciones = 0
+		suma_empleados_registrados = 0
+
+		for wk in workplaces_qs:
+			eval_to_check = wk.evaluation if wk.paid else max(1, wk.evaluation - 1)
+
+			fake_req = factory.get('/get_riesgo_general/', {'workplace_id': str(wk.id), 'evaluation': str(eval_to_check)})
+			fake_req.user = request.user
+			riesgo_data = json.loads(get_riesgo_general(fake_req).content)
+			if riesgo_data.get('status') == 'ok':
+				nivel = riesgo_data['riesgo_general']['nivel']
+				nivel_nombre = riesgo_data['riesgo_general']['nivel_nombre']
+				niveles_riesgo_presentes.append(nivel)
+			else:
+				nivel = None
+				nivel_nombre = 'Sin datos'
+
+			fake_req2 = factory.get('/get_portafolio_status/', {'workplace_id': str(wk.id)})
+			fake_req2.user = request.user
+			portafolio_data = json.loads(get_portafolio_status(fake_req2).content)
+			cumplimiento_pct = portafolio_data.get('porcentaje_cumplimiento', 0)
+
+			evaluaciones_aplicadas = max(0, wk.evaluation - 1)
+			empleados_registrados = wk.employees.count()
+
+			suma_cumplimiento += cumplimiento_pct
+			suma_evaluaciones += evaluaciones_aplicadas
+			suma_empleados_registrados += empleados_registrados
+
+			workplaces.append({
+				"id": wk.id,
+				"name": wk.name,
+				"address": wk.address,
+				"employee_count": wk.employee_num,
+				"empleados_registrados": empleados_registrados,
+				"evaluaciones_aplicadas": evaluaciones_aplicadas,
+				"cumplimiento_pct": cumplimiento_pct,
+				"riesgo_nivel": nivel,
+				"riesgo_nivel_nombre": nivel_nombre,
+			})
+
+		total_centros = len(workplaces)
+		riesgo_predominante_nivel = max(niveles_riesgo_presentes) if niveles_riesgo_presentes else None
+		riesgo_predominante_nombre = NIVEL_NOMBRE[riesgo_predominante_nivel] if riesgo_predominante_nivel is not None else 'Sin datos'
+
+		ctx = {
+			"workplaces": workplaces,
+			"kpi_total_centros": total_centros,
+			"kpi_empleados_totales": suma_empleados_registrados,
+			"kpi_evaluaciones_totales": suma_evaluaciones,
+			"kpi_cumplimiento_promedio": round(suma_cumplimiento / total_centros) if total_centros else 0,
+			"kpi_riesgo_predominante_nivel": riesgo_predominante_nivel,
+			"kpi_riesgo_predominante_nombre": riesgo_predominante_nombre,
+		}
+		return render(request, 'workplace.html', ctx)
 class EditProfileView(LoginRequiredMixin,View):
 	login_url = reverse_lazy('login')
 	redirect_field_name = 'redirect_to'
