@@ -79,6 +79,8 @@ urlpatterns = [
     path('employeeform/', EmployeeFormView.as_view()),
     path('employeeform/get_departments', get_departments, name='get_departments'),
     path('employeeform/<int:workplace_id>/', EmployeeFormView.as_view(), name='employeeform'),
+    path('employeeform/<int:workplace_id>/plantilla/', download_employee_template, name='download_employee_template'),
+    path('employeeform/carga_masiva/', upload_employees_bulk, name='upload_employees_bulk'),
     path('employees_dt/<int:workplace_id>/<int:t>/', employees_dt, name='employees_dt'),
     path('employees_dt/<int:workplace_id>/<int:t>/<int:evaluation>/', employees_dt, name='employees_dt2'),
     # path('survey/<str:workplace_uuid>/', SurveyView.as_view(), name='survey'),

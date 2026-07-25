@@ -32,7 +32,29 @@
   margin-bottom: 2px;
 }
 .form-card-subtitle { font-size: 12px; color: var(--text-muted); }
+.mode-tabs { display:flex; gap:4px; padding:6px; margin:18px 28px 0; background:var(--bg-surface); border:1px solid var(--border); border-radius:var(--radius-md); width:fit-content; }
+.mode-tab { appearance:none; border:none; background:transparent; padding:8px 16px; font-family:'Inter',sans-serif; font-size:12.5px; font-weight:700; color:var(--text-secondary); border-radius:var(--radius-sm); cursor:pointer; transition:background .15s,color .15s; }
+.mode-tab.active { background:var(--bg-base); color:var(--primary); box-shadow:var(--shadow-sm); }
+.mode-tab:not(.active):hover { color:var(--text-primary); }
 .form-card-body { padding: 28px; }
+.steps { display:flex; flex-direction:column; gap:20px; }
+.step { display:flex; gap:14px; }
+.step-num { width:28px; height:28px; border-radius:50%; background:var(--primary-light); color:var(--primary); display:flex; align-items:center; justify-content:center; font-weight:800; flex-shrink:0; }
+.step-body { flex:1; }
+.step-title { font-size:14px; font-weight:700; color:var(--text-primary); margin:0 0 5px; }
+.step-desc { font-size:12.5px; color:var(--text-secondary); margin:0 0 12px; line-height:1.55; }
+.seat-note { padding:10px 12px; background:var(--bg-surface); border:1px solid var(--border); border-radius:var(--radius-sm); font-size:12px; color:var(--text-secondary); margin-bottom:12px; }
+.actions-row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+.result-summary { display:flex; gap:14px; margin-bottom:18px; }
+.result-tile { flex:1; padding:16px; border-radius:var(--radius-md); border:1px solid var(--border); }
+.result-tile.ok { background:rgba(22,163,74,.06); border-color:rgba(22,163,74,.2); }
+.result-tile.err { background:rgba(220,38,38,.06); border-color:rgba(220,38,38,.2); }
+.result-tile-num { font-size:26px; font-weight:800; color:var(--text-primary); }
+.result-tile-label { font-size:11px; color:var(--text-secondary); margin-top:3px; }
+.error-table { width:100%; border-collapse:collapse; font-size:12px; margin-top:10px; }
+.error-table th,.error-table td { padding:9px 10px; border:1px solid var(--border); text-align:left; vertical-align:top; }
+.error-table th { background:var(--bg-surface); font-weight:700; color:var(--text-secondary); }
+.error-table .row-num { width:58px; text-align:center; }
 
 /* ── Section label ───────────────────────────────────────── */
 .form-section-label {
@@ -177,7 +199,13 @@
     </div>
   </div>
 
+  <div class="mode-tabs">
+    <button type="button" class="mode-tab active" id="btn-tab-individual">Uno por uno</button>
+    <button type="button" class="mode-tab" id="btn-tab-masiva">Carga masiva</button>
+  </div>
+
   <div class="form-card-body">
+    <div id="panel-individual">
     <form action="." id="register_form" method="post">
       {% csrf_token %}
       <input type="hidden" name="workplace" id="workplace" value="{{workplace_id}}">
@@ -337,6 +365,24 @@
       </div>
 
     </form>
+    </div>
+
+    <div id="panel-masiva" style="display:none;">
+      <div id="masiva-inicial">
+        <p class="form-section-label">Cómo funciona</p>
+        <div class="steps">
+          <div class="step"><div class="step-num">1</div><div class="step-body"><p class="step-title">Descarga la plantilla</p><p class="step-desc">Un archivo de Excel con las columnas ya listas y menús desplegables en cada campo de catálogo — no hay que memorizar códigos. Incluye 2 filas de ejemplo marcadas para borrar antes de subir.</p><div class="seat-note">Este centro admite <b>{{employee_num}}</b> empleados. Ya tiene <b>{{employee_current_count}}</b> registrados.</div><div class="actions-row"><a class="btn btn-primary" href="{% url 'download_employee_template' workplace_id %}">Descargar plantilla (.xlsx)</a></div></div></div>
+          <div class="step"><div class="step-num">2</div><div class="step-body"><p class="step-title">Llena la plantilla</p><p class="step-desc">Agrega una fila por empleado. En los campos con lista, elige una opción del menú desplegable de esa celda.</p></div></div>
+          <div class="step"><div class="step-num">3</div><div class="step-body"><p class="step-title">Sube el archivo lleno</p><p class="step-desc">Las filas correctas se agregan de inmediato; si alguna tiene error, te decimos exactamente cuál.</p><input type="file" id="input-archivo-masiva" accept=".xlsx" style="margin-bottom:14px;"><div class="actions-row"><button type="button" class="btn btn-primary" id="btn-procesar-masiva">Procesar archivo</button></div></div></div>
+        </div>
+      </div>
+      <div id="masiva-resultado" style="display:none;">
+        <p class="form-section-label">Resultado de la importación</p>
+        <div class="result-summary"><div class="result-tile ok"><div class="result-tile-num" id="masiva-num-creados">0</div><div class="result-tile-label">Empleados agregados</div></div><div class="result-tile err"><div class="result-tile-num" id="masiva-num-errores">0</div><div class="result-tile-label">Filas con error, no agregadas</div></div></div>
+        <table class="error-table" id="masiva-tabla-errores" style="display:none;"><thead><tr><th class="row-num">Fila</th><th>Empleado</th><th>Error</th></tr></thead><tbody id="masiva-tabla-errores-body"></tbody></table>
+        <div class="actions-row" style="margin-top:18px;"><button type="button" class="btn btn-outline" id="btn-reintentar-masiva">Subir otro archivo</button><a class="btn btn-primary" href="/workplaces/{{workplace_id}}">Ver empleados del centro</a></div>
+      </div>
+    </div>
   </div>
 
   <div class="form-footer">
@@ -387,6 +433,56 @@ $(document).ready(function(){
             console.log(xhr.responseText)
         }       
     })
+
+    $('#btn-tab-individual').on('click', function(){
+        $(this).addClass('active');
+        $('#btn-tab-masiva').removeClass('active');
+        $('#panel-individual').show();
+        $('#panel-masiva').hide();
+        $('.form-footer').show();
+    });
+    $('#btn-tab-masiva').on('click', function(){
+        $(this).addClass('active');
+        $('#btn-tab-individual').removeClass('active');
+        $('#panel-masiva').show();
+        $('#panel-individual').hide();
+        $('.form-footer').hide();
+    });
+    $('#btn-procesar-masiva').on('click', function(){
+        var archivo = document.getElementById('input-archivo-masiva').files[0];
+        if (!archivo) {
+            toastr.error('Error', 'Selecciona un archivo .xlsx primero', {positionClass:'toast-bottom-right', containerId:'toast-bottom-right'});
+            return;
+        }
+        var formData = new FormData();
+        formData.append('file', archivo);
+        formData.append('workplace_id', '{{workplace_id}}');
+        $.ajax({
+            url: "{% url 'upload_employees_bulk' %}",
+            method: 'POST', data: formData, processData: false, contentType: false, dataType: 'json',
+            success: function(data){
+                $('#masiva-inicial').hide();
+                $('#masiva-resultado').show();
+                $('#masiva-num-creados').text(data.creados);
+                $('#masiva-num-errores').text(data.errores.length);
+                if (data.errores.length){
+                    var filasHtml = data.errores.map(function(e){ return '<tr><td class="row-num">' + e.fila + '</td><td>' + e.empleado + '</td><td>' + e.error + '</td></tr>'; }).join('');
+                    $('#masiva-tabla-errores-body').html(filasHtml);
+                    $('#masiva-tabla-errores').show();
+                } else { $('#masiva-tabla-errores').hide(); }
+            },
+            error: function(xhr){
+                var msg = 'Ocurrió un error al procesar el archivo';
+                try { msg = JSON.parse(xhr.responseText).error || msg; } catch(e) {}
+                toastr.error('Error', msg, {positionClass:'toast-bottom-right', containerId:'toast-bottom-right'});
+            }
+        });
+    });
+    $('#btn-reintentar-masiva').on('click', function(){
+        $('#masiva-resultado').hide();
+        $('#masiva-inicial').show();
+        document.getElementById('input-archivo-masiva').value = '';
+    });
 });
 $(function(){
     var validator = $("#register_form").validate({
