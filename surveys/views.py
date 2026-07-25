@@ -1176,6 +1176,11 @@ class EvidenceView(LoginRequiredMixin,View):
 		} for item in Workplace.objects.filter(user_id=self.request.user.id)]}
 		users=[{"id":user.user.id,"text":user.name} for user in Userapp.objects.all()]#.filter(user__is_staff=False)]
 		ctx['users']=users
+		preselected_workplace_id = request.GET.get('workplace_id')
+		if preselected_workplace_id and Workplace.objects.filter(id=preselected_workplace_id, user_id=request.user.id).exists():
+			ctx['preselected_workplace_id'] = int(preselected_workplace_id)
+		else:
+			ctx['preselected_workplace_id'] = None
 		return render(request, 'evidence.html',ctx)
 
 def validate_code(code):
