@@ -4,7 +4,14 @@
 # ============================================================
 
 PLANS = {
-    # ── NOM-035 (pago unico, vigencia 1 año) ─────────────────
+    # ── NOM-035 (suscripcion recurrente anual en Stripe) ──────
+    # NOTA (25 jul 2026): originalmente se penso como pago unico
+    # con vigencia de 1 año, pero el mode de StripeCheckoutView
+    # (periodo == 'unico' -> 'payment', si no -> 'subscription')
+    # nunca coincidia con ningun plan real (todos tienen periodo
+    # 'anual'/'mensual'), asi que siempre se mandaba mode='subscription'.
+    # Se decidio reconfigurar los precios en Stripe como recurrentes
+    # anuales en vez de cambiar el codigo -- confirmado funcionando.
     # nom035_micro oculto por ahora
     "nom035_micro": {
         "price_id": "price_PENDIENTE_MICRO",

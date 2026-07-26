@@ -46,18 +46,15 @@ Fecha de inicio: 22 Jul 2026.
 
 ---
 
-## 2. Sin carga masiva de empleados por centro de trabajo
+## 2. Sin carga masiva de empleados por centro de trabajo — ✅ RESUELTO (25 jul 2026)
 
 **Observación del socio:** cuando son muchos empleados, el usuario tiene que cargarlos uno por uno en el centro de trabajo. Si son 50 o más, debería existir una opción de carga masiva, con una plantilla en Excel o CSV (con uno o dos datos de ejemplo) que el usuario pueda descargar, llenar y volver a subir.
 
-**Estado:** no existe hoy. Es una funcionalidad nueva, no una corrección de bug.
+**Implementado:** nueva pestaña "Carga masiva" junto al alta individual en `employeeform.html` (el botón de acceso en la ficha del centro se renombró de "Nuevo empleado" a "Cargar empleados" para reflejar ambas opciones). Plantilla `.xlsx` descargable con las 14 columnas del alta individual, menús desplegables reales de Excel en los 10 campos de catálogo (para no forzar memorizar códigos), y 2 filas de ejemplo. Al subir: las filas correctas se registran de inmediato, las filas con error se reportan una por una con el motivo exacto (catálogo inválido, campo vacío, tope de cupo del centro alcanzado) — solo se rechaza el archivo completo si los encabezados no coinciden con la plantilla. Respeta el límite de empleados (`employee_num`) del centro.
 
-**⚠️ PRIORIDAD ALTA (confirmado por Jorge, 24 jul 2026):** este es un cambio importante que debe resolverse **antes de empezar a vender**. Para un centro con muchos empleados, o una empresa con varios centros y muchos empleados cada uno, el alta manual uno por uno es una carga de trabajo enorme que hoy la plataforma no ayuda a resolver — bloqueante real para clientes medianos/grandes, no solo una mejora de conveniencia.
+Especificación completa en `CARGA_MASIVA_especificacion_empleados.md`. Validado exhaustivamente (Django real + pruebas en navegador) antes de desplegar — 1 bug encontrado y corregido en revisión: las filas de ejemplo, si el usuario no las borraba, se colaban como empleados reales.
 
-**Consideraciones para la especificación futura (a definir cuando se ataque):**
-- Plantilla descargable (XLSX o CSV) con las columnas que ya usa el alta individual de empleado (nombre, género, edad, estado civil, escolaridad, ocupación, departamento, tipo de puesto, tipo de contrato, tipo de empleado, turno, rotación de turno, tiempo en el puesto, experiencia — mismos campos que `Employee`/`EMPLEADOS_DEMO` en `cargar_datos_demo.py`), con 1-2 filas de ejemplo ya llenas.
-- Validación de la plantilla al subir (columnas correctas, filas vacías, límites de plan vigentes, etc.)
-- Definir qué pasa con filas inválidas: ¿se rechaza todo el archivo o se cargan las válidas y se reportan las que fallaron?
+**Nota para Fase 3-C:** el patrón de importación construido aquí (parseo `.xlsx`, reporte de errores fila por fila) es la infraestructura que se reutiliza para el Plan de Acción del numeral 8.4.
 
 ---
 
@@ -284,6 +281,24 @@ No es un bug nuevo de código — es el mismo pendiente ya registrado desde el d
 **Nota operativa:** el estado "Evaluación #2" que vio Jorge en ese centro de prueba fue un efecto secundario de las pruebas de Claude durante la revisión de Fase 3-B (se llamó manualmente el endpoint para verificar el registro de `EvaluationHistory`), no un flujo real de usuario.
 
 **Decisión de Jorge:** registrar para atacar después, no bloquea el merge/deploy de Fase 3-B ya en curso. Falta definir con Jorge el umbral exacto de "completa" (¿100% de empleados, o un % mínimo?) antes de escribir la especificación de corrección.
+
+## 10. Bug crítico confirmado y resuelto: no se podía crear ningún centro de trabajo nuevo — ✅ RESUELTO (25 jul 2026)
+
+**Reportado por Jorge:** al intentar crear un centro de trabajo nuevo (para probar la carga masiva de empleados) y dar clic en "Guardar centro de trabajo", la página tiraba un error HTTP 405 en `/workplaceform/`.
+
+**Causa confirmada en código:** `surveys/templates/workplaceform.html` no cargaba el script `jquery.validate.min.js` (a diferencia de `employeeform.html`, que sí lo hace). Sin ese plugin, la llamada `$("#register_form").validate({...})` lanzaba una excepción JS que abortaba **todo** el bloque de scripts antes de registrar el `submitHandler` (el AJAX que hace `POST /api/workplace/`). El navegador entonces hacía un submit nativo del formulario a `/workplaceform/`, ruta que solo define `GET` en `WorkplaceFormView` → error 405.
+
+**Gravedad:** bloqueaba crear **cualquier** centro de trabajo nuevo desde la interfaz, para cualquier usuario — no un caso de borde, sino el flujo de alta básico de la plataforma. Bug pre-existente, no introducido por el trabajo de esta sesión.
+
+**Corregido:** una sola línea (`<script src="{% static 'app-assets/vendors/js/forms/validation/jquery.validate.min.js' %}"></script>`), probado end-to-end en navegador antes de desplegar (`POST /api/workplace/ → 201 Created`, sin errores de consola). Verificado en producción por Jorge.
+
+## 11. Bug real confirmado, resuelto sin cambio de código: compra de planes NOM-035 fallaba en Stripe
+
+**Reportado por Jorge:** al intentar contratar el plan NOM-035 PyME, Stripe devolvía el error "You must provide at least one recurring price in `subscription` mode when using prices."
+
+**Causa confirmada en código:** `StripeCheckoutView.post()` (`surveys/stripe_views.py`) decide `mode='payment'` solo si `plan['periodo'] == 'unico'` — pero ningún plan en `PLANS` (`surveys/stripe_plans.py`) tiene ese valor literal (los NOM-035 tienen `periodo='anual'`, pensado originalmente solo como texto descriptivo de vigencia, no como el modo de cobro real). Esto significaba que los 3 planes NOM-035 (PyME, Empresarial, Ilimitado) siempre mandaban `mode='subscription'` a Stripe, mientras sus `price_id` en el dashboard (modo test) estaban configurados como pago de una sola vez — de ahí el error, y afectaba a los 3 planes por igual, no solo al que Jorge probó.
+
+**Decisión de Jorge:** en vez de cambiar el código, reconfiguró los 3 precios NOM-035 en el dashboard de Stripe como recurrentes anuales — confirmado funcionando tras el cambio. Se actualizó únicamente un comentario desactualizado en `stripe_plans.py` para reflejar la decisión real; sin cambio de lógica en `stripe_views.py`.
 
 ## PENDIENTE: más observaciones por llegar (Jorge sigue enviando antes de armar el prompt final para Replit)
 
