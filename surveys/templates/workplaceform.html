@@ -231,6 +231,7 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="{% static 'app-assets/vendors/js/forms/validation/jquery.validate.min.js' %}"></script>
 <script type="text/javascript">
 $(function(){
     var validator = $("#register_form").validate({
