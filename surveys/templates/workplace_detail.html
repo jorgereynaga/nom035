@@ -407,11 +407,11 @@ table.dataTable tbody tr:last-child td { border-bottom: none !important; }
   <!-- Action buttons -->
   <div class="action-row">
     {% if not employees_available %}
-    <button disabled class="btn btn-primary btn-sm">Nuevo empleado</button>
+    <button disabled class="btn btn-primary btn-sm">Cargar empleados</button>
     {% else %}
     <a href="{% url 'employeeform' workplace_id %}" id="new_employee" class="btn btn-primary btn-sm">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-      Nuevo empleado
+      Cargar empleados
     </a>
     {% endif %}
 
