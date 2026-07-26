@@ -2550,27 +2550,90 @@ despues, no bloquea el merge/deploy de Fase 3-B. Pendiente de definir el umbral
 exacto de "completa" (100% de empleados, o un % minimo) cuando se escriba la
 spec de correccion.
 
+## Carga masiva de empleados por Excel — COMPLETADA Y DESPLEGADA EN PRODUCCION (VPS) ✅ (25 jul 2026)
+Spec `CARGA_MASIVA_especificacion_empleados.md`, implementada por Codex sobre
+la rama `fix/carga-masiva-empleados`, revisada por Claude (1 bug real encontrado
+y corregido: las 2 filas de ejemplo de la plantilla, si el usuario no las
+borraba, tenian valores de catalogo validos y se registraban como empleados
+reales sin ningun aviso -- corregido descartandolas explicitamente por su
+prefijo "EJEMPLO ", antes de contar contra el cupo del centro). Nueva pestaña
+"Carga masiva" en `employeeform.html` junto al alta individual existente:
+descarga de plantilla `.xlsx` (generada con `openpyxl`, menus desplegables
+reales de Excel en los 10 campos de catalogo via hoja oculta "Listas", 2 filas
+de ejemplo), subida y procesamiento fila por fila (las validas se registran de
+inmediato, las invalidas se reportan con el motivo exacto, sin rechazar el
+archivo completo -- unica excepcion: encabezados alterados, ahi si se rechaza
+completo por desajuste estructural). Respeta el cupo `employee_num` del centro.
+`openpyxl==3.1.5` agregado explicito a `requirements.txt` (ya estaba disponible
+transitivamente via `django-import-export`/`tablib`, pero no declarado).
+
+Validado con Django real (venv local): `py_compile`, `manage.py check`, y
+bateria completa de pruebas funcionales (datos validos, catalogo invalido,
+campo vacio, encabezados alterados, archivo corrupto/no-xlsx, tope de cupo,
+ownership de centro ajeno, sesion anonima) -- todas con el resultado esperado.
+Prueba visual en navegador: tabs alternan correctamente, footer se oculta en
+modo carga masiva, sin errores de consola. Commit `26df8c84` (rama), merge a
+`auditoria-local` y `main`, deploy manual al VPS confirmado por Jorge
+(build increment de pip por la dependencia nueva, gunicorn arriba sin errores).
+
+### Bug critico encontrado DURANTE las pruebas de Jorge en produccion (no relacionado con carga masiva) — RESUELTO
+Al intentar crear un centro de trabajo nuevo para probar la carga masiva, Jorge
+encontro que "Guardar centro de trabajo" tiraba error HTTP 405 en
+`/workplaceform/`. Causa confirmada: `surveys/templates/workplaceform.html` no
+cargaba el script `jquery.validate.min.js` (a diferencia de `employeeform.html`,
+que si lo hace) -- sin ese plugin, `$(...).validate()` lanzaba una excepcion JS
+que abortaba TODO el bloque de scripts antes de registrar el `submitHandler`
+(el AJAX que hace `POST /api/workplace/`). El navegador entonces hacia un
+submit nativo del formulario a `/workplaceform/`, que solo define `GET` en
+`WorkplaceFormView` -> 405. Bug pre-existente, bloqueaba crear CUALQUIER centro
+de trabajo nuevo desde la UI para cualquier usuario -- no algo introducido por
+el trabajo de esta sesion. Reproducido y corregido en local (agregado el
+`<script src>` faltante, una linea), probado end-to-end en navegador
+(`POST /api/workplace/ -> 201 Created`, sin errores de consola). Commit
+`a8784425`, mergeado y desplegado, confirmado por Jorge en produccion.
+
+### Cambio cosmetico relacionado — DESPLEGADO
+Boton "Nuevo empleado" en la ficha de centro (`workplace_detail.html`) renombrado
+a "Cargar empleados" (ambos estados, habilitado/deshabilitado) -- ahora lleva a
+una pantalla que soporta alta individual Y carga masiva, el nombre nuevo
+describe mejor ambas opciones. Commit `76220550`, desplegado y confirmado.
+
+### Hallazgo aparte encontrado en el camino (no relacionado con carga masiva) — RESUELTO POR JORGE, sin cambio de codigo
+Al intentar contratar el plan NOM-035 PyME para probar, Jorge encontro el error
+de Stripe "You must provide at least one recurring price in `subscription` mode
+when using prices." Causa confirmada en codigo: `StripeCheckoutView.post()`
+(`surveys/stripe_views.py`) decide `mode='payment'` solo si
+`plan['periodo'] == 'unico'` -- pero NINGUN plan en `PLANS`
+(`surveys/stripe_plans.py`) tiene ese valor literal (los NOM-035 tienen
+`periodo='anual'`, que originalmente solo describia la vigencia, no el modo de
+cobro). Esto significaba que TODOS los planes, incluidos los 3 NOM-035
+(PyME/Empresarial/Ilimitado), siempre mandaban `mode='subscription'` a Stripe --
+y sus `price_id` en el dashboard (modo test) estaban configurados como pago de
+una sola vez (no recurrente), de ahi el error. Confirmado que afectaba a los 3
+planes NOM-035 por igual, no solo al que probo Jorge.
+
+**Decision de Jorge:** en vez de cambiar el codigo, reconfiguro los 3 precios
+NOM-035 en el dashboard de Stripe (modo test) como recurrentes anuales --
+confirmado funcionando tras el cambio. Comentario desactualizado en
+`stripe_plans.py` (decia "pago unico, vigencia 1 año") corregido para reflejar
+la decision real (suscripcion recurrente anual). Sin cambio de logica en
+`stripe_views.py` -- el `mode='subscription'` que ya se mandaba ahora es correcto
+para estos 3 planes.
+
 ## PENDIENTE (para la proxima sesion)
 1. **Validar que `EndEvaluation` no permita avanzar de evaluacion si la actual
    no esta completa** (ver hallazgo arriba, encontrado 25 jul 2026 durante
    pruebas de Fase 3-B). Sin spec todavia -- definir primero el umbral de
    "completa" con Jorge.
-2. **PRIORIDAD ALTA, bloqueante antes de vender (confirmado por Jorge,
-   24 jul 2026):** carga masiva de empleados por centro de trabajo
-   (Excel/CSV), con plantilla descargable con 1-2 filas de ejemplo.
-   Hoy el alta es 100% manual, uno por uno -- inviable para clientes
-   medianos/grandes con muchos empleados o muchos centros. Detalle y
-   consideraciones tecnicas ya en `SOCIOS_feedback_correcciones.md`
-   hallazgo #2 (columnas = mismos campos que `Employee` en
-   `cargar_datos_demo.py`, validacion de la plantilla, definir que
-   pasa con filas invalidas). Sin specs ni mockup todavia. El importador
-   de plantillas que se construya aqui se reutiliza para la Fase 3-C.
-3. **Fase 3-C** (Plan de accion, numeral 8.4): alcance reducido ya
-   decidido (ver arriba), pendiente de spec/mockup -- depende del
-   importador de plantillas del punto 2.
-4. Seguir recibiendo y registrando observaciones de los socios en
+2. **Fase 3-C** (Plan de accion, numeral 8.4): alcance reducido ya decidido
+   (ver arriba), pendiente de spec/mockup. Ya no depende de construir el
+   importador de plantillas desde cero -- reutiliza el patron ya construido
+   y probado en la carga masiva de empleados (parseo `.xlsx` con `openpyxl`,
+   reporte de errores fila por fila, ver seccion "Carga masiva de empleados"
+   arriba).
+3. Seguir recibiendo y registrando observaciones de los socios en
    `SOCIOS_feedback_correcciones.md`.
-5. Pendientes menores ya registrados en `SOCIOS_feedback_correcciones.md`
+4. Pendientes menores ya registrados en `SOCIOS_feedback_correcciones.md`
    sin resolver: referencias al dominio viejo `035.ihes.mx` en
    `survey.html:289` y `tyc.html:172`; logo viejo "NOM 035/IHES"
    (`static/app-assets/images/pages/login_nom035.png`, usado en
@@ -2578,15 +2641,15 @@ spec de correccion.
    por un asset con la marca NormaIA; bug reportado en el prototipo de
    tarjetas de planes (boton se oculta al seleccionar, hallazgo #7, aun
    no verificable contra codigo real).
-6. Evaluar en produccion si "Añadir un Centro" en el menu NOM-035 de
+5. Evaluar en produccion si "Añadir un Centro" en el menu NOM-035 de
    verdad se usa (ya existe tambien como boton "+ Nuevo centro" en la
    lista de Centros de Trabajo, Fase 3-A) -- si no se usa, se quita del
    menu.
-7. Railway staging con el problema de Nixpacks -- sin cambios, no
+6. Railway staging con el problema de Nixpacks -- sin cambios, no
    bloqueante.
-8. Pendientes menores de sesiones previas sin resolver: warning de
+7. Pendientes menores de sesiones previas sin resolver: warning de
    migracion no reflejada (choices PsychoInstrument), division float en
    `employees_dt`, rotar credenciales del VPS por higiene.
-9. Poppler (`pdftoppm`) sigue sin instalar -- Claude puede generar y
+8. Poppler (`pdftoppm`) sigue sin instalar -- Claude puede generar y
    editar PDFs/Word pero no renderizarlos a imagen para autoverificacion
    visual antes de entregarlos.
