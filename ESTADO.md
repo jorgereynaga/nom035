@@ -2615,6 +2615,21 @@ la decision real (suscripcion recurrente anual). Sin cambio de logica en
 `stripe_views.py` -- el `mode='subscription'` que ya se mandaba ahora es correcto
 para estos 3 planes.
 
+## Sidebar de Evaluaciones/Candidatos/Detalle candidato desincronizado del menu ya reorganizado — RESUELTO ✅ (25 jul 2026)
+Jorge detecto (probando en produccion) que "Evaluaciones" (`psico_instrumentos.html`)
+mostraba "Clima Laboral" repetido una vez por cada centro de trabajo en el
+sidebar. Causa: la reorganizacion del menu lateral (commit `7378e878`, sesion
+anterior -- "Principal" solo Dashboard, "NOM-035" con Centros de Trabajo +
+Añadir un Centro, sin listado por centro ni Portafolio de evidencias/Clima
+Laboral duplicados) se aplico solo a `index.html`. Las otras 3 plantillas con
+sidebar standalone (`psico_instrumentos.html`, `psico_candidatos.html`,
+`psico_candidato_detalle.html` -- esta ultima encontrada por Claude al
+auditar, Jorge no la habia reportado) se quedaron con la estructura vieja.
+
+Sincronizadas las 3 con el mismo patron exacto de `index.html`. Verificado en
+navegador local (sin errores de consola, balance de `<div>` identico) y
+confirmado por Jorge en produccion tras el deploy.
+
 ## PENDIENTE (para la proxima sesion)
 1. **Validar que `EndEvaluation` no permita avanzar de evaluacion si la actual
    no esta completa** (ver hallazgo arriba, encontrado 25 jul 2026 durante
