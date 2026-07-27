@@ -2635,20 +2635,53 @@ Sincronizadas las 3 con el mismo patron exacto de `index.html`. Verificado en
 navegador local (sin errores de consola, balance de `<div>` identico) y
 confirmado por Jorge en produccion tras el deploy.
 
+## "Finalizar aplicación" nunca se habilitaba (paid) + EndEvaluation sin ownership — RESUELTO ✅ (27 jul 2026)
+Investigando el pendiente de completitud de `EndEvaluation` (hallazgo #9), se
+encontro que el problema real era mas profundo: `Workplace.paid` (controla si
+el boton "Finalizar aplicación" esta habilitado en `workplace_detail.html`) se
+creaba siempre en `False` al dar de alta un centro (`WorkplaceList.post()`),
+sin distinguir demo de real, y ningun codigo lo volvia a poner en `True` --
+confirmado que el boton estaba permanentemente deshabilitado para CUALQUIER
+centro real en produccion.
+
+**Decision de Jorge:** no se necesita ningun umbral de % de empleados
+contestados -- la finalizacion explicita del usuario (clic en "Finalizar
+aplicación", con el modal de confirmacion ya existente) *es* la señal de
+completitud suficiente. El fix es hacer que ese mecanismo exista de verdad:
+
+1. `WorkplaceList.post()`: `data['paid']=False` -> `True` (solo afecta centros
+   reales, los demo se crean por otra via con `paid=False` explicito).
+2. `EndEvaluation.get()`: tras incrementar `evaluation`, `workplace.paid=False`
+   -> `True` (para que la evaluacion NUEVA en curso tenga el boton habilitado
+   de inmediato; la evaluacion que se cierra queda "deshabilitada" solo porque
+   ya no es la vigente, no por `paid`).
+3. `workplace_detail.html`: condicion de "Ver resultados" cambiada de
+   `{% if not paid and evaluation > 1 %}` a `{% if evaluation > 1 %}` (ya que
+   `evaluation` solo avanza tras una finalizacion real).
+
+**Hallazgo de seguridad incluido en el mismo fix:** `EndEvaluation.get()` no
+validaba que el `workplace_id` perteneciera al usuario autenticado -- cualquier
+usuario podia avanzarle la evaluacion a un centro ajeno. Agregado el mismo
+patron de ownership ya usado en el resto del proyecto desde el Lote A.
+
+Spec `FIX_finalizar_aplicacion_paid_y_ownership.md`, implementada por Codex,
+validada exhaustivamente por Claude (Django real + navegador real, incluyendo
+el flujo completo boton->modal->Aceptar end-to-end) antes de aprobar el merge.
+Desplegado y confirmado por Jorge en produccion: un centro nuevo ya muestra el
+boton habilitado (los centros creados ANTES de este deploy siguen con
+`paid=False`, sin backfill -- decision explicita, no hay clientes reales
+todavia).
+
 ## PENDIENTE (para la proxima sesion)
-1. **Validar que `EndEvaluation` no permita avanzar de evaluacion si la actual
-   no esta completa** (ver hallazgo arriba, encontrado 25 jul 2026 durante
-   pruebas de Fase 3-B). Sin spec todavia -- definir primero el umbral de
-   "completa" con Jorge.
-2. **Fase 3-C** (Plan de accion, numeral 8.4): alcance reducido ya decidido
+1. **Fase 3-C** (Plan de accion, numeral 8.4): alcance reducido ya decidido
    (ver arriba), pendiente de spec/mockup. Ya no depende de construir el
    importador de plantillas desde cero -- reutiliza el patron ya construido
    y probado en la carga masiva de empleados (parseo `.xlsx` con `openpyxl`,
    reporte de errores fila por fila, ver seccion "Carga masiva de empleados"
    arriba).
-3. Seguir recibiendo y registrando observaciones de los socios en
+2. Seguir recibiendo y registrando observaciones de los socios en
    `SOCIOS_feedback_correcciones.md`.
-4. Pendientes menores ya registrados en `SOCIOS_feedback_correcciones.md`
+3. Pendientes menores ya registrados en `SOCIOS_feedback_correcciones.md`
    sin resolver: referencias al dominio viejo `035.ihes.mx` en
    `survey.html:289` y `tyc.html:172`; logo viejo "NOM 035/IHES"
    (`static/app-assets/images/pages/login_nom035.png`, usado en
@@ -2656,15 +2689,15 @@ confirmado por Jorge en produccion tras el deploy.
    por un asset con la marca NormaIA; bug reportado en el prototipo de
    tarjetas de planes (boton se oculta al seleccionar, hallazgo #7, aun
    no verificable contra codigo real).
-5. Evaluar en produccion si "Añadir un Centro" en el menu NOM-035 de
+4. Evaluar en produccion si "Añadir un Centro" en el menu NOM-035 de
    verdad se usa (ya existe tambien como boton "+ Nuevo centro" en la
    lista de Centros de Trabajo, Fase 3-A) -- si no se usa, se quita del
    menu.
-6. Railway staging con el problema de Nixpacks -- sin cambios, no
+5. Railway staging con el problema de Nixpacks -- sin cambios, no
    bloqueante.
-7. Pendientes menores de sesiones previas sin resolver: warning de
+6. Pendientes menores de sesiones previas sin resolver: warning de
    migracion no reflejada (choices PsychoInstrument), division float en
    `employees_dt`, rotar credenciales del VPS por higiene.
-8. Poppler (`pdftoppm`) sigue sin instalar -- Claude puede generar y
+7. Poppler (`pdftoppm`) sigue sin instalar -- Claude puede generar y
    editar PDFs/Word pero no renderizarlos a imagen para autoverificacion
    visual antes de entregarlos.
