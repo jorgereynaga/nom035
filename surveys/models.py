@@ -1055,3 +1055,24 @@ class EvaluationHistory(models.Model):
 		return f"{self.workplace.name} - Evaluación {self.numero_evaluacion}"
 	class Meta:
 		ordering = ['numero_evaluacion']
+
+
+class PlanAccionItem(models.Model):
+	ESTADO_CHOICES = (
+		('pendiente', 'Pendiente'),
+		('en_proceso', 'En proceso'),
+		('completado', 'Completado'),
+	)
+	workplace = models.ForeignKey(Workplace, related_name="plan_accion_items", verbose_name='Centro de trabajo', on_delete=models.CASCADE)
+	area_trabajadores = models.CharField(u'Área o trabajadores sujetos', max_length=300)
+	tipo_accion = models.CharField(u'Tipo de acción', max_length=300)
+	fecha_programada = models.DateField(u'Fecha programada')
+	responsable = models.CharField(u'Responsable', max_length=200)
+	estado = models.CharField(u'Estado', max_length=20, choices=ESTADO_CHOICES, default='pendiente')
+	evaluacion_posterior = models.CharField(u'Evaluación posterior', max_length=300)
+	record_create = models.DateTimeField(auto_now_add=True)
+	record_update = models.DateTimeField(auto_now=True)
+	def __str__(self):
+		return f"{self.tipo_accion} - {self.workplace.name} ({self.get_estado_display()})"
+	class Meta:
+		ordering = ['fecha_programada']

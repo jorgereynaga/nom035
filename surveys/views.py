@@ -1332,6 +1332,175 @@ def upload_employees_bulk(request):
 		cupo_restante -= 1
 	return JsonResponse({'status': 'ok', 'creados': creados, 'errores': errores})
 
+PLAN_ACCION_CAMPOS = [
+	("Área o trabajadores sujetos", "area_trabajadores", None),
+	("Tipo de acción", "tipo_accion", None),
+	("Fecha programada", "fecha_programada", "fecha"),
+	("Responsable", "responsable", None),
+	("Estado", "estado", [("Pendiente", "pendiente"), ("En proceso", "en_proceso"), ("Completado", "completado")]),
+	("Evaluación posterior", "evaluacion_posterior", None),
+]
+PLAN_ACCION_MAX_FILAS = 200
+
+def download_plan_accion_template(request, workplace_id):
+	if not request.user.is_authenticated:
+		return HttpResponseRedirect(reverse_lazy('login'))
+	if not request.user.workplaces.filter(id=workplace_id).exists():
+		return HttpResponseRedirect(reverse_lazy('workplaces'))
+	wk = Workplace.objects.filter(id=workplace_id).last()
+	wb = openpyxl.Workbook()
+	ws = wb.active
+	ws.title = "PlanAccion"
+	header_fill = PatternFill(start_color="2563EB", end_color="2563EB", fill_type="solid")
+	header_font = Font(color="FFFFFF", bold=True)
+	example_fill = PatternFill(start_color="FFF9DB", end_color="FFF9DB", fill_type="solid")
+	for col_idx, (label, field, opciones) in enumerate(PLAN_ACCION_CAMPOS, start=1):
+		cell = ws.cell(row=1, column=col_idx, value=label)
+		cell.font = header_font
+		cell.fill = header_fill
+		cell.alignment = Alignment(wrap_text=True, vertical="center")
+		ws.column_dimensions[cell.column_letter].width = 30
+	ejemplos = [
+		["EJEMPLO 1 — borra esta fila antes de subir", "Rediseño de cargas de trabajo en Producción", "2026-09-15", "Ing. Rosa Delgado", "En proceso", "Reaplicación de cuestionario en 6 meses"],
+		["EJEMPLO 2 — borra esta fila antes de subir", "Campaña de sensibilización contra la violencia laboral", "2026-10-01", "Lic. Marco Reyes", "Pendiente", "Encuesta de percepción post-campaña"],
+	]
+	for row_idx, fila in enumerate(ejemplos, start=2):
+		for col_idx, valor in enumerate(fila, start=1):
+			cell = ws.cell(row=row_idx, column=col_idx, value=valor)
+			cell.fill = example_fill
+	ws_listas = wb.create_sheet("Listas")
+	ws_listas.sheet_state = "hidden"
+	for col_idx, (label, field, opciones) in enumerate(PLAN_ACCION_CAMPOS, start=1):
+		if not opciones or opciones == "fecha":
+			continue
+		for row_idx, (texto, _codigo) in enumerate(opciones, start=1):
+			ws_listas.cell(row=row_idx, column=col_idx, value=texto)
+		col_letter = ws_listas.cell(row=1, column=col_idx).column_letter
+		rango = f"Listas!${col_letter}$1:${col_letter}${len(opciones)}"
+		dv = DataValidation(type="list", formula1=f"={rango}", allow_blank=False, showErrorMessage=True)
+		dv.error = "Selecciona una opción de la lista."
+		dv.errorTitle = "Valor no válido"
+		main_col_letter = ws.cell(row=1, column=col_idx).column_letter
+		dv.add(f"{main_col_letter}4:{main_col_letter}{PLAN_ACCION_MAX_FILAS + 3}")
+		ws.add_data_validation(dv)
+	# Nota: no se pre-formatean celdas vacias de la columna fecha (a diferencia de un
+	# intento anterior) porque tocar Cell objects vacios con ws.cell(row=r, column=c)
+	# extiende ws.max_row/dimensions aunque no tengan valor, haciendo que iter_rows()
+	# en upload_plan_accion_bulk cuente cientos de filas fantasma como si tuvieran datos.
+	ws.freeze_panes = "A2"
+	buffer = BytesIO()
+	wb.save(buffer)
+	buffer.seek(0)
+	response = HttpResponse(buffer.getvalue(), content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+	nombre_archivo = f"plan_accion_{wk.name}.xlsx".replace(" ", "_")
+	response['Content-Disposition'] = f'attachment; filename="{nombre_archivo}"'
+	return response
+
+def upload_plan_accion_bulk(request):
+	if request.method != 'POST':
+		return JsonResponse({'status': 'error', 'error': 'Método no permitido'}, status=405)
+	if not request.user.is_authenticated:
+		return JsonResponse({'status': 'error', 'error': 'No autenticado'}, status=401)
+	workplace_id = request.POST.get('workplace_id')
+	if not request.user.workplaces.filter(id=workplace_id).exists():
+		return JsonResponse({'status': 'error', 'error': 'Centro de trabajo no encontrado'}, status=403)
+	wk = Workplace.objects.filter(id=workplace_id).last()
+	archivo = request.FILES.get('file')
+	if not archivo:
+		return JsonResponse({'status': 'error', 'error': 'No se recibió ningún archivo'}, status=400)
+	if not archivo.name.lower().endswith('.xlsx'):
+		return JsonResponse({'status': 'error', 'error': 'El archivo debe ser .xlsx (el generado por "Descargar plantilla")'}, status=400)
+	if archivo.size > 5 * 1024 * 1024:
+		return JsonResponse({'status': 'error', 'error': 'El archivo excede el tamaño máximo permitido (5 MB)'}, status=400)
+	try:
+		wb = openpyxl.load_workbook(archivo, data_only=True)
+		ws = wb["PlanAccion"] if "PlanAccion" in wb.sheetnames else wb.active
+	except Exception:
+		return JsonResponse({'status': 'error', 'error': 'No se pudo leer el archivo. Verifica que sea un .xlsx válido y no esté dañado.'}, status=400)
+	encabezados_esperados = [campo[0] for campo in PLAN_ACCION_CAMPOS]
+	encabezados_archivo = [cell.value for cell in ws[1]][:len(encabezados_esperados)]
+	if encabezados_archivo != encabezados_esperados:
+		return JsonResponse({'status': 'error', 'error': 'Los encabezados del archivo no coinciden con la plantilla. Descarga la plantilla actual y no modifiques los nombres de columna.'}, status=400)
+	filas_crudas = list(ws.iter_rows(min_row=2, values_only=False))
+	filas_datos = []
+	for fila in filas_crudas:
+		valores = [c.value for c in fila]
+		if all((v is None or str(v).strip() == '') for v in valores):
+			continue
+		primer_valor = str(valores[0]).strip() if valores[0] is not None else ''
+		if primer_valor.upper().startswith('EJEMPLO '):
+			continue
+		filas_datos.append(fila)
+	if len(filas_datos) > PLAN_ACCION_MAX_FILAS:
+		return JsonResponse({'status': 'error', 'error': f'El archivo tiene más de {PLAN_ACCION_MAX_FILAS} filas. Divide la carga en varios archivos.'}, status=400)
+	mapas_por_columna = []
+	for label, field, opciones in PLAN_ACCION_CAMPOS:
+		mapas_por_columna.append({texto.strip().lower(): codigo for texto, codigo in opciones} if isinstance(opciones, list) else None)
+	creados = 0
+	errores = []
+	for fila in filas_datos:
+		numero_fila_excel = fila[0].row
+		valores = [c.value for c in fila]
+		primer_valor = str(valores[0]).strip() if valores[0] is not None else ''
+		datos_limpios = {}
+		error_fila = None
+		for idx, (label, field, opciones) in enumerate(PLAN_ACCION_CAMPOS):
+			valor_crudo = valores[idx]
+			if field == 'fecha_programada':
+				if valor_crudo is None or (isinstance(valor_crudo, str) and not valor_crudo.strip()):
+					error_fila = f'"{label}" no puede quedar vacío.'
+					break
+				if hasattr(valor_crudo, 'year'):
+					datos_limpios[field] = valor_crudo.date() if hasattr(valor_crudo, 'date') and callable(valor_crudo.date) else valor_crudo
+				else:
+					try:
+						from datetime import datetime as _dt
+						datos_limpios[field] = _dt.strptime(str(valor_crudo).strip(), '%Y-%m-%d').date()
+					except ValueError:
+						error_fila = f'"{label}" — "{valor_crudo}" no es una fecha válida. Usa el formato AAAA-MM-DD (ej. 2026-09-15).'
+						break
+				continue
+			valor_txt = str(valor_crudo).strip() if valor_crudo is not None else ''
+			if not valor_txt:
+				error_fila = f'"{label}" no puede quedar vacío.'
+				break
+			if opciones is None:
+				datos_limpios[field] = valor_txt
+			else:
+				codigo = mapas_por_columna[idx].get(valor_txt.lower())
+				if codigo is None:
+					opciones_validas = ', '.join(texto for texto, _c in opciones)
+					error_fila = f'"{label}" — "{valor_txt}" no coincide con ninguna opción. Usa una del menú desplegable: {opciones_validas}.'
+					break
+				datos_limpios[field] = codigo
+		if error_fila:
+			errores.append({'fila': numero_fila_excel, 'accion': datos_limpios.get('tipo_accion', primer_valor) or '(fila sin tipo de acción)', 'error': error_fila})
+			continue
+		PlanAccionItem.objects.create(workplace=wk, **datos_limpios)
+		creados += 1
+	return JsonResponse({'status': 'ok', 'creados': creados, 'errores': errores})
+
+def get_plan_accion(request):
+	workplace_id = request.GET.get('workplace_id')
+	if not request.user.workplaces.filter(id=workplace_id).exists():
+		return JsonResponse({'items': []})
+	items = PlanAccionItem.objects.filter(workplace_id=workplace_id).order_by('fecha_programada')
+	data = [{'id': item.id, 'area_trabajadores': item.area_trabajadores, 'tipo_accion': item.tipo_accion, 'fecha_programada': item.fecha_programada.strftime('%d/%m/%Y'), 'responsable': item.responsable, 'evaluacion_posterior': item.evaluacion_posterior, 'estado': item.estado, 'estado_display': item.get_estado_display()} for item in items]
+	return JsonResponse({'items': data})
+
+def guardar_estado_accion(request, accion_id):
+	if request.method != 'POST':
+		return JsonResponse({'error': 'method_not_allowed'}, status=405)
+	item = PlanAccionItem.objects.filter(id=accion_id, workplace__user=request.user).first()
+	if not item:
+		return JsonResponse({'error': 'not_found'}, status=404)
+	estado = request.POST.get('estado')
+	if estado not in dict(PlanAccionItem.ESTADO_CHOICES):
+		return JsonResponse({'error': 'estado_invalido'}, status=400)
+	item.estado = estado
+	item.save()
+	return JsonResponse({'ok': True})
+
 class EmployeeFormView(LoginRequiredMixin,View):
 	login_url = reverse_lazy('login')
 	redirect_field_name = 'redirect_to'
