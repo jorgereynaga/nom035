@@ -153,6 +153,37 @@
   padding: 18px 10px 4px;
 }
 
+/* ── Plan de accion (numeral 8.4) ─────────────────────────── */
+.section-card-sub { font-size:11.5px; color:var(--text-muted); margin-top:2px; }
+.pa-steps { display:flex; flex-direction:column; gap:0; margin-bottom:18px; }
+.pa-step { display:flex; gap:16px; padding:16px 0; }
+.pa-step:not(:last-child) { border-bottom:1px solid var(--border); }
+.pa-step-num { width:26px; height:26px; border-radius:50%; background:var(--primary-light); color:var(--primary); display:flex; align-items:center; justify-content:center; font-family:'Plus Jakarta Sans',sans-serif; font-weight:800; font-size:12px; flex-shrink:0; }
+.pa-step-title { font-family:'Plus Jakarta Sans',sans-serif; font-size:13.5px; font-weight:700; margin:2px 0 4px; }
+.pa-step-desc { font-size:12.5px; color:var(--text-secondary); line-height:1.55; margin:0 0 12px; }
+.pa-result-summary { display:flex; gap:12px; margin-bottom:16px; }
+.pa-result-tile { flex:1; border-radius:var(--radius-md); padding:12px 16px; border:1px solid var(--border); }
+.pa-result-tile.ok { background:#f0fdf4; border-color:#bbf0cd; }
+.pa-result-tile.err { background:#fef2f2; border-color:#fbd0d0; }
+.pa-result-tile-num { font-family:'Plus Jakarta Sans',sans-serif; font-size:20px; font-weight:800; }
+.pa-result-tile.ok .pa-result-tile-num { color:#16a34a; }
+.pa-result-tile.err .pa-result-tile-num { color:#dc2626; }
+.pa-error-table { width:100%; border-collapse:collapse; font-size:12px; margin-top:10px; }
+.pa-error-table th, .pa-error-table td { padding:8px 10px; border:1px solid var(--border); text-align:left; }
+.pa-error-table th { background:var(--bg-surface); font-weight:700; color:var(--text-secondary); }
+.accion-item { display:grid; grid-template-columns:1fr 172px 128px; align-items:center; gap:14px; padding:16px 18px; background:var(--bg-base); border:1px solid var(--border); border-left:4px solid var(--text-muted); border-radius:var(--radius-md); margin-bottom:10px; }
+.accion-item.is-en_proceso { border-left-color:#d97706; }
+.accion-item.is-completado { border-left-color:#16a34a; }
+.accion-tipo { font-size:13px; font-weight:700; color:var(--text-primary); margin:0 0 3px; }
+.accion-meta { font-size:11.5px; color:var(--text-muted); display:flex; flex-wrap:wrap; gap:4px 12px; }
+.accion-meta b { color:var(--text-secondary); font-weight:600; }
+.accion-pill { display:inline-block; font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:999px; margin-left:8px; }
+.accion-item.is-pendiente .accion-pill { background:#f1f5f9; color:#475569; }
+.accion-item.is-en_proceso .accion-pill { background:#fffbeb; color:#d97706; }
+.accion-item.is-completado .accion-pill { background:#f0fdf4; color:#16a34a; }
+.accion-select { width:100%; padding:8px 10px; font-size:12.5px; border:1.5px solid var(--border); border-radius:var(--radius-sm); background:var(--bg-base); color:var(--text-primary); }
+.accion-save-btn[disabled] { opacity:.45; cursor:not-allowed; }
+
 /* ── Empty state ─────────────────────────────────────────── */
 .empty-state {
   text-align: center; padding: 40px 20px;
@@ -353,6 +384,37 @@
         </div>
       </div>
 
+      <!-- Plan de accion (numeral 8.4) -->
+      <div class="section-card" v-if="workplace">
+        <div class="section-card-header">
+          <div>
+            <p class="section-card-title">Plan de acción — numeral 8.4</p>
+            <p class="section-card-sub">Control de avances del Programa de intervención</p>
+          </div>
+        </div>
+        <div class="section-card-body">
+          <div class="checklist-instruction-banner">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            <p>Descarga la plantilla, regístrala con las acciones definidas en tu Programa de intervención y súbela aquí. Cada acción queda como una fila con su propio estado, que puedes actualizar cuando avances — sin necesidad de volver a subir el archivo.</p>
+          </div>
+          <div class="pa-steps">
+            <div class="pa-step"><div class="pa-step-num">1</div><div><p class="pa-step-title">Descarga la plantilla</p><p class="pa-step-desc">Incluye las 6 columnas del numeral 8.4 (área o trabajadores sujetos, tipo de acción, fecha programada, responsable, estado, evaluación posterior) con 2 filas de ejemplo.</p><a class="btn btn-primary" :href="'/workplaces/' + workplace + '/plan_accion/plantilla/'">Descargar plantilla (.xlsx)</a></div></div>
+            <div class="pa-step"><div class="pa-step-num">2</div><div><p class="pa-step-title">Sube el archivo lleno</p><p class="pa-step-desc">Las filas correctas se agregan de inmediato; si alguna tiene error, se reporta con el motivo exacto.</p><input type="file" id="input-archivo-plan-accion" accept=".xlsx" style="margin-bottom:12px;"><div><button type="button" class="btn btn-primary" @click="procesarPlanAccion">Procesar archivo</button></div></div></div>
+          </div>
+          <div v-if="plan_accion_resultado">
+            <div class="pa-result-summary"><div class="pa-result-tile ok"><div class="pa-result-tile-num">${plan_accion_resultado.creados}</div><div>Acciones agregadas</div></div><div class="pa-result-tile err"><div class="pa-result-tile-num">${plan_accion_resultado.errores.length}</div><div>Filas con error</div></div></div>
+            <table class="pa-error-table" v-if="plan_accion_resultado.errores.length"><thead><tr><th>Fila</th><th>Acción</th><th>Error</th></tr></thead><tbody><tr v-for="err in plan_accion_resultado.errores"><td>${err.fila}</td><td>${err.accion}</td><td>${err.error}</td></tr></tbody></table>
+          </div>
+          <p class="checklist-section-label" v-if="plan_accion.length">Acciones registradas</p>
+          <div v-for="item in plan_accion" class="accion-item" :class="'is-' + item.estado">
+            <div><p class="accion-tipo">${item.tipo_accion}<span class="accion-pill">${item.estado_display}</span></p><p class="accion-meta"><span><b>Área/trabajadores:</b> ${item.area_trabajadores}</span><span><b>Fecha programada:</b> ${item.fecha_programada}</span><span><b>Responsable:</b> ${item.responsable}</span><span><b>Evaluación posterior:</b> ${item.evaluacion_posterior}</span></p></div>
+            <select class="accion-select" v-model="item.estado_nuevo"><option value="pendiente">Pendiente</option><option value="en_proceso">En proceso</option><option value="completado">Completado</option></select>
+            <button class="btn btn-primary accion-save-btn" type="button" :disabled="item.estado_nuevo === item.estado" @click="guardarEstadoAccion(item)">Guardar</button>
+          </div>
+          <p class="empty-hint" v-if="workplace && !plan_accion.length">Aún no hay acciones registradas para este centro.</p>
+        </div>
+      </div>
+
       <!-- Results -->
       <p class="checklist-section-label" v-if="workplace && results.length">Resultados y evaluaciones</p>
       <div class="results-list" v-if="results.length">
@@ -500,7 +562,9 @@ window.onload = function () {
       workplace: {% if preselected_workplace_id %}{{ preselected_workplace_id }}{% else %}null{% endif %},
       results: [],
       portafolio_status: [],
-      cumplimiento_pct: 0
+      cumplimiento_pct: 0,
+      plan_accion: [],
+      plan_accion_resultado: null
     },
     methods: {
       loadJsonData(){
@@ -517,6 +581,7 @@ window.onload = function () {
       on_workplace_change(){
         this.get_portafolio_status();
         this.get_results();
+        this.get_plan_accion();
       },
       get_portafolio_status(){
         var dis=this;
@@ -550,6 +615,60 @@ window.onload = function () {
           },
           error: function(){
             alert('No se pudo guardar el estado, intenta de nuevo.');
+          }
+        });
+      },
+      get_plan_accion(){
+        var dis=this;
+        if(!dis.workplace){ return; }
+        $.ajax({
+          url: "{% url 'get_plan_accion' %}",
+          data: {'workplace_id': dis.workplace},
+          dataType: 'json',
+          success: function(data){
+            data.items.forEach(function(item){ item.estado_nuevo = item.estado; });
+            dis.plan_accion = data.items;
+          }
+        });
+      },
+      guardarEstadoAccion(item){
+        var dis=this;
+        $.ajax({
+          type: 'POST',
+          url: '/guardar_estado_accion/' + item.id + '/',
+          data: {'estado': item.estado_nuevo},
+          dataType: 'json',
+          success: function(resp){
+            if (resp.ok) { dis.get_plan_accion(); }
+          },
+          error: function(){ alert('No se pudo guardar el estado, intenta de nuevo.'); }
+        });
+      },
+      procesarPlanAccion(){
+        var dis=this;
+        var archivo = document.getElementById('input-archivo-plan-accion').files[0];
+        if (!archivo) {
+          toastr.error('Error', 'Selecciona un archivo .xlsx primero', {positionClass:'toast-bottom-right', containerId:'toast-bottom-right'});
+          return;
+        }
+        var formData = new FormData();
+        formData.append('file', archivo);
+        formData.append('workplace_id', dis.workplace);
+        $.ajax({
+          url: "{% url 'upload_plan_accion_bulk' %}",
+          method: 'POST',
+          data: formData,
+          processData: false,
+          contentType: false,
+          dataType: 'json',
+          success: function(data){
+            dis.plan_accion_resultado = data;
+            dis.get_plan_accion();
+          },
+          error: function(xhr){
+            var msg = 'Ocurrió un error al procesar el archivo';
+            try { msg = JSON.parse(xhr.responseText).error || msg; } catch(e) {}
+            toastr.error('Error', msg, {positionClass:'toast-bottom-right', containerId:'toast-bottom-right'});
           }
         });
       },

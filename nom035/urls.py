@@ -101,6 +101,10 @@ urlpatterns = [
     path('subir_evidencia_fase_c/<int:workplace_id>/<str:tipo>/', SubirEvidenciaFaseCView.as_view(), name='subir_evidencia_fase_c'),
     path('guardar_estado_evidencia/<int:workplace_id>/<str:tipo>/', guardar_estado_evidencia, name='guardar_estado_evidencia'),
     path('get_portafolio_status/', get_portafolio_status, name='get_portafolio_status'),
+    path('workplaces/<int:workplace_id>/plan_accion/plantilla/', download_plan_accion_template, name='download_plan_accion_template'),
+    path('plan_accion/carga_masiva/', upload_plan_accion_bulk, name='upload_plan_accion_bulk'),
+    path('get_plan_accion/', get_plan_accion, name='get_plan_accion'),
+    path('guardar_estado_accion/<int:accion_id>/', guardar_estado_accion, name='guardar_estado_accion'),
     path('descargar/logo/', download_logo, name='download_logo'),
     path('descargar/resultado/<int:workplace_id>/<int:result_id>/', download_result_image, name='download_result_image'),
     # Reemplazado en Fase 2-B (2026-07) por checklist de estado. Descomentar si se revierte la eliminacion de subida de archivos.
