@@ -270,7 +270,7 @@ No es un bug nuevo de código — es el mismo pendiente ya registrado desde el d
 - El logo mostrado en las páginas de verificación de correo y recuperación de contraseña (`valid_email.html`, `password_recover.html`) sigue usando la imagen vieja `static/app-assets/images/pages/login_nom035.png` (diseño "NOM 035 / IHES"). Es un archivo de imagen, no texto — necesita un asset nuevo con la marca NormaIA (mismo flujo que usamos con Replit para la landing).
 - Nota aparte: el texto "NormalA" que se ve en la captura de esas páginas **sí dice "NormaIA" correctamente en el código** (`valid_email.html:62`) — es solo la tipografía de esa página, donde la "I" mayúscula se confunde visualmente con una "l" minúscula. No requiere corrección de texto, solo se resolvería si se actualiza la tipografía junto con el logo.
 
-## 9. Bug real confirmado: `EndEvaluation` permite avanzar de evaluación sin que la anterior esté completa
+## 9. Bug real confirmado: `EndEvaluation` permite avanzar de evaluación sin que la anterior esté completa — ✅ RESUELTO (27 jul 2026)
 
 **Observación de Jorge (25 jul 2026):** probando en local el centro "Centro Riesgo B", detectó que el sistema mostraba "Evaluación #2" aunque la Evaluación #1 solo tenía 1 de 51 empleados con encuesta contestada. Según Jorge, el propósito de una segunda evaluación es dar seguimiento a la primera ya completa — no debería habilitarse sin ese requisito.
 
@@ -281,6 +281,8 @@ No es un bug nuevo de código — es el mismo pendiente ya registrado desde el d
 **Nota operativa:** el estado "Evaluación #2" que vio Jorge en ese centro de prueba fue un efecto secundario de las pruebas de Claude durante la revisión de Fase 3-B (se llamó manualmente el endpoint para verificar el registro de `EvaluationHistory`), no un flujo real de usuario.
 
 **Decisión de Jorge:** registrar para atacar después, no bloquea el merge/deploy de Fase 3-B ya en curso. Falta definir con Jorge el umbral exacto de "completa" (¿100% de empleados, o un % mínimo?) antes de escribir la especificación de corrección.
+
+**Resuelto:** al investigar, se encontró que el problema real no era falta de un umbral de completitud, sino que el mecanismo de finalización explícita del usuario ("Finalizar aplicación") nunca funcionaba — el botón estaba permanentemente deshabilitado para cualquier centro real (el campo `Workplace.paid` se creaba siempre en `False` y ningún código lo volvía a poner en `True`). Decisión final de Jorge: no se necesita ningún umbral de % — la finalización explícita del usuario (con el modal de confirmación ya existente) es la única señal de completitud requerida. Corregido: `paid=True` al crear un centro real, y `paid=True` (no `False`) tras cada finalización, para que la evaluación nueva en curso también quede habilitada. De paso se corrigió un hallazgo de seguridad encontrado en el mismo endpoint: `EndEvaluation` no validaba que el centro perteneciera al usuario autenticado. Validado exhaustivamente y confirmado por Jorge en producción.
 
 ## 10. Bug crítico confirmado y resuelto: no se podía crear ningún centro de trabajo nuevo — ✅ RESUELTO (25 jul 2026)
 
