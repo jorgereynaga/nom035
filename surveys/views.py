@@ -2711,7 +2711,7 @@ class WorkplaceList(generics.ListCreateAPIView):
 		# 	data['paid']=True
 		# 	userapp.workplaces_availableB=userapp.workplaces_availableB-1
 		# elif userapp.workplaces_availableC>0 and int(data["employee_num"])>50:
-		data['paid']=False
+		data['paid']=True
 		# 	userapp.workplaces_availableC=userapp.workplaces_availableC-1
 		# else:
 		# 	return Response("No cuentas con centros de trabajo disponibles.", status=status.HTTP_400_BAD_REQUEST)
@@ -3056,6 +3056,8 @@ class EndEvaluation(APIView):
 	def get(self, request, format=None):
 		try:
 			workplace_id=request.query_params.get('workplace_id') or request.data.get('workplace_id')
+			if not request.user.workplaces.filter(id=workplace_id).exists():
+				return Response({'status':'error', 'error':'Centro de trabajo no encontrado.'}, status=403)
 			workplace=Workplace.objects.filter(id=workplace_id).last()
 			if workplace.es_demo:
 				return Response({'status':'error', 'error':'No es posible avanzar evaluacion en un centro de trabajo de demostracion.'})
@@ -3065,7 +3067,7 @@ class EndEvaluation(APIView):
 				guia=workplace.survey_type(),
 			)
 			workplace.evaluation=workplace.evaluation+1
-			workplace.paid=False
+			workplace.paid=True
 			workplace.save()
 			return Response({'status':'ok'})
 		except Exception as e:
