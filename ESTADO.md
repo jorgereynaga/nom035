@@ -2672,13 +2672,43 @@ boton habilitado (los centros creados ANTES de este deploy siguen con
 `paid=False`, sin backfill -- decision explicita, no hay clientes reales
 todavia).
 
+## Fase 3-C — Plan de accion (numeral 8.4) — COMPLETADA Y DESPLEGADA EN PRODUCCION (VPS) ✅ (27 jul 2026)
+Spec `FASE3_C_especificacion_plan_de_accion.md`, implementada por Codex, revisada
+por Claude (2 bugs encontrados y corregidos: el pre-formateo de 200 celdas vacias
+de la columna fecha extendia las dimensiones reales del `.xlsx` haciendo que
+CUALQUIER archivo generado desde la propia plantilla fallara con "mas de 200
+filas" -- corregido quitando el formateo y validando el limite despues de
+filtrar filas vacias/de ejemplo; y una variable de mensaje de error que mostraba
+el nombre de accion de la fila equivocada). Nuevo modelo `PlanAccionItem` +
+migracion `0044`, nueva seccion dentro de Portafolio de Evidencias (`evidence.html`,
+Vue app existente) con descarga/subida de plantilla `.xlsx` y selector de estado
+inline (mismo patron que el checklist de Fase 2-B2). Validado exhaustivamente
+(Django real + navegador real) y confirmado desplegado en produccion.
+
+## Dashboard ejecutivo — resumen a nivel empresa (NOM-035 + Clima Laboral) + Acciones pendientes — COMPLETADO Y DESPLEGADO ✅ (27 jul 2026)
+Jorge detecto que el Dashboard mostraba 3 tarjetas completas (NOM-035, Psicometria,
+Clima Laboral) POR CADA centro de trabajo -- con muchos centros dejaba de ser un
+dashboard ejecutivo. Spec `DASHBOARD_especificacion_resumen_ejecutivo.md`,
+implementada por Codex, revisada por Claude (1 desviacion corregida: las
+secciones viejas por-centro quedaron comentadas con `{% comment %}` en vez de
+reemplazadas como pedia la spec -- ~150 lineas de codigo muerto, eliminadas).
+Cambios: fila de KPIs movida desde "Centros de Trabajo" al Dashboard (ya no se
+duplica); NOM-035 ahora muestra solo los centros que necesitan atencion (top 3
+por riesgo) con link a ver todos; nueva seccion "Acciones pendientes" cruzando
+el Plan de Accion (Fase 3-C) de todos los centros; Clima Laboral ahora es un
+resumen agregado (promedio general, tasa de respuesta, peor dimension) en vez
+de una tarjeta por centro. Psicometria sin cambios (verificado byte-a-byte
+identico). Validado exhaustivamente (KPIs comparados 1:1 contra los valores
+que antes se veian en Centros de Trabajo) y confirmado desplegado en produccion.
+**Nota:** implementacion funcional, sin pulido visual -- el diseno fino queda
+pendiente para una pasada posterior con Replit, igual que otras pantallas.
+
 ## PENDIENTE (para la proxima sesion)
-1. **Fase 3-C** (Plan de accion, numeral 8.4): alcance reducido ya decidido
-   (ver arriba), pendiente de spec/mockup. Ya no depende de construir el
-   importador de plantillas desde cero -- reutiliza el patron ya construido
-   y probado en la carga masiva de empleados (parseo `.xlsx` con `openpyxl`,
-   reporte de errores fila por fila, ver seccion "Carga masiva de empleados"
-   arriba).
+1. **Candidatos sin paginacion ni buscador/filtro** (detectado por Jorge, 27 jul
+   2026): `CandidateListView` (`surveys/psico_views.py`) trae TODOS los candidatos
+   del usuario sin limite, y `psico_candidatos.html` no tiene buscador, filtro ni
+   paginacion -- con una cuenta que maneje muchas evaluaciones, la pantalla
+   quedaria interminable. Sin spec todavia.
 2. Seguir recibiendo y registrando observaciones de los socios en
    `SOCIOS_feedback_correcciones.md`.
 3. Pendientes menores ya registrados en `SOCIOS_feedback_correcciones.md`
