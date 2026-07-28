@@ -2698,15 +2698,29 @@ que antes se veian en Centros de Trabajo) y confirmado desplegado en produccion.
 **Nota:** implementacion funcional, sin pulido visual -- el diseno fino queda
 pendiente para una pasada posterior con Replit, igual que otras pantallas.
 
+## Candidatos: busqueda instantanea, filtro por tipo y paginacion real — COMPLETADO Y DESPLEGADO ✅ (27 jul 2026)
+Jorge detecto que `CandidateListView` traia TODOS los candidatos del usuario sin
+limite, y `psico_candidatos.html` no tenia buscador, filtro ni paginacion. Spec
+`CANDIDATOS_especificacion_busqueda_paginacion.md`, implementada por Codex,
+revisada por Claude (Django real + navegador real, sin bugs encontrados en esta
+revision). Nueva vista JSON `candidates_dt` (mismo patron que `employees_dt`),
+`CandidateListView` paginado desde el primer render (15 por pagina), JS con
+debounce de 300ms para busqueda instantanea sin recargar la pagina -- confirmado
+en navegador real (1 sola peticion AJAX tras escribir 9 teclas). Desplegado y
+confirmado en produccion.
+
+**Verificacion adicional pedida por Jorge:** se confirmo que "Borrar datos de
+prueba" (`borrar_datos_demo` management command) sigue borrando *todo*
+correctamente incluyendo los modelos nuevos agregados esta sesion
+(`EvaluationHistory` de Fase 3-B, `PlanAccionItem` de Fase 3-C) -- se limpian
+automaticamente via CASCADE de Django al borrar el `Workplace` padre, sin
+necesitar ningun cambio de codigo. Probado con el comando directo y con el
+endpoint real `POST /borrar_demo/`.
+
 ## PENDIENTE (para la proxima sesion)
-1. **Candidatos sin paginacion ni buscador/filtro** (detectado por Jorge, 27 jul
-   2026): `CandidateListView` (`surveys/psico_views.py`) trae TODOS los candidatos
-   del usuario sin limite, y `psico_candidatos.html` no tiene buscador, filtro ni
-   paginacion -- con una cuenta que maneje muchas evaluaciones, la pantalla
-   quedaria interminable. Sin spec todavia.
-2. Seguir recibiendo y registrando observaciones de los socios en
+1. Seguir recibiendo y registrando observaciones de los socios en
    `SOCIOS_feedback_correcciones.md`.
-3. Pendientes menores ya registrados en `SOCIOS_feedback_correcciones.md`
+2. Pendientes menores ya registrados en `SOCIOS_feedback_correcciones.md`
    sin resolver: referencias al dominio viejo `035.ihes.mx` en
    `survey.html:289` y `tyc.html:172`; logo viejo "NOM 035/IHES"
    (`static/app-assets/images/pages/login_nom035.png`, usado en
@@ -2714,13 +2728,13 @@ pendiente para una pasada posterior con Replit, igual que otras pantallas.
    por un asset con la marca NormaIA; bug reportado en el prototipo de
    tarjetas de planes (boton se oculta al seleccionar, hallazgo #7, aun
    no verificable contra codigo real).
-4. Evaluar en produccion si "Añadir un Centro" en el menu NOM-035 de
+3. Evaluar en produccion si "Añadir un Centro" en el menu NOM-035 de
    verdad se usa (ya existe tambien como boton "+ Nuevo centro" en la
    lista de Centros de Trabajo, Fase 3-A) -- si no se usa, se quita del
    menu.
-5. Railway staging con el problema de Nixpacks -- sin cambios, no
+4. Railway staging con el problema de Nixpacks -- sin cambios, no
    bloqueante.
-6. Pendientes menores de sesiones previas sin resolver: warning de
+5. Pendientes menores de sesiones previas sin resolver: warning de
    migracion no reflejada (choices PsychoInstrument), division float en
    `employees_dt`, rotar credenciales del VPS por higiene.
 7. Poppler (`pdftoppm`) sigue sin instalar -- Claude puede generar y
