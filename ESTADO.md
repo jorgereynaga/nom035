@@ -2726,16 +2726,13 @@ endpoint real `POST /borrar_demo/`.
 1. Seguir recibiendo y registrando observaciones de los socios en
    `SOCIOS_feedback_correcciones.md`.
 2. Pendientes menores ya registrados en `SOCIOS_feedback_correcciones.md`
-   sin resolver: logo viejo "NOM 035/IHES"
+   sin resolver: referencias al dominio viejo `035.ihes.mx` en
+   `survey.html:289` y `tyc.html:172`; logo viejo "NOM 035/IHES"
    (`static/app-assets/images/pages/login_nom035.png`, usado en
    `valid_email.html`/`password_recover.html`) pendiente de reemplazar
    por un asset con la marca NormaIA; bug reportado en el prototipo de
    tarjetas de planes (boton se oculta al seleccionar, hallazgo #7, aun
    no verificable contra codigo real).
-   Referencias al dominio viejo `035.ihes.mx` (`survey.html:289`,
-   `tyc.html:172`, enlaces de WhatsApp y descargas de graficas/PDF en
-   `views.py`) -- corregido a `normaia.ihes.mx`, desplegado en VPS y
-   verificado.
 3. Evaluar en produccion si "Añadir un Centro" en el menu NOM-035 de
    verdad se usa (ya existe tambien como boton "+ Nuevo centro" en la
    lista de Centros de Trabajo, Fase 3-A) -- si no se usa, se quita del
@@ -2748,9 +2745,3 @@ endpoint real `POST /borrar_demo/`.
 7. Poppler (`pdftoppm`) sigue sin instalar -- Claude puede generar y
    editar PDFs/Word pero no renderizarlos a imagen para autoverificacion
    visual antes de entregarlos.
-8. Limpieza pendiente en el rediseno del Dashboard (propuesta de Replit,
-   "Signal Room", integrada en `index.html`): quedaron ~160 lineas de CSS
-   muerto para `.nom-wp-card`/`.clima-wp-card` (tarjetas por centro de
-   trabajo) que no se usan en ningun lado del HTML -- esas listas viven
-   en `workplace.html`, no en el Dashboard actual. No afecta
-   funcionalidad, Jorge decidio dejarlo para despues.
