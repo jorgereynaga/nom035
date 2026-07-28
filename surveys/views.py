@@ -48,7 +48,7 @@ import logging, requests,uuid,time,os,base64,json
 import stripe
 
 p_= logging.getLogger(__name__)
-#https://n035.page.link/?link=https://035.ihes.mx/app/access?workplace_id=280053610240503210429881290965155008225-[1580245165.810466&apn=ihes.com.mx.n035
+#https://n035.page.link/?link=https://normaia.ihes.mx/app/access?workplace_id=280053610240503210429881290965155008225-[1580245165.810466&apn=ihes.com.mx.n035
 
 def download_file(request, user_id,file_name):
 	if request.user.is_authenticated:
@@ -220,7 +220,7 @@ class Index(LoginRequiredMixin,View):
 						else: nivel,color="Favorable","#6bf56e"
 						climate_dims.append({"name":dim_name,"prom":prom,"nivel":nivel,"color":color})
 			wk.append({"id":item.id,"name":item.name,"address":item.address,"employee_count":item.employee_num,
-			"access_code":f"https://n035.page.link/?link=https://035.ihes.mx/app/access?d={item.access_code}",#&apn=ihes.com.mx.n035",
+			"access_code":f"https://n035.page.link/?link=https://normaia.ihes.mx/app/access?d={item.access_code}",#&apn=ihes.com.mx.n035",
 			"employee_completion":ceil((employees.count()/item.employee_num)*100),
 			"employee_total":employees.count(),"cat":item.survey_type(),
 			"survey_completed":survey_completed,
@@ -474,10 +474,10 @@ class SaveCharts(APIView):
 				"address_state":workplace.address_state,
 				"address_postal_code":workplace.address_postal_code,
 				"phone":self.request.user.userapp.phone,
-				"chart1":f"https://035.ihes.mx/files/charts/{wp}/{ev}/{filename1}_-_Token {token}",
-				"chart2":f"https://035.ihes.mx/files/charts/{wp}/{ev}/{filename2}_-_Token {token}",
-				"chart3":f"https://035.ihes.mx/files/charts/{wp}/{ev}/{filename3}_-_Token {token}",
-				"chart4":f"https://035.ihes.mx/files/charts/{wp}/{ev}/{filename4}_-_Token {token}",
+				"chart1":f"https://normaia.ihes.mx/files/charts/{wp}/{ev}/{filename1}_-_Token {token}",
+				"chart2":f"https://normaia.ihes.mx/files/charts/{wp}/{ev}/{filename2}_-_Token {token}",
+				"chart3":f"https://normaia.ihes.mx/files/charts/{wp}/{ev}/{filename3}_-_Token {token}",
+				"chart4":f"https://normaia.ihes.mx/files/charts/{wp}/{ev}/{filename4}_-_Token {token}",
 			}
 			task=pdf_reports_task.delay(self.request.user.id,template,ctx)
 			time.sleep(7)
@@ -485,8 +485,8 @@ class SaveCharts(APIView):
 			if t.successful():
 				p_.error("task succeded")
 				# else:
-				# 	response=f"https://035.ihes.mx/files/tmp/{self.request.user.id}/{template}.pdf"
-			return Response({"pdf":f"https://035.ihes.mx/files/tmp/{self.request.user.id}/{template}.pdf"})
+				# 	response=f"https://normaia.ihes.mx/files/tmp/{self.request.user.id}/{template}.pdf"
+			return Response({"pdf":f"https://normaia.ihes.mx/files/tmp/{self.request.user.id}/{template}.pdf"})
 		else:
 			return Response("error",status=400)
 
@@ -1712,7 +1712,7 @@ def employees_dt(request,workplace_id,t,evaluation):
 			 Por eso te invitamos a contestar las encuestas para identificar factores de riesgo psicosocial en tu centro de trabajo.%0D%0A %0D%0A\
 			*Si tuvieras algún problema o duda* _para responderlo, contáctanos por este medio o marca al número *(33) 1491 1819* en un horario de *9 a 18 horas*._%0D%0A %0D%0A\
 			Agradecemos tu apoyo para la mejora de nuestra empresa.%0D%0A %0D%0A\
-			*Inicia la encuesta en este enlace*: https://n035.page.link/?link=https://035.ihes.mx/app/access?d={item.get_code()}%26apn=ihes.com.mx.n035'\
+			*Inicia la encuesta en este enlace*: https://n035.page.link/?link=https://normaia.ihes.mx/app/access?d={item.get_code()}%26apn=ihes.com.mx.n035'\
 			  target='_blank'>Compartir</a></span></div></div>",#%26apn=ihes.com.mx.n035
 			} for item in workplaces]
 	else:
@@ -3275,8 +3275,8 @@ class PDFCreate(APIView):
 		if t.successful():
 			p_.error("task succeded")
 			# else:
-			# 	response=f"https://035.ihes.mx/files/tmp/{self.request.user.id}/{template}.pdf"
-		return Response({"pdf":f"https://035.ihes.mx/files/tmp/{self.request.user.id}/{template}.pdf"})
+			# 	response=f"https://normaia.ihes.mx/files/tmp/{self.request.user.id}/{template}.pdf"
+		return Response({"pdf":f"https://normaia.ihes.mx/files/tmp/{self.request.user.id}/{template}.pdf"})
 
 class EndEvaluation(APIView):
 	http_method_names = ['get',]
