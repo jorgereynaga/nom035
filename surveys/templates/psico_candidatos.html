@@ -148,6 +148,20 @@
 
     .candidate-sessions { font-size: 12px; color: var(--text-muted); white-space: nowrap; }
 
+    /* ─── Buscador, filtro y paginacion ─────────────────────── */
+    .filter-bar { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+    .filter-input { flex: 1; min-width: 220px; padding: 9px 14px; font-size: 13px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg-base); font-family: 'Inter', sans-serif; }
+    .filter-input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
+    .filter-select { padding: 9px 14px; font-size: 13px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg-base); color: var(--text-primary); font-family: 'Inter', sans-serif; }
+    .filter-count { font-size: 12px; color: var(--text-muted); margin-bottom: 12px; }
+    .pagination-bar { display: flex; align-items: center; justify-content: space-between; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border); flex-wrap: wrap; gap: 10px; }
+    .pagination-info { font-size: 12.5px; color: var(--text-muted); }
+    .pagination-links { display: flex; gap: 6px; align-items: center; }
+    .page-link { display: flex; align-items: center; justify-content: center; min-width: 32px; height: 32px; padding: 0 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-base); color: var(--text-primary); font-size: 12.5px; font-weight: 600; text-decoration: none; cursor: pointer; }
+    .page-link:hover { background: var(--bg-surface); }
+    .page-link.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .page-link.disabled { opacity: .4; cursor: not-allowed; pointer-events: none; }
+
     /* ─── Empty state ────────────────────────────────────────── */
     .empty-state {
       display: flex; flex-direction: column; align-items: center;
@@ -325,8 +339,17 @@
       </button>
     </div>
 
-    {% if candidates %}
-    <div class="candidates-list">
+    <div class="filter-bar">
+      <input class="filter-input" type="text" id="candidato-search" placeholder="Buscar por nombre, puesto o correo...">
+      <select class="filter-select" id="candidato-tipo-filter">
+        <option value="">Todos los tipos</option>
+        <option value="externo">Candidato externo</option>
+        <option value="empleado">Empleado actual</option>
+      </select>
+    </div>
+    <p class="filter-count" id="candidato-count">{{total_candidatos}} candidato{{total_candidatos|pluralize}} encontrado{{total_candidatos|pluralize}}</p>
+
+    <div class="candidates-list" id="candidatos-list-container">
       {% for c in candidates %}
       <div class="candidate-card">
         <div class="candidate-card-left">
@@ -347,9 +370,7 @@
           </a>
         </div>
       </div>
-      {% endfor %}
-    </div>
-    {% else %}
+      {% empty %}
     <div class="empty-state">
       <div class="empty-state-icon">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
@@ -361,7 +382,13 @@
         Agregar primer candidato
       </button>
     </div>
-    {% endif %}
+      {% endfor %}
+    </div>
+
+    <div class="pagination-bar" id="candidatos-pagination" {% if total_paginas <= 1 %}style="display:none;"{% endif %}>
+      <span class="pagination-info" id="candidatos-pagination-info">Página 1 de {{total_paginas}}</span>
+      <div class="pagination-links" id="candidatos-pagination-links"></div>
+    </div>
 
   </main>
 </div>
@@ -465,6 +492,54 @@
       }
     });
   });
+</script>
+<script>
+(function(){
+  var searchInput = document.getElementById('candidato-search');
+  var tipoFilter = document.getElementById('candidato-tipo-filter');
+  var listContainer = document.getElementById('candidatos-list-container');
+  var countLabel = document.getElementById('candidato-count');
+  var paginationBar = document.getElementById('candidatos-pagination');
+  var paginationInfo = document.getElementById('candidatos-pagination-info');
+  var paginationLinks = document.getElementById('candidatos-pagination-links');
+  var currentPage = 1;
+  var debounceTimer = null;
+
+  function escapeHtml(str){
+    var div = document.createElement('div');
+    div.appendChild(document.createTextNode(str));
+    return div.innerHTML;
+  }
+  function renderCard(c){
+    var badgeClass = c.tipo === 'externo' ? 'badge-externo' : 'badge-empleado';
+    return '<div class="candidate-card"><div class="candidate-card-left"><div class="candidate-avatar">' + escapeHtml(c.inicial) + '</div><div><p class="candidate-name">' + escapeHtml(c.nombre) + '</p><p class="candidate-role">' + escapeHtml(c.puesto) + '</p></div></div><div class="candidate-card-right"><span class="badge ' + badgeClass + '">' + escapeHtml(c.tipo_display) + '</span><span class="candidate-sessions">' + c.sessions_count + (c.sessions_count === 1 ? ' prueba' : ' pruebas') + '</span><a href="/psico/candidatos/' + c.id + '/" class="btn btn-outline btn-sm">Ver detalle</a></div></div>';
+  }
+  function renderPagination(data){
+    if (data.total_paginas <= 1){ paginationBar.style.display = 'none'; return; }
+    paginationBar.style.display = 'flex';
+    paginationInfo.textContent = 'Página ' + data.page + ' de ' + data.total_paginas;
+    var html = '<a class="page-link' + (data.has_previous ? '' : ' disabled') + '" data-page="' + (data.page - 1) + '">‹ Anterior</a>';
+    for (var p = 1; p <= data.total_paginas; p++) html += '<a class="page-link' + (p === data.page ? ' active' : '') + '" data-page="' + p + '">' + p + '</a>';
+    html += '<a class="page-link' + (data.has_next ? '' : ' disabled') + '" data-page="' + (data.page + 1) + '">Siguiente ›</a>';
+    paginationLinks.innerHTML = html;
+    paginationLinks.querySelectorAll('.page-link:not(.disabled)').forEach(function(link){ link.addEventListener('click', function(){ currentPage = parseInt(this.getAttribute('data-page'), 10); cargarCandidatos(); }); });
+  }
+  function cargarCandidatos(){
+    $.ajax({
+      url: "{% url 'candidatos_dt' %}", method: 'GET',
+      data: {search: searchInput.value.trim(), tipo: tipoFilter.value, page: currentPage}, dataType: 'json',
+      success: function(data){
+        if (data.candidates.length === 0) listContainer.innerHTML = '<div class="empty-state"><h3>Sin resultados</h3><p>No se encontraron candidatos con esos criterios.</p></div>';
+        else listContainer.innerHTML = data.candidates.map(renderCard).join('');
+        countLabel.textContent = data.total_candidatos + (data.total_candidatos === 1 ? ' candidato encontrado' : ' candidatos encontrados');
+        renderPagination(data);
+      }
+    });
+  }
+  searchInput.addEventListener('input', function(){ clearTimeout(debounceTimer); debounceTimer = setTimeout(function(){ currentPage = 1; cargarCandidatos(); }, 300); });
+  tipoFilter.addEventListener('change', function(){ currentPage = 1; cargarCandidatos(); });
+  renderPagination({total_paginas: {{total_paginas}}, page: 1, has_previous: false, has_next: {{total_paginas}} > 1});
+})();
 </script>
 </body>
 </html>
