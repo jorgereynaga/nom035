@@ -1,0 +1,233 @@
+{% extends 'index.html' %}
+{% load static %}
+
+{% block style %}
+.wp-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.wp-card {
+  background: var(--bg-base);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  transition: box-shadow .2s, border-color .2s;
+  text-decoration: none;
+  color: inherit;
+}
+.wp-card:hover {
+  box-shadow: var(--shadow-md);
+  border-color: #c7d7f5;
+}
+
+.wp-card-icon {
+  width: 42px; height: 42px;
+  border-radius: 10px;
+  background: var(--primary-light);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--primary);
+}
+.wp-card-icon svg { width: 20px; height: 20px; }
+
+.wp-card-name {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.wp-card-count {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1;
+}
+.wp-card-count-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 3px;
+}
+
+.wp-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+.wp-card-link {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--primary);
+  display: flex; align-items: center; gap: 4px;
+}
+.wp-card-link svg { width: 13px; height: 13px; }
+
+/* New workplace card */
+.wp-card-new {
+  background: var(--bg-surface);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: background .2s, border-color .2s;
+  min-height: 160px;
+  text-align: center;
+}
+.wp-card-new:hover {
+  background: var(--primary-light);
+  border-color: var(--primary);
+}
+.wp-card-new:hover .wp-new-icon { background: var(--primary); color: #fff; }
+
+.wp-new-icon {
+  width: 42px; height: 42px;
+  border-radius: 10px;
+  background: var(--border);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text-secondary);
+  transition: background .2s, color .2s;
+}
+.wp-new-icon svg { width: 20px; height: 20px; }
+
+.wp-new-label {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+.wp-card-new:hover .wp-new-label { color: var(--primary); }
+.page-header{display:flex; align-items:flex-start; justify-content:space-between; gap:16px; flex-wrap:wrap; margin-bottom:18px;}
+.kpi-row{display:grid; grid-template-columns:repeat(5,1fr); gap:12px; margin-bottom:20px;}
+.kpi-card{background:var(--bg-base); border:1px solid var(--border); border-radius:var(--radius-lg); padding:14px 16px; box-shadow:var(--shadow-sm);}
+.kpi-label{font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--text-muted); margin:0 0 6px;}
+.kpi-value{font-family:'Plus Jakarta Sans',sans-serif; font-size:22px; font-weight:800; color:var(--text-primary); display:flex; align-items:baseline; gap:6px;}
+.kpi-badge-dot{width:10px;height:10px;border-radius:50%; flex-shrink:0;}
+.kpi-sub{font-size:11px; color:var(--text-muted); margin-top:2px;}
+.filter-bar{display:flex; gap:10px; margin-bottom:18px; flex-wrap:wrap;}
+.filter-input, .filter-select{border:1px solid var(--border); border-radius:var(--radius-md); padding:9px 12px; font-size:12.5px; color:var(--text-primary); background:var(--bg-base);}
+.filter-input{flex:1 1 240px;}
+.filter-select{flex:0 0 160px;}
+.wp-card-addr{font-size:11.5px; color:var(--text-muted); margin:0;}
+.wp-card-top{display:flex; align-items:flex-start; justify-content:space-between; gap:12px;}
+.risk-pill{font-size:10px; font-weight:800; letter-spacing:.02em; padding:3px 9px; border-radius:999px; white-space:nowrap; color:#1f2937;}
+.risk-pill[data-nivel="na"]{background:var(--bg-surface); color:var(--text-muted);}
+.wp-stats{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+.wp-stat{background:var(--bg-surface); border-radius:var(--radius-md); padding:9px 11px;}
+.wp-stat-value{font-family:'Plus Jakarta Sans',sans-serif; font-size:16px; font-weight:800; color:var(--text-primary);}
+.wp-stat-label{font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:.04em; margin-top:2px;}
+.wp-card-footer .btn{flex:1; justify-content:center;}
+{% endblock %}
+
+{% block dashboard %}
+
+<div class="page-header">
+  <div class="page-header-text">
+    <h1>Centros de Trabajo</h1>
+    <p>Gestiona tus centros y su cumplimiento NOM-035</p>
+  </div>
+  <a href="/workplaceform" class="btn btn-primary btn-sm">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+    Nuevo centro
+  </a>
+</div>
+
+<div class="filter-bar">
+  <input class="filter-input" type="text" id="wp-search" placeholder="Buscar centro de trabajo..." />
+  <select class="filter-select" id="wp-filter-riesgo">
+    <option value="">Riesgo: Todos</option>
+    <option value="0">Nulo</option>
+    <option value="1">Bajo</option>
+    <option value="2">Medio</option>
+    <option value="3">Alto</option>
+    <option value="4">Muy alto</option>
+  </select>
+</div>
+
+<div class="wp-grid">
+
+  {% for item in workplaces %}
+  <div class="wp-card" data-nombre="{{ item.name|lower }}" data-riesgo="{% if item.riesgo_nivel is not None %}{{ item.riesgo_nivel }}{% endif %}">
+    <div class="wp-card-top">
+      <div style="display:flex; gap:12px; align-items:flex-start; min-width:0;">
+        <div class="wp-card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
+        </div>
+        <div style="min-width:0;">
+          <p class="wp-card-name">{{ item.name }}</p>
+          <p class="wp-card-addr">{{ item.address }}</p>
+        </div>
+      </div>
+      <span class="risk-pill" data-nivel="{% if item.riesgo_nivel is not None %}{{ item.riesgo_nivel }}{% else %}na{% endif %}">{{ item.riesgo_nivel_nombre }}</span>
+    </div>
+    <div class="wp-stats">
+      <div class="wp-stat"><div class="wp-stat-value">{{ item.empleados_registrados }}</div><div class="wp-stat-label">Empleados</div></div>
+      <div class="wp-stat"><div class="wp-stat-value">{{ item.evaluaciones_aplicadas }}</div><div class="wp-stat-label">Evaluaciones</div></div>
+      <div class="wp-stat" style="grid-column:span 2;"><div class="wp-stat-value">{{ item.cumplimiento_pct }}%</div><div class="wp-stat-label">Cumplimiento documental</div></div>
+    </div>
+    <div class="wp-card-footer">
+      <a href="{% url 'single_workplace' item.id %}" class="btn btn-outline">Ver detalle</a>
+      {% if item.riesgo_nivel is not None %}
+      <a href="/workplace_result/{{ item.id }}/" class="btn btn-outline">Ver resultados</a>
+      {% else %}
+      <span class="btn btn-outline" style="opacity:.5; pointer-events:none;">Ver resultados</span>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+
+  <!-- New workplace -->
+  <div class="wp-card-new new_workplace">
+    <div class="wp-new-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+    </div>
+    <p class="wp-new-label">Nuevo centro de trabajo</p>
+  </div>
+
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script type="text/javascript">
+$(document).ready(function(){});
+$(function(){
+  document.querySelectorAll('.kpi-badge-dot, .risk-pill').forEach(function(el){
+    var nivel = el.getAttribute('data-nivel');
+    var colores = {'0':'#9be5f7','1':'#6bf56e','2':'#eab308','3':'#ffc000','4':'#ff7070'};
+    if (nivel && colores[nivel]) {
+      el.style.background = colores[nivel];
+    }
+  });
+  $('#wp-search').on('input', function(){
+    var q = $(this).val().toLowerCase();
+    $('.wp-card[data-nombre]').each(function(){
+      $(this).toggle($(this).data('nombre').toString().indexOf(q) !== -1);
+    });
+  });
+  $('#wp-filter-riesgo').on('change', function(){
+    var v = $(this).val();
+    $('.wp-card[data-nombre]').each(function(){
+      var r = $(this).attr('data-riesgo');
+      $(this).toggle(v === '' || r === v);
+    });
+  });
+  $(".new_workplace").click(function(){
+    location.href = '/workplaceform';
+  });
+});
+</script>
+{% endblock %}

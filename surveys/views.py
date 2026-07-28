@@ -626,6 +626,19 @@ class WorkplaceView(LoginRequiredMixin,View):
 			evaluaciones_aplicadas = max(0, wk.evaluation - 1)
 			empleados_registrados = wk.employees.count()
 
+			employee_ids = list(wk.employees.values_list('id', flat=True))
+			if wk.survey_type() != 3:
+				survey_completed = RiskSurveyA.objects.filter(evaluation=eval_to_check, employee_id__in=employee_ids).count()
+			else:
+				survey_completed = RiskSurveyB.objects.filter(evaluation=eval_to_check, employee_id__in=employee_ids).count()
+			survey_completion_pct = ceil((survey_completed / wk.employee_num) * 100) if wk.employee_num else 0
+			if survey_completed == 0:
+				evaluacion_estado = 'sin_aplicar'
+			elif survey_completion_pct >= 100:
+				evaluacion_estado = 'concluida'
+			else:
+				evaluacion_estado = 'en_curso'
+
 			suma_cumplimiento += cumplimiento_pct
 			suma_evaluaciones += evaluaciones_aplicadas
 			suma_empleados_registrados += empleados_registrados
@@ -640,6 +653,8 @@ class WorkplaceView(LoginRequiredMixin,View):
 				"cumplimiento_pct": cumplimiento_pct,
 				"riesgo_nivel": nivel,
 				"riesgo_nivel_nombre": nivel_nombre,
+				"survey_completion_pct": survey_completion_pct,
+				"evaluacion_estado": evaluacion_estado,
 			})
 
 		total_centros = len(workplaces)
