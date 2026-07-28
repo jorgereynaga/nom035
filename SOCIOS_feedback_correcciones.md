@@ -302,6 +302,14 @@ No es un bug nuevo de código — es el mismo pendiente ya registrado desde el d
 
 **Decisión de Jorge:** en vez de cambiar el código, reconfiguró los 3 precios NOM-035 en el dashboard de Stripe como recurrentes anuales — confirmado funcionando tras el cambio. Se actualizó únicamente un comentario desactualizado en `stripe_plans.py` para reflejar la decisión real; sin cambio de lógica en `stripe_views.py`.
 
+## 12. Candidatos sin paginación ni buscador/filtro — funcionalidad nueva pendiente
+
+**Observación de Jorge (27 jul 2026):** en la vista "Candidatos" (`psico_candidatos.html`), con pocos candidatos registrados no se nota ningún problema, pero si una empresa maneja muchas evaluaciones, la lista quedaría interminable — no tiene paginación, buscador ni filtro.
+
+**Verificado en código:** `CandidateListView` (`surveys/psico_views.py`) hace `Candidate.objects.filter(user=request.user).order_by('-record_create')` sin ningún límite ni paginación, y el template correspondiente no incluye ningún mecanismo de búsqueda/filtro/paginación (a diferencia de, por ejemplo, la tabla de empleados en `workplace_detail.html`, que sí usa DataTables con paginación real).
+
+**Estado:** funcionalidad nueva, no es un bug — pendiente de especificación. Registrado para atacar en una próxima sesión.
+
 ## PENDIENTE: más observaciones por llegar (Jorge sigue enviando antes de armar el prompt final para Replit)
 
 Jorge las irá pasando conforme los socios se las compartan. Se agregan aquí mismo conforme lleguen, verificadas contra el código antes de anotarlas como "confirmado" o "por verificar".
