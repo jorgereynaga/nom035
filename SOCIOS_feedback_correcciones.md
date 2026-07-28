@@ -13,9 +13,13 @@ Se configuraron llaves reales de Stripe (modo test: `pk_test_`/`sk_test_`) y web
 - **Correo de bienvenida activado** (decisión de Jorge: ambos): al registrarse, ahora se envía correo de bienvenida al usuario nuevo Y notificación interna a `normaia.sistemas@gmail.com`. Se envuelve en try/except para no romper el registro si el correo falla.
 - **Hallazgo adicional en el camino:** los links de verificación de correo/recuperación de contraseña en `register-template.html` apuntaban al dominio viejo `035.ihes.mx` (la instalación obsoleta, no la real `normaia.ihes.mx`) — corregido, de lo contrario el correo de bienvenida y de recuperación hubieran mandado a los usuarios al servidor equivocado.
 
-### Pendiente menor encontrado (no bloqueante, para después): más referencias al dominio viejo `035.ihes.mx`
-- `surveys/templates/survey.html:289` — un redirect de JavaScript tras completar una encuesta, usa `https://035.ihes.mx/app/access/...` (formato de deep-link, posiblemente para una app móvil vieja) — revisar si sigue vigente o es código muerto.
-- `surveys/templates/tyc.html:172` — mención textual del dominio en los Términos y Condiciones ("...a través del portal ubicado en 035.ihes.mx...") — actualizar cuando se revisen los legales completos.
+### RESUELTO (28 jul 2026): más referencias al dominio viejo `035.ihes.mx`
+Se investigó primero si `035.ihes.mx` seguía vivo antes de tocar nada —
+sí resolvía y servía la app real, no era código muerto. Corregido a
+`normaia.ihes.mx` en `survey.html:289` (redirect entre pasos de la
+encuesta), `tyc.html:172` (texto legal), enlaces de WhatsApp y URLs de
+descarga de gráficas/PDF en `views.py`. Desplegado y verificado en
+producción.
 
 Documento vivo. Jorge va recopilando observaciones de los socios conforme se las hacen llegar y las pasa a Claude para irlas registrando aquí, verificadas contra el código real. No implica que ya estén implementadas — es el backlog crudo antes de convertir cada punto en una especificación formal (spec → Codex implementa → revisión → staging → merge), como el resto del proyecto.
 

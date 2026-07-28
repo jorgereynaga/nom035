@@ -2721,8 +2721,7 @@ endpoint real `POST /borrar_demo/`.
 1. Seguir recibiendo y registrando observaciones de los socios en
    `SOCIOS_feedback_correcciones.md`.
 2. Pendientes menores ya registrados en `SOCIOS_feedback_correcciones.md`
-   sin resolver: referencias al dominio viejo `035.ihes.mx` en
-   `survey.html:289` y `tyc.html:172`; logo viejo "NOM 035/IHES"
+   sin resolver: logo viejo "NOM 035/IHES"
    (`static/app-assets/images/pages/login_nom035.png`, usado en
    `valid_email.html`/`password_recover.html`) pendiente de reemplazar
    por un asset con la marca NormaIA; bug reportado en el prototipo de
@@ -2740,3 +2739,51 @@ endpoint real `POST /borrar_demo/`.
 7. Poppler (`pdftoppm`) sigue sin instalar -- Claude puede generar y
    editar PDFs/Word pero no renderizarlos a imagen para autoverificacion
    visual antes de entregarlos.
+
+## Dominio viejo 035.ihes.mx -> normaia.ihes.mx — COMPLETADO Y DESPLEGADO ✅ (28 jul 2026)
+Se investigo primero si `035.ihes.mx` seguia vivo (Jorge recordaba que ya
+no se usaba) -- se confirmo por navegador que SI segui resolviendo y
+sirviendo la app real, por lo que no era codigo muerto sino el dominio
+anterior a la migracion al VPS propio. Se actualizo a `normaia.ihes.mx`
+en: `survey.html:289` (redirect entre pasos del cuestionario), enlaces
+de WhatsApp (Firebase Dynamic Link) en `views.py`, URLs de descarga de
+graficas/PDF (dos bloques), y el texto de `tyc.html`. Se dejaron sin
+tocar las referencias en el bot de Facebook Messenger (confirmado
+inactivo por Jorge) y los defaults de `settings.py` (el valor real vive
+en el `.env` del VPS). Desplegado en VPS, verificado en
+`https://normaia.ihes.mx`.
+
+## Rediseno del Dashboard por Replit ("Signal Room") — PROBADO Y REVERTIDO (28 jul 2026)
+Jorge le dio a Replit acceso al repo publico y la ruta de `index.html`
+pidiendo una propuesta de diseno libre para el Dashboard, sin tocar
+datos. Antes de integrarlo se valido a fondo (diff de variables Django
+0 diferencias, render real 200 OK, prueba en navegador sin errores) y
+se desplego a produccion.
+
+**Hallazgo importante post-deploy:** `index.html` no es solo el
+Dashboard -- es la plantilla base (`{% extends 'index.html' %}`) que
+heredan otras ~19 vistas (Centros de Trabajo, Evidencias, Clima,
+Planes, Configuracion, etc.), asi que el cambio de sidebar/topbar se
+propago a todo el sitio, no solo al Dashboard. Esto no se detecto en la
+revision inicial (el archivo parecia autocontenido). Se reviso
+navegando por 6+ paginas heredadas -- todas renderizaban bien, sin
+errores de consola, pero **Jorge decidio revertir todo el rediseno**:
+le parecio muy simple comparado con el diseno anterior, no le gusto el
+resultado de Replit para este caso.
+
+Revert limpio via `git revert -m 1` del merge commit, confirmado
+`index.html` identico byte a byte al original pre-rediseno. Revertido
+en `auditoria-local` y `main`, desplegado en VPS, confirmado por Jorge
+que todo se ve bien de nuevo.
+
+**Leccion para la proxima vez que se pida diseno externo (Replit u
+otro):** verificar primero si el archivo objetivo es una plantilla base
+compartida (buscar `{% extends '<archivo>' %}` en todo el proyecto)
+antes de acotar el alcance del brief a "solo una vista".
+
+## PENDIENTE (para la proxima sesion) -- mockups de vistas hechos por Claude
+Jorge quiere retomar cambios de diseno en las vistas, pero esta vez
+**las propuestas las hace Claude directamente** (no Replit), en forma de
+mockup para revisar y aprobar antes de tocar el codigo real. Sin fecha
+ni vistas especificas definidas todavia -- confirmar con Jorge por donde
+empezar al iniciar esa sesion.
