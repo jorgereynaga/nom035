@@ -145,34 +145,6 @@
   </a>
 </div>
 
-<div class="kpi-row">
-  <div class="kpi-card">
-    <p class="kpi-label">Centros de trabajo</p>
-    <p class="kpi-value">{{ kpi_total_centros }}</p>
-  </div>
-  <div class="kpi-card">
-    <p class="kpi-label">Empleados totales</p>
-    <p class="kpi-value">{{ kpi_empleados_totales }}</p>
-  </div>
-  <div class="kpi-card">
-    <p class="kpi-label">Evaluaciones aplicadas</p>
-    <p class="kpi-value">{{ kpi_evaluaciones_totales }}</p>
-  </div>
-  <div class="kpi-card">
-    <p class="kpi-label">Cumplimiento documental</p>
-    <p class="kpi-value">{{ kpi_cumplimiento_promedio }}%</p>
-    <p class="kpi-sub">promedio de todos los centros</p>
-  </div>
-  <div class="kpi-card">
-    <p class="kpi-label">Riesgo predominante</p>
-    <p class="kpi-value">
-      {% if kpi_riesgo_predominante_nivel is not None %}<span class="kpi-badge-dot" data-nivel="{{ kpi_riesgo_predominante_nivel }}"></span>{% endif %}
-      {{ kpi_riesgo_predominante_nombre }}
-    </p>
-    <p class="kpi-sub">peor caso entre tus centros</p>
-  </div>
-</div>
-
 <div class="filter-bar">
   <input class="filter-input" type="text" id="wp-search" placeholder="Buscar centro de trabajo..." />
   <select class="filter-select" id="wp-filter-riesgo">
