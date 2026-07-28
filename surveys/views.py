@@ -155,6 +155,21 @@ class Index(LoginRequiredMixin,View):
 		for item in Workplace.objects.filter(user_id=self.request.user.id):
 			employees=item.employees.all()
 			eval_to_check = item.evaluation if item.paid else max(1, item.evaluation - 1)
+			from django.test import RequestFactory
+			factory = RequestFactory()
+			fake_req_riesgo = factory.get('/get_riesgo_general/', {'workplace_id': str(item.id), 'evaluation': str(eval_to_check)})
+			fake_req_riesgo.user = request.user
+			riesgo_data = json.loads(get_riesgo_general(fake_req_riesgo).content)
+			if riesgo_data.get('status') == 'ok':
+				riesgo_nivel = riesgo_data['riesgo_general']['nivel']
+				riesgo_nivel_nombre = riesgo_data['riesgo_general']['nivel_nombre']
+			else:
+				riesgo_nivel = None
+				riesgo_nivel_nombre = 'Sin datos'
+			fake_req_portafolio = factory.get('/get_portafolio_status/', {'workplace_id': str(item.id)})
+			fake_req_portafolio.user = request.user
+			portafolio_data = json.loads(get_portafolio_status(fake_req_portafolio).content)
+			cumplimiento_pct_item = portafolio_data.get('porcentaje_cumplimiento', 0)
 			print(employees.count())
 			print(list(employees.values_list('id',flat=True)))
 			if item.survey_type() != 3:
@@ -215,6 +230,11 @@ class Index(LoginRequiredMixin,View):
 			"eval_to_check":eval_to_check,
 			"dimensions_preview":dimensions_preview,
 			"climate_dimensions_preview":climate_dims,
+			"riesgo_nivel":riesgo_nivel,
+			"riesgo_nivel_nombre":riesgo_nivel_nombre,
+			"cumplimiento_pct":cumplimiento_pct_item,
+			"empleados_registrados":employees.count(),
+			"evaluaciones_aplicadas":max(0, item.evaluation - 1),
 			})
 		ctx={"workplaces":wk}
 		ctx['workplaces_available']=request.user.userapp.workplaces_available
@@ -234,6 +254,46 @@ class Index(LoginRequiredMixin,View):
 		ctx['tiene_datos_demo']=Workplace.objects.filter(user=request.user, es_demo=True).exists()
 		ctx['psico_demo']=getattr(userapp,'psico_demo',0)
 		ctx['nom035_disponibles']=getattr(userapp,'nom035_creditos',0) + getattr(userapp,'nom035_demo',0)
+		NIVEL_NOMBRE = {0:"Nulo",1:"Bajo",2:"Medio",3:"Alto",4:"Muy alto"}
+		total_centros = len(wk)
+		niveles_presentes = [w['riesgo_nivel'] for w in wk if w['riesgo_nivel'] is not None]
+		riesgo_predominante_nivel = max(niveles_presentes) if niveles_presentes else None
+		ctx['kpi_total_centros'] = total_centros
+		ctx['kpi_empleados_totales'] = sum(w['empleados_registrados'] for w in wk)
+		ctx['kpi_evaluaciones_totales'] = sum(w['evaluaciones_aplicadas'] for w in wk)
+		ctx['kpi_cumplimiento_promedio'] = round(sum(w['cumplimiento_pct'] for w in wk) / total_centros) if total_centros else 0
+		ctx['kpi_riesgo_predominante_nivel'] = riesgo_predominante_nivel
+		ctx['kpi_riesgo_predominante_nombre'] = NIVEL_NOMBRE[riesgo_predominante_nivel] if riesgo_predominante_nivel is not None else 'Sin datos'
+		centros_ordenados = sorted(wk, key=lambda w: w['riesgo_nivel'] if w['riesgo_nivel'] is not None else -1, reverse=True)
+		ctx['centros_atencion'] = [w for w in centros_ordenados if w['riesgo_nivel'] is not None][:3]
+		todas_las_dimensiones_clima = []
+		suma_climate_surveys = 0
+		suma_employee_num = 0
+		for w in wk:
+			todas_las_dimensiones_clima.extend(w['climate_dimensions_preview'])
+			suma_climate_surveys += w['climate_surveys_count']
+			suma_employee_num += w['employee_count']
+		if todas_las_dimensiones_clima:
+			promedio_general_clima = round(sum(d['prom'] for d in todas_las_dimensiones_clima) / len(todas_las_dimensiones_clima), 2)
+			peor_dimension = min(todas_las_dimensiones_clima, key=lambda d: d['prom'])
+		else:
+			promedio_general_clima = None
+			peor_dimension = None
+		ctx['clima_resumen'] = {
+			'promedio_general': promedio_general_clima,
+			'tasa_respuesta_pct': round((suma_climate_surveys / suma_employee_num) * 100) if suma_employee_num else 0,
+			'peor_dimension': peor_dimension,
+		}
+		hoy = timezone.now().date()
+		acciones_qs = PlanAccionItem.objects.filter(workplace__user=request.user).exclude(estado='completado').order_by('fecha_programada')[:5]
+		ctx['acciones_pendientes'] = [{
+			'id': a.id,
+			'tipo_accion': a.tipo_accion,
+			'workplace_nombre': a.workplace.name,
+			'responsable': a.responsable,
+			'fecha_programada': a.fecha_programada.strftime('%d/%m/%Y'),
+			'es_vencida': a.fecha_programada < hoy,
+		} for a in acciones_qs]
 		plan_key=getattr(userapp,'stripe_plan_key','')
 		if plan_key:
 			try:
