@@ -8,6 +8,8 @@ from django.views import View
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
 from django.http import JsonResponse
+from django.db.models import Q
+from django.core.paginator import Paginator
 from .models import Candidate, TestSession, PsychoInstrument, TestResponse, TestResult, PsychoItem, Workplace
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
@@ -19,16 +21,63 @@ p_ = logging.getLogger(__name__)
 class CandidateListView(LoginRequiredMixin, View):
     login_url = reverse_lazy('login')
 
+    PAGE_SIZE = 15
+
     def get(self, request):
-        candidates = Candidate.objects.filter(user=request.user).order_by('-record_create')
+        candidates_qs = Candidate.objects.filter(user=request.user).order_by('-record_create')
+        total_candidatos = candidates_qs.count()
+        paginator = Paginator(candidates_qs, self.PAGE_SIZE)
+        page_obj = paginator.get_page(1)
         instrumentos = PsychoInstrument.objects.filter(activo=True)
         ctx = {
-            'candidates': candidates,
+            'candidates': page_obj.object_list,
+            'total_candidatos': total_candidatos,
+            'total_paginas': paginator.num_pages,
             'instrumentos': instrumentos,
             'name': request.user.userapp.name,
             'workplaces': Workplace.objects.filter(user=request.user),
         }
         return render(request, 'psico_candidatos.html', ctx)
+
+
+def candidates_dt(request):
+    if not request.user.is_authenticated:
+        return JsonResponse({'error': 'not_authenticated'}, status=401)
+    search = request.GET.get('search', '').strip()
+    tipo = request.GET.get('tipo', '').strip()
+    try:
+        page = int(request.GET.get('page', 1))
+    except ValueError:
+        page = 1
+
+    candidates_qs = Candidate.objects.filter(user=request.user).order_by('-record_create')
+    if search:
+        candidates_qs = candidates_qs.filter(
+            Q(nombre__icontains=search) | Q(puesto__icontains=search) | Q(email__icontains=search)
+        )
+    if tipo in dict(Candidate.TIPOS):
+        candidates_qs = candidates_qs.filter(tipo=tipo)
+
+    total_candidatos = candidates_qs.count()
+    paginator = Paginator(candidates_qs, CandidateListView.PAGE_SIZE)
+    page_obj = paginator.get_page(page)
+    data = [{
+        'id': c.id,
+        'nombre': c.nombre,
+        'inicial': c.nombre[:1].upper() if c.nombre else '?',
+        'puesto': c.puesto or 'Sin puesto asignado',
+        'tipo': c.tipo,
+        'tipo_display': c.get_tipo_display(),
+        'sessions_count': c.sessions.count(),
+    } for c in page_obj.object_list]
+    return JsonResponse({
+        'candidates': data,
+        'total_candidatos': total_candidatos,
+        'page': page_obj.number,
+        'total_paginas': paginator.num_pages,
+        'has_previous': page_obj.has_previous(),
+        'has_next': page_obj.has_next(),
+    })
 
 
 class CandidateCreateView(LoginRequiredMixin, View):

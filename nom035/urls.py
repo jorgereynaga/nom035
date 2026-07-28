@@ -25,7 +25,7 @@ from surveys.psico_views import (
     CandidateListView, CandidateCreateView, CandidateDetailView,
     AssignTestView, TestSessionView, TestCompleteView, TestResultView,
     GenerarPerfilNarrativoView, ReporteUnificadoView,
-    InstrumentosCatalogoView,
+    InstrumentosCatalogoView, candidates_dt,
 )
 from surveys.dashboard_views import DashboardMetricasView, ClientesListView
 
@@ -125,6 +125,7 @@ urlpatterns = [
     path('payments/cancel/', PaymentCancelView.as_view(), name='payment_cancel'),
     # Psicometría
     path('psico/candidatos/', CandidateListView.as_view(), name='candidatos'),
+    path('psico/candidatos_dt/', candidates_dt, name='candidatos_dt'),
     path('psico/candidatos/nuevo/', CandidateCreateView.as_view(), name='candidato_nuevo'),
     path('psico/candidatos/<int:candidate_id>/', CandidateDetailView.as_view(), name='candidato_detalle'),
     path('psico/instrumentos/', InstrumentosCatalogoView.as_view(), name='instrumentos_catalogo'),
