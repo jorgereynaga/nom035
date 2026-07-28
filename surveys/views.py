@@ -585,7 +585,19 @@ class LandingView(View):
     def get(self, request):
         if request.user.is_authenticated:
             return redirect('index')
-        return render(request, 'landing.html')		
+        return render(request, 'landing.html')
+class LandingNom035View(View):
+	def get(self, request, *args, **kwargs):
+		return render(request, 'landing_nom035.html')
+class LandingPsicometriaView(View):
+	def get(self, request, *args, **kwargs):
+		return render(request, 'landing_psicometria.html')
+class LandingClimaView(View):
+	def get(self, request, *args, **kwargs):
+		return render(request, 'landing_clima.html')
+class LandingContactoView(View):
+	def get(self, request, *args, **kwargs):
+		return render(request, 'landing_contacto.html')
 class NewUserView(View):
 	def get(self, request, *args, **kwargs):
 		return render(request, 'auth-register.html', {'recaptcha_site_key': settings.RECAPTCHA_SITE_KEY})
@@ -1798,11 +1810,12 @@ def get_departments(request):
 	data=[{'id':wk,"text":wk} for wk in emp_list]
 	return JsonResponse({'results':[{'id':'', "text":''},*data]})
 
+@csrf_exempt
 def contact(request):
-	cname=request.GET.get('cname','')
-	phone=request.GET.get('phone','')
-	email=request.GET.get('email','')
-	name=request.GET.get('name','')
+	cname=request.POST.get('cname','')
+	phone=request.POST.get('phone','')
+	email=request.POST.get('email','')
+	name=request.POST.get('name','')
 	if email =='' and name =='':
 		return JsonResponse({'status':'error'},status=400),
 	if phone =='' and cname =='':

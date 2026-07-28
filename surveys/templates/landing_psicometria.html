@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NormaIA | NOM-035 y psicometría empresarial en una sola plataforma</title>
-  <meta name="description" content="Gestiona la NOM-035, aplica evaluaciones psicométricas, genera reportes y organiza evidencias desde una plataforma diseñada para empresas mexicanas. Explora una demostración gratuita." />
+  <title>NormaIA | Psicometría empresarial y perfil narrativo con IA</title>
+  <meta name="description" content="Evalua candidatos con 6 instrumentos psicometricos y un perfil narrativo asistido por IA que explica los resultados en lenguaje claro." />
   <!-- Open Graph -->
   <meta property="og:type" content="website" />
-  <meta property="og:title" content="NormaIA | NOM-035 y psicometría empresarial en una sola plataforma" />
-  <meta property="og:description" content="Gestiona la NOM-035, aplica evaluaciones psicométricas, genera reportes y organiza evidencias desde una plataforma diseñada para empresas mexicanas." />
+  <meta property="og:title" content="NormaIA | Psicometría empresarial y perfil narrativo con IA" />
+  <meta property="og:description" content="Evalua candidatos con 6 instrumentos psicometricos y un perfil narrativo asistido por IA que explica los resultados en lenguaje claro." />
   <meta property="og:locale" content="es_MX" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -438,17 +438,17 @@
 </head>
 <body>
 
-<!-- ── 1. Navbar ──────────────────────────────────────────────────── -->
+<!-- ── Navbar ─────────────────────────────────────────────────────── -->
 <header class="navbar" id="navbar">
   <div class="container nav-inner">
-    <a href="#" class="logo">
+    <a href="{% url 'landing' %}" class="logo">
       <div class="logo-icon">
         <svg width="18" height="18" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
       </div>
       Norma<span class="logo-ia">IA</span>
     </a>
     <nav class="nav-links" aria-label="Menú principal">
-      <a href="#inicio">Inicio</a>
+      <a href="{% url 'landing' %}">Inicio</a>
       <a href="{% url 'landing_nom035' %}">NOM-035</a>
       <a href="{% url 'landing_psicometria' %}">Psicometría</a>
       <a href="{% url 'landing_clima' %}">Clima laboral</a>
@@ -467,7 +467,7 @@
 
 <!-- ── Mobile nav ─────────────────────────────────────────────────── -->
 <div class="mobile-nav" id="mobileNav" aria-hidden="true">
-  <a href="#inicio"        onclick="closeMobileNav()">Inicio</a>
+  <a href="{% url 'landing' %}"               onclick="closeMobileNav()">Inicio</a>
   <a href="{% url 'landing_nom035' %}"        onclick="closeMobileNav()">NOM-035</a>
   <a href="{% url 'landing_psicometria' %}"   onclick="closeMobileNav()">Psicometría</a>
   <a href="{% url 'landing_clima' %}"         onclick="closeMobileNav()">Clima laboral</a>
@@ -478,480 +478,152 @@
   </div>
 </div>
 
-<!-- ── 2. Hero ────────────────────────────────────────────────────── -->
-<section class="hero" id="inicio">
-  <div class="container hero-inner">
-    <div class="hero-text">
-      <div class="hero-badge">Plataforma mexicana para Recursos Humanos</div>
-      <h1 class="hero-h1 font-display">NOM-035 y psicometría empresarial en una sola plataforma</h1>
-      <p class="hero-sub">Aplica cuestionarios, consulta resultados, genera documentación, organiza evidencias y evalúa candidatos desde un solo panel diseñado para empresas mexicanas.</p>
-      <div class="hero-ctas">
-        <a href="/newuser/" class="btn btn-primary" onclick="trackEvent('cta_click',{label:'hero_principal'});trackEvent('inicio_registro',{})">
-          Explorar la plataforma gratis
-          <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-        </a>
-        <a href="#soluciones" class="btn btn-outline">Ver cómo funciona</a>
-      </div>
-      <p class="hero-note">Crea una cuenta y explora la plataforma con datos de demostración. No necesitas contratar para conocer sus funciones y reportes.</p>
-    </div>
-    <div class="hero-visual">
-      <div class="hero-glow"></div>
-      <div class="hero-mockup">
-        <div class="mockup-bar">
-          <div class="mockup-dots">
-            <div class="mockup-dot mockup-dot-r"></div>
-            <div class="mockup-dot mockup-dot-y"></div>
-            <div class="mockup-dot mockup-dot-g"></div>
-          </div>
-          <div class="mockup-url">normaia.com/dashboard</div>
-        </div>
-        <div class="mockup-body">
-          <div class="mock-heading">Resumen del proceso NOM-035</div>
-          <div class="mock-stats-row">
-            <div class="mock-stat">
-              <div class="mock-stat-val">87%</div>
-              <div class="mock-stat-lbl">Participación del personal</div>
-            </div>
-            <div class="mock-stat">
-              <div class="mock-stat-val">142</div>
-              <div class="mock-stat-lbl">Cuestionarios enviados</div>
-            </div>
-            <div class="mock-stat">
-              <div class="mock-stat-val">8</div>
-              <div class="mock-stat-lbl">Documentos generados</div>
-            </div>
-          </div>
-          <div class="mock-progress-block">
-            <div class="mock-prog-label"><span>Progreso de aplicación</span><span>87 / 100</span></div>
-            <div class="mock-bar"><div class="mock-bar-fill" style="width:87%"></div></div>
-          </div>
-          <div class="mock-area-grid">
-            <div class="mock-area mock-risk-low">
-              <div class="mock-area-name">Ventas</div>
-              <div class="mock-area-val">Riesgo bajo</div>
-            </div>
-            <div class="mock-area mock-risk-med">
-              <div class="mock-area-name">Operaciones</div>
-              <div class="mock-area-val">Riesgo medio</div>
-            </div>
-            <div class="mock-area mock-risk-low">
-              <div class="mock-area-name">Administración</div>
-              <div class="mock-area-val">Riesgo bajo</div>
-            </div>
-            <div class="mock-area mock-risk-low">
-              <div class="mock-area-name">Logística</div>
-              <div class="mock-area-val">Riesgo bajo</div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="hero-float-card">
-        <div class="float-title">Tu proceso, organizado en un solo panel</div>
-        <div class="float-item"><div class="float-dot"></div> Cuestionarios enviados</div>
-        <div class="float-item"><div class="float-dot"></div> Participación del personal</div>
-        <div class="float-item"><div class="float-dot"></div> Resultados por área</div>
-        <div class="float-item"><div class="float-dot"></div> Documentos generados</div>
-        <div class="float-item"><div class="float-dot"></div> Evidencias pendientes</div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ── 3. Trust strip ─────────────────────────────────────────────── -->
-<section class="trust-strip" aria-label="Características principales">
-  <div class="container">
-    <div class="trust-inner">
-      <p class="trust-label">Diseñada para las necesidades de las empresas mexicanas</p>
-      <div class="trust-pill">
-        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
-        Guías I, II y III de la STPS
-      </div>
-      <div class="trust-pill">
-        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18"/></svg>
-        Desde celular o computadora
-      </div>
-      <div class="trust-pill">
-        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-        Reportes descargables en PDF
-      </div>
-      <div class="trust-pill">
-        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
-        Gestión multiempresa y multicentro
-      </div>
-      <div class="trust-pill">
-        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12" y2="17"/></svg>
-        Perfiles narrativos con IA
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ── 4. Soluciones (resumen, con enlace a cada página dedicada) ──── -->
-<section class="solutions" id="soluciones">
+<!-- ── Psicometría ────────────────────────────────────────────────── -->
+<section class="psico-section" id="psicometria">
   <div class="container">
     <div class="section-header">
-      <h2 class="section-title font-display">Dos necesidades de Recursos Humanos.<br>Una sola plataforma.</h2>
-      <p class="section-sub">Elige el módulo que necesitas — cada uno tiene su propia página con el detalle completo.</p>
+      <div class="section-tag">Psicometría</div>
+      <h1 class="section-title font-display">Evalúa más que un currículum</h1>
+      <p class="section-sub" style="margin:0 auto 24px">Complementa entrevistas y referencias con evaluaciones que ayudan a conocer personalidad, aptitudes, valores, liderazgo y competencias laborales.</p>
+      <a href="/newuser/" class="btn btn-primary" onclick="trackEvent('cta_click',{label:'psico_explorar'})">Explorar evaluaciones de ejemplo →</a>
     </div>
-    <div class="solutions-grid">
-      <div class="sol-card fade-up">
-        <div class="sol-icon">
-          <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+
+    <div class="psico-instruments" style="max-width:760px;margin:0 auto 56px">
+      <div class="psico-inst fade-up">
+        <div class="psico-inst-num">1</div>
+        <div>
+          <div class="psico-inst-name">DISC</div>
+          <div class="psico-inst-desc">Personalidad y estilo de comportamiento en el entorno laboral</div>
+          <div style="font-size:.75rem;color:var(--primary);margin-top:5px;font-style:italic">Basado en la teoría de William Moulton Marston</div>
         </div>
-        <div class="sol-title">NOM-035</div>
-        <p class="sol-desc">Digitaliza la aplicación de cuestionarios, calcula resultados automáticamente y mantén organizada la documentación de cada centro de trabajo — sin hojas de cálculo.</p>
-        <ul class="sol-benefits">
-          <li class="sol-benefit"><svg class="sol-check" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Aplicación digital de las guías I, II y III</li>
-          <li class="sol-benefit"><svg class="sol-check" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Cálculo automático de niveles de riesgo</li>
-          <li class="sol-benefit"><svg class="sol-check" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Portafolio centralizado de evidencias</li>
-        </ul>
-        <a href="{% url 'landing_nom035' %}" class="btn btn-outline btn-sm sol-cta" onclick="trackEvent('seleccion_modulo',{modulo:'nom035'})">Conocer módulo NOM-035 →</a>
       </div>
-      <div class="sol-card fade-up">
-        <div class="sol-icon">
-          <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      <div class="psico-inst fade-up">
+        <div class="psico-inst-num">2</div>
+        <div>
+          <div class="psico-inst-name">Raven</div>
+          <div class="psico-inst-desc">Aptitud intelectual no verbal y razonamiento abstracto</div>
+          <div style="font-size:.75rem;color:var(--primary);margin-top:5px;font-style:italic">Basado en las Matrices Progresivas de Raven</div>
         </div>
-        <div class="sol-title">Psicometría</div>
-        <p class="sol-desc">Evalúa candidatos con más información que una entrevista, con 6 instrumentos y un perfil narrativo asistido por IA que explica los resultados en lenguaje claro.</p>
-        <ul class="sol-benefits">
-          <li class="sol-benefit"><svg class="sol-check" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Evaluaciones en línea, sin instalación</li>
-          <li class="sol-benefit"><svg class="sol-check" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Resultados automáticos al concluir</li>
-          <li class="sol-benefit"><svg class="sol-check" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Perfil narrativo asistido por IA</li>
-        </ul>
-        <a href="{% url 'landing_psicometria' %}" class="btn btn-outline btn-sm sol-cta" onclick="trackEvent('seleccion_modulo',{modulo:'psicometria'})">Conocer psicometría →</a>
+      </div>
+      <div class="psico-inst fade-up">
+        <div class="psico-inst-num">3</div>
+        <div>
+          <div class="psico-inst-name">Moss</div>
+          <div class="psico-inst-desc">Habilidades de supervisión y liderazgo en contexto organizacional</div>
+          <div style="font-size:.75rem;color:var(--primary);margin-top:5px;font-style:italic">Basado en el Moss Aptitude Test</div>
+        </div>
+      </div>
+      <div class="psico-inst fade-up">
+        <div class="psico-inst-num">4</div>
+        <div>
+          <div class="psico-inst-name">Zavic</div>
+          <div class="psico-inst-desc">Valores personales, motivaciones e integridad</div>
+          <div style="font-size:.75rem;color:var(--primary);margin-top:5px;font-style:italic">Implementación digital de un instrumento ampliamente utilizado en procesos de selección de personal en Latinoamérica, con dimensiones Moral, Legalidad, Indiferencia y Corrupción</div>
+        </div>
+      </div>
+      <div class="psico-inst fade-up">
+        <div class="psico-inst-num">5</div>
+        <div>
+          <div class="psico-inst-name">Competencias Laborales</div>
+          <div class="psico-inst-desc">Evaluación de competencias clave para el desempeño en el puesto</div>
+          <div style="font-size:.75rem;color:var(--primary);margin-top:5px;font-style:italic">Construido por NormaIA con base en literatura de Spencer &amp; Spencer y SHRM</div>
+        </div>
+      </div>
+      <div class="psico-inst fade-up">
+        <div class="psico-inst-num">6</div>
+        <div>
+          <div class="psico-inst-name">Perfil Comercial y Servicio al Cliente</div>
+          <div class="psico-inst-desc">Orientación hacia el cliente, venta y atención en el trabajo</div>
+          <div style="font-size:.75rem;color:var(--primary);margin-top:5px;font-style:italic">Dimensiones evaluadas: ventas consultivas, orientación al cliente, negociación y resiliencia comercial</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container-narrow" style="margin-bottom:56px">
+      <p class="section-sub" style="text-align:center;margin:0 auto 20px">Las evaluaciones fueron diseñadas siguiendo criterios técnicos de consistencia estructural, interpretación objetiva y estandarización de resultados. Cada instrumento fue desarrollado mediante:</p>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-bottom:28px">
+        <span class="trust-pill">Definición de dimensiones</span>
+        <span class="trust-pill">Definición operacional</span>
+        <span class="trust-pill">Banco inicial de reactivos</span>
+        <span class="trust-pill">Revisión de expertos</span>
+        <span class="trust-pill">Depuración</span>
+        <span class="trust-pill">Pruebas piloto</span>
+        <span class="trust-pill">Análisis estadístico</span>
+        <span class="trust-pill">Calibración de resultados</span>
+      </div>
+      <div class="nom-legal">
+        <strong>Nota técnica:</strong> cada instrumento fue desarrollado bajo criterios técnicos de construcción psicométrica y está sujeto a un programa continuo de validación estadística mediante evidencia acumulada de uso organizacional.
       </div>
     </div>
   </div>
 </section>
 
-<!-- ── 15. Planes ─────────────────────────────────────────────────── -->
-<section class="pricing-section" id="planes">
-  <div class="container">
-    <div class="section-header">
-      <h2 class="section-title font-display">Elige la solución que necesita tu empresa</h2>
-      <p class="section-sub">Contrata un módulo por separado o integra cumplimiento normativo y evaluación de talento. Sin costos ocultos.</p>
-    </div>
-
-    <div class="eval-explainer">
-      <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12" y2="16"/></svg>
-      <span><strong>¿Qué es una evaluación?</strong> Una evaluación equivale a un cuestionario o prueba completado por una persona — un empleado en el caso de NOM-035, o un candidato/empleado en el caso de psicometría. Las evaluaciones son compartidas entre todos los centros de trabajo de la cuenta.</span>
-    </div>
-
-    <div class="tabs-nav">
-      <div class="tabs-list">
-        <button class="tab-btn active" onclick="switchTab('nom', this);trackEvent('seleccion_modulo',{modulo:'nom035'})">NOM-035</button>
-        <button class="tab-btn" onclick="switchTab('psico', this);trackEvent('seleccion_modulo',{modulo:'psicometria'})">Psicometría</button>
-        <button class="tab-btn" onclick="switchTab('suite', this);trackEvent('seleccion_modulo',{modulo:'suite'})">Suite Empresarial</button>
-      </div>
-    </div>
-
-    <!-- NOM-035 -->
-    <div class="tab-panel active" id="tab-nom">
-      <div class="plans-grid">
-        <div class="plan-card fade-up">
-          <div class="plan-name">PyME</div>
-          <div class="plan-desc">Para pequeñas y medianas empresas que inician con la NOM-035.</div>
-          <div class="plan-price">
-            <span class="currency">$</span><span class="amount">1,190</span><span class="period"> MXN</span>
-            <span class="validity">Pago único · vigencia 1 año</span>
-          </div>
-          <ul class="plan-features">
-            <li class="plan-feature"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> 50 evaluaciones NOM-035</li>
-            <li class="plan-feature"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Guías I, II y III de la STPS</li>
-            <li class="plan-feature"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Reportes automatizados en PDF</li>
-            <li class="plan-feature"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Portafolio de evidencias</li>
-            <li class="plan-feature"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Encuesta de clima laboral incluida</li>
-            <li class="plan-feature"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Centros de trabajo ilimitados</li>
-          </ul>
-          <a href="/newuser/" class="plan-cta plan-cta-secondary" onclick="trackEvent('seleccion_plan',{plan:'nom_pyme'})">Elegir este plan</a>
+<section class="ai-section">
+  <div class="container ai-inner">
+    <div>
+      <div class="ai-mockup">
+        <div class="ai-mockup-header">
+          <div class="ai-mockup-candidate">Candidato: Ejemplo (datos ficticios)</div>
+          <div class="ai-mockup-sub">Evaluaciones aplicadas: DISC · Raven · Zavic</div>
         </div>
-        <div class="plan-card popular fade-up">
-          <div class="plan-badge plan-badge-pop">Más popular</div>
-          <div class="plan-name">Empresarial</div>
-          <div class="plan-desc">Para empresas con mayor volumen de personal.</div>
-          <div class="plan-price">
-            <span class="currency">$</span><span class="amount">2,400</span><span class="period"> MXN</span>
-            <span class="validity">Pago único · vigencia 1 año</span>
+        <div class="ai-mockup-body">
+          <div class="ai-block">
+            <div class="ai-block-label">Resumen del perfil</div>
+            <div class="ai-block-text">Persona orientada a resultados con capacidad analítica destacada y estilo de comunicación directo. Muestra disposición a asumir responsabilidades y tomar iniciativa en entornos estructurados.</div>
           </div>
-          <ul class="plan-features">
-            <li class="plan-feature"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> 100 evaluaciones NOM-035</li>
-            <li class="plan-feature"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Guías I, II y III de la STPS</li>
-            <li class="plan-feature"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Reportes automatizados en PDF</li>
-            <li class="plan-feature"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Portafolio de evidencias</li>
-            <li class="plan-feature"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Encuesta de clima laboral incluida</li>
-            <li class="plan-feature"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Centros de trabajo ilimitados</li>
-          </ul>
-          <a href="/newuser/" class="plan-cta plan-cta-primary" onclick="trackEvent('seleccion_plan',{plan:'nom_empresarial'})">Elegir este plan</a>
-        </div>
-        <div class="plan-card fade-up">
-          <div class="plan-name">Ilimitado</div>
-          <div class="plan-desc">Sin límite de evaluaciones NOM-035 para todo el año.</div>
-          <div class="plan-price">
-            <span class="currency">$</span><span class="amount">12,000</span><span class="period"> MXN</span>
-            <span class="validity">Pago único · vigencia 1 año</span>
+          <div class="ai-block">
+            <div class="ai-block-label">Principales fortalezas</div>
+            <div class="ai-block-tags">
+              <span class="ai-tag">Orientación a resultados</span>
+              <span class="ai-tag">Pensamiento analítico</span>
+              <span class="ai-tag">Toma de iniciativa</span>
+              <span class="ai-tag">Comunicación directa</span>
+            </div>
           </div>
-          <ul class="plan-features">
-            <li class="plan-feature"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Evaluaciones NOM-035 ilimitadas</li>
-            <li class="plan-feature"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Guías I, II y III de la STPS</li>
-            <li class="plan-feature"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Reportes automatizados en PDF</li>
-            <li class="plan-feature"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Portafolio de evidencias</li>
-            <li class="plan-feature"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Encuesta de clima laboral incluida</li>
-            <li class="plan-feature"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Centros de trabajo ilimitados</li>
-          </ul>
-          <a href="/newuser/" class="plan-cta plan-cta-secondary" onclick="trackEvent('seleccion_plan',{plan:'nom_ilimitado'})">Elegir este plan</a>
+          <div class="ai-block">
+            <div class="ai-block-label">Áreas de desarrollo</div>
+            <div class="ai-block-text">Puede beneficiarse de desarrollar mayor flexibilidad ante cambios no planificados y habilidades de escucha activa en entornos colaborativos.</div>
+          </div>
+          <div class="ai-block">
+            <div class="ai-block-label">Consideraciones del puesto</div>
+            <div class="ai-block-text">Se adapta bien a posiciones que requieran autonomía, metas claras y rendición de cuentas. Considerar roles de coordinación con acompañamiento inicial.</div>
+          </div>
         </div>
       </div>
     </div>
-
-    <!-- Psicometría -->
-    <div class="tab-panel" id="tab-psico">
-      <div class="plans-grid">
-        <div class="plan-card fade-up">
-          <div class="plan-name">Starter</div>
-          <div class="plan-desc">Para equipos que inician con evaluación psicométrica.</div>
-          <div class="plan-price">
-            <span class="currency">$</span><span class="amount">390</span><span class="period"> MXN/mes</span>
-          </div>
-          <ul class="plan-features">
-            <li class="plan-feature"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> 20 evaluaciones psicométricas por mes</li>
-            <li class="plan-feature"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Evaluaciones se renuevan cada mes</li>
-            <li class="plan-feature"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> 6 instrumentos disponibles</li>
-            <li class="plan-feature"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Perfil narrativo con IA</li>
-            <li class="plan-feature"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Centros de trabajo ilimitados</li>
-            <li class="plan-feature dim"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Clima laboral no incluido</li>
-          </ul>
-          <a href="/newuser/" class="plan-cta plan-cta-secondary" onclick="trackEvent('seleccion_plan',{plan:'psico_starter'})">Elegir este plan</a>
-        </div>
-        <div class="plan-card popular fade-up">
-          <div class="plan-badge plan-badge-pop">Más popular</div>
-          <div class="plan-name">Ilimitado Mensual</div>
-          <div class="plan-desc">Para equipos con volumen constante de reclutamiento.</div>
-          <div class="plan-price">
-            <span class="currency">$</span><span class="amount">1,500</span><span class="period"> MXN/mes</span>
-          </div>
-          <ul class="plan-features">
-            <li class="plan-feature"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Evaluaciones psicométricas ilimitadas</li>
-            <li class="plan-feature"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Pago mensual, sin compromiso anual</li>
-            <li class="plan-feature"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> 6 instrumentos disponibles</li>
-            <li class="plan-feature"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Perfil narrativo con IA</li>
-            <li class="plan-feature"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Centros de trabajo ilimitados</li>
-            <li class="plan-feature dim"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Clima laboral no incluido</li>
-          </ul>
-          <a href="/newuser/" class="plan-cta plan-cta-primary" onclick="trackEvent('seleccion_plan',{plan:'psico_ilimitado_mensual'})">Elegir este plan</a>
-        </div>
-        <div class="plan-card fade-up">
-          <div class="plan-badge plan-badge-save">Ahorra — menos de $1,050/mes</div>
-          <div class="plan-name">Ilimitado Anual</div>
-          <div class="plan-desc">Evaluaciones psicométricas ilimitadas, pago anual.</div>
-          <div class="plan-price">
-            <span class="currency">$</span><span class="amount">12,500</span><span class="period"> MXN/año</span>
-          </div>
-          <ul class="plan-features">
-            <li class="plan-feature"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Evaluaciones psicométricas ilimitadas</li>
-            <li class="plan-feature"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Pago anual, máximo ahorro</li>
-            <li class="plan-feature"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> 6 instrumentos disponibles</li>
-            <li class="plan-feature"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Perfil narrativo con IA</li>
-            <li class="plan-feature"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Centros de trabajo ilimitados</li>
-            <li class="plan-feature dim"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Clima laboral no incluido</li>
-          </ul>
-          <a href="/newuser/" class="plan-cta plan-cta-secondary" onclick="trackEvent('seleccion_plan',{plan:'psico_ilimitado_anual'})">Elegir este plan</a>
-        </div>
-      </div>
-    </div>
-
-    <!-- Suite Empresarial -->
-    <div class="tab-panel" id="tab-suite">
-      <div class="plans-grid">
-        <div class="plan-card fade-up">
-          <div class="combo-tag">NOM-035 + Psicometría</div>
-          <div class="plan-name">Suite Pro 50</div>
-          <div class="plan-desc">50 evaluaciones NOM-035 + psicometría ilimitada.</div>
-          <div class="plan-price">
-            <span class="currency">$</span><span class="amount">13,000</span><span class="period"> MXN/año</span>
-            <span class="validity">Pago único · vigencia 1 año</span>
-          </div>
-          <ul class="plan-features">
-            <li class="plan-feature"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> 50 evaluaciones NOM-035</li>
-            <li class="plan-feature"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Evaluaciones psicométricas ilimitadas</li>
-            <li class="plan-feature"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Guías I, II y III de la STPS</li>
-            <li class="plan-feature"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Reportes en PDF automáticos</li>
-            <li class="plan-feature"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Portafolio de evidencias</li>
-            <li class="plan-feature"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Encuesta de clima laboral incluida</li>
-            <li class="plan-feature"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Perfil narrativo con IA</li>
-            <li class="plan-feature"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Centros de trabajo ilimitados</li>
-          </ul>
-          <a href="/newuser/" class="plan-cta plan-cta-secondary" onclick="trackEvent('seleccion_plan',{plan:'suite_50'})">Elegir este plan</a>
-        </div>
-        <div class="plan-card popular fade-up">
-          <div class="plan-badge plan-badge-pop">Más popular</div>
-          <div class="combo-tag" style="margin-top:8px">NOM-035 + Psicometría</div>
-          <div class="plan-name">Suite Pro 100</div>
-          <div class="plan-desc">100 evaluaciones NOM-035 + psicometría ilimitada.</div>
-          <div class="plan-price">
-            <span class="currency">$</span><span class="amount">13,800</span><span class="period"> MXN/año</span>
-            <span class="validity">Pago único · vigencia 1 año</span>
-          </div>
-          <ul class="plan-features">
-            <li class="plan-feature"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> 100 evaluaciones NOM-035</li>
-            <li class="plan-feature"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Evaluaciones psicométricas ilimitadas</li>
-            <li class="plan-feature"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Guías I, II y III de la STPS</li>
-            <li class="plan-feature"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Reportes en PDF automáticos</li>
-            <li class="plan-feature"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Portafolio de evidencias</li>
-            <li class="plan-feature"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Encuesta de clima laboral incluida</li>
-            <li class="plan-feature"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Perfil narrativo con IA</li>
-            <li class="plan-feature"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Centros de trabajo ilimitados</li>
-          </ul>
-          <a href="/newuser/" class="plan-cta plan-cta-primary" onclick="trackEvent('seleccion_plan',{plan:'suite_100'})">Elegir este plan</a>
-        </div>
-        <div class="plan-card fade-up">
-          <div class="combo-tag">NOM-035 + Psicometría</div>
-          <div class="plan-name">Suite Pro Ilimitado</div>
-          <div class="plan-desc">NOM-035 ilimitado + psicometría ilimitada.</div>
-          <div class="plan-price">
-            <span class="currency">$</span><span class="amount">16,000</span><span class="period"> MXN/año</span>
-            <span class="validity">Pago único · vigencia 1 año</span>
-          </div>
-          <ul class="plan-features">
-            <li class="plan-feature"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Evaluaciones NOM-035 ilimitadas</li>
-            <li class="plan-feature"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Evaluaciones psicométricas ilimitadas</li>
-            <li class="plan-feature"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Guías I, II y III de la STPS</li>
-            <li class="plan-feature"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Reportes en PDF automáticos</li>
-            <li class="plan-feature"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Portafolio de evidencias</li>
-            <li class="plan-feature"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Encuesta de clima laboral incluida</li>
-            <li class="plan-feature"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Perfil narrativo con IA</li>
-            <li class="plan-feature"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Centros de trabajo ilimitados</li>
-          </ul>
-          <a href="/newuser/" class="plan-cta plan-cta-secondary" onclick="trackEvent('seleccion_plan',{plan:'suite_ilimitado'})">Elegir este plan</a>
-        </div>
+    <div>
+      <div class="section-tag">Perfil narrativo con IA</div>
+      <h2 class="section-title font-display">Resultados psicométricos explicados con claridad</h2>
+      <p class="section-sub" style="margin-bottom:20px">El perfil narrativo asistido por IA convierte los resultados de las evaluaciones en una explicación comprensible de fortalezas, tendencias conductuales y áreas de desarrollo.</p>
+      <p class="section-sub" style="margin-bottom:24px">Presentado en lenguaje claro para apoyar el análisis del equipo de Recursos Humanos, sin necesidad de interpretar tablas de puntajes crudos.</p>
+      <ul style="display:flex;flex-direction:column;gap:10px;margin-bottom:24px">
+        <li style="display:flex;gap:10px;font-size:.9rem;color:var(--fg)"><svg width="16" height="16" fill="none" stroke="var(--primary)" stroke-width="2.5" viewBox="0 0 24 24" style="flex-shrink:0;margin-top:2px"><polyline points="20 6 9 17 4 12"/></svg> Resumen del perfil del candidato</li>
+        <li style="display:flex;gap:10px;font-size:.9rem;color:var(--fg)"><svg width="16" height="16" fill="none" stroke="var(--primary)" stroke-width="2.5" viewBox="0 0 24 24" style="flex-shrink:0;margin-top:2px"><polyline points="20 6 9 17 4 12"/></svg> Principales fortalezas identificadas</li>
+        <li style="display:flex;gap:10px;font-size:.9rem;color:var(--fg)"><svg width="16" height="16" fill="none" stroke="var(--primary)" stroke-width="2.5" viewBox="0 0 24 24" style="flex-shrink:0;margin-top:2px"><polyline points="20 6 9 17 4 12"/></svg> Áreas de desarrollo sugeridas</li>
+        <li style="display:flex;gap:10px;font-size:.9rem;color:var(--fg)"><svg width="16" height="16" fill="none" stroke="var(--primary)" stroke-width="2.5" viewBox="0 0 24 24" style="flex-shrink:0;margin-top:2px"><polyline points="20 6 9 17 4 12"/></svg> Tendencias de comportamiento</li>
+        <li style="display:flex;gap:10px;font-size:.9rem;color:var(--fg)"><svg width="16" height="16" fill="none" stroke="var(--primary)" stroke-width="2.5" viewBox="0 0 24 24" style="flex-shrink:0;margin-top:2px"><polyline points="20 6 9 17 4 12"/></svg> Consideraciones para el puesto</li>
+      </ul>
+      <div class="ai-disclaimer">
+        <strong>Aviso importante:</strong> El perfil narrativo es una herramienta de apoyo. No sustituye la valoración profesional ni determina por sí solo la contratación, promoción o rechazo de una persona.
       </div>
     </div>
   </div>
 </section>
 
-<!-- ── 17. Seguridad ──────────────────────────────────────────────── -->
-<section class="security-section">
-  <div class="container-narrow">
-    <div class="section-header">
-      <div class="section-tag">Seguridad y privacidad</div>
-      <h2 class="section-title font-display">Información empresarial tratada con responsabilidad</h2>
-      <p class="section-sub">NormaIA procesa información relacionada con empresas, trabajadores y candidatos. Por ello, la plataforma aplica medidas de seguridad y controles de acceso para proteger la información.</p>
-    </div>
-    <div class="security-items">
-      <div class="sec-item"><div class="sec-icon"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div><div><strong>Cifrado de conexión HTTPS</strong><p>Toda la comunicación entre tu navegador y la plataforma viaja cifrada.</p></div></div>
-      <div class="sec-item"><div class="sec-icon"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></div><div><strong>Separación de información por empresa</strong><p>Cada cuenta accede únicamente a sus propios datos. La información de una empresa no es visible para otras.</p></div></div>
-      <div class="sec-item"><div class="sec-icon"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg></div><div><strong>Control de accesos</strong><p>Los usuarios de cada cuenta solo pueden ver y modificar la información que les corresponde según sus permisos.</p></div></div>
-      <div class="sec-item"><div class="sec-icon"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div><div><strong>Copias de seguridad</strong><p>La información de la plataforma cuenta con respaldos periódicos para proteger los datos ante fallos técnicos.</p></div></div>
-    </div>
-  </div>
-</section>
-
-<!-- ── 18. FAQ ────────────────────────────────────────────────────── -->
-<section class="faq-section" id="faq">
-  <div class="container">
-    <div class="section-header">
-      <h2 class="section-title font-display">Preguntas frecuentes</h2>
-    </div>
-    <div class="accordion">
-
-      <div class="accordion-item">
-        <button class="accordion-trigger" onclick="toggleAccordion(this);trackEvent('apertura_faq',{pregunta:'conocer_antes'})">
-          ¿Puedo conocer la plataforma antes de contratar?
-          <span class="accordion-icon"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
-        </button>
-        <div class="accordion-content"><p>Sí. Al crear una cuenta gratuita tendrás acceso a un entorno de demostración con información de ejemplo para que conozcas el panel, los resultados, los reportes, las evaluaciones psicométricas y el portafolio de evidencias.</p></div>
-      </div>
-
-      <div class="accordion-item">
-        <button class="accordion-trigger" onclick="toggleAccordion(this);trackEvent('apertura_faq',{pregunta:'datos_reales'})">
-          ¿Los datos de demostración son reales?
-          <span class="accordion-icon"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
-        </button>
-        <div class="accordion-content"><p>No. Son datos ficticios creados exclusivamente para mostrar cómo funciona NormaIA. No representan resultados reales de tu empresa ni tienen validez para procesos de cumplimiento o selección.</p></div>
-      </div>
-
-      <div class="accordion-item">
-        <button class="accordion-trigger" onclick="toggleAccordion(this);trackEvent('apertura_faq',{pregunta:'costo_demo'})">
-          ¿La cuenta de demostración tiene algún costo?
-          <span class="accordion-icon"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
-        </button>
-        <div class="accordion-content"><p>No. Puedes crearla gratuitamente para conocer las funciones principales antes de elegir un plan.</p></div>
-      </div>
-
-      <div class="accordion-item">
-        <button class="accordion-trigger" onclick="toggleAccordion(this);trackEvent('apertura_faq',{pregunta:'datos_demo_al_contratar'})">
-          ¿Qué ocurre con los datos demo cuando contrato?
-          <span class="accordion-icon"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
-        </button>
-        <div class="accordion-content"><p>Los datos demo no se eliminan: se mantienen en tu cuenta como referencia, completamente separados de la información real del centro de trabajo que crees al contratar un plan.</p></div>
-      </div>
-
-      <div class="accordion-item">
-        <button class="accordion-trigger" onclick="toggleAccordion(this);trackEvent('apertura_faq',{pregunta:'garantia_nom'})">
-          ¿NormaIA garantiza el cumplimiento de la NOM-035?
-          <span class="accordion-icon"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
-        </button>
-        <div class="accordion-content"><p>NormaIA facilita la aplicación de cuestionarios, el procesamiento de resultados y la organización documental. El cumplimiento también depende de que la empresa atienda las obligaciones y medidas que le correspondan.</p></div>
-      </div>
-
-      <div class="accordion-item">
-        <button class="accordion-trigger" onclick="toggleAccordion(this);trackEvent('apertura_faq',{pregunta:'especialista'})">
-          ¿Necesito ser especialista en la NOM-035?
-          <span class="accordion-icon"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
-        </button>
-        <div class="accordion-content"><p>No. La plataforma está diseñada para facilitar la configuración, aplicación y consulta de resultados. Algunas acciones derivadas pueden requerir acompañamiento especializado.</p></div>
-      </div>
-
-      <div class="accordion-item">
-        <button class="accordion-trigger" onclick="toggleAccordion(this);trackEvent('apertura_faq',{pregunta:'ia_decide'})">
-          ¿La IA decide si debo contratar a una persona?
-          <span class="accordion-icon"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
-        </button>
-        <div class="accordion-content"><p>No. El perfil narrativo organiza y explica los resultados para apoyar el análisis. La decisión debe considerar entrevistas, experiencia, referencias, requisitos del puesto y criterio profesional.</p></div>
-      </div>
-
-      <div class="accordion-item">
-        <button class="accordion-trigger" onclick="toggleAccordion(this);trackEvent('apertura_faq',{pregunta:'centros'})">
-          ¿Puedo administrar varios centros de trabajo?
-          <span class="accordion-icon"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
-        </button>
-        <div class="accordion-content"><p>Sí, sin límite en el número de centros — todos los planes permiten administrar tantos centros de trabajo como necesites.</p></div>
-      </div>
-
-      <div class="accordion-item">
-        <button class="accordion-trigger" onclick="toggleAccordion(this);trackEvent('apertura_faq',{pregunta:'consultor'})">
-          ¿Puedo administrar varias empresas como consultor?
-          <span class="accordion-icon"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
-        </button>
-        <div class="accordion-content"><p>Sí. Puedes gestionar distintos clientes o empresas desde una misma cuenta.</p></div>
-      </div>
-
-      <div class="accordion-item">
-        <button class="accordion-trigger" onclick="toggleAccordion(this);trackEvent('apertura_faq',{pregunta:'vigencia'})">
-          ¿Qué pasa con mi información cuando termina la vigencia?
-          <span class="accordion-icon"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
-        </button>
-        <div class="accordion-content"><p>Tus reportes y datos generados permanecen accesibles en tu cuenta. Para seguir registrando evaluaciones nuevas necesitas renovar o contratar un plan vigente.</p></div>
-      </div>
-
-    </div>
-  </div>
-</section>
-
-<!-- ── 19. CTA final ──────────────────────────────────────────────── -->
 <section class="final-cta">
-  <h2>Conoce NormaIA antes de decidir</h2>
-  <p>Explora la plataforma con datos de demostración y revisa cómo se administran los cuestionarios, resultados, documentos, evidencias y evaluaciones psicométricas.</p>
+  <h2>Empieza a evaluar candidatos hoy</h2>
+  <p>Crea tu cuenta y aplica tu primera evaluación con datos de demostración.</p>
   <div class="final-cta-actions">
-    <a href="/newuser/" class="final-cta-btn" onclick="trackEvent('cta_click',{label:'final_explorar'});trackEvent('inicio_registro',{})">
+    <a href="/newuser/" class="final-cta-btn" onclick="trackEvent('cta_click',{label:'psico_final'});trackEvent('inicio_registro',{})">
       Explorar la plataforma gratis
       <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
     </a>
-    <a href="#planes" class="final-cta-secondary" onclick="trackEvent('cta_click',{label:'final_planes'});trackEvent('visita_planes',{})">Ver planes</a>
+    <a href="{% url 'landing' %}#planes" class="final-cta-secondary">Ver planes</a>
   </div>
   <p class="final-note">La demostración utiliza información ficticia y no requiere contratar un plan.</p>
 </section>
 
-<!-- ── 20. Footer ─────────────────────────────────────────────────── -->
+<!-- ── Footer ─────────────────────────────────────────────────────── -->
 <footer>
   <div class="container">
     <div class="footer-grid">
@@ -976,13 +648,13 @@
           <li><a href="{% url 'landing_nom035' %}">NOM-035</a></li>
           <li><a href="{% url 'landing_psicometria' %}">Psicometría</a></li>
           <li><a href="{% url 'landing_clima' %}">Clima laboral</a></li>
-          <li><a href="#planes">Planes</a></li>
+          <li><a href="{% url 'landing' %}#planes">Planes</a></li>
         </ul>
       </div>
       <div class="footer-col">
         <h4>Recursos</h4>
         <ul>
-          <li><a href="#faq">Preguntas frecuentes</a></li>
+          <li><a href="{% url 'landing' %}#faq">Preguntas frecuentes</a></li>
           <li><a href="{% url 'landing_contacto' %}">Contacto</a></li>
         </ul>
       </div>
@@ -1045,22 +717,6 @@
     document.body.style.overflow = '';
   }
 
-  // ── Tabs de precios ────────────────────────────────────────────
-  function switchTab(id, btn) {
-    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    document.getElementById('tab-' + id).classList.add('active');
-    btn.classList.add('active');
-  }
-
-  // ── Acordeón de FAQ ────────────────────────────────────────────
-  function toggleAccordion(trigger) {
-    const item   = trigger.closest('.accordion-item');
-    const isOpen = item.classList.contains('open');
-    document.querySelectorAll('.accordion-item').forEach(i => i.classList.remove('open'));
-    if (!isOpen) item.classList.add('open');
-  }
-
   // ── Scroll reveal ──────────────────────────────────────────────
   const fadeEls = document.querySelectorAll('.fade-up');
   const revealObs = new IntersectionObserver((entries) => {
@@ -1073,19 +729,6 @@
   }, { threshold: 0.1 });
   fadeEls.forEach(el => revealObs.observe(el));
 
-  // ── Analítica: visita a planes ─────────────────────────────────
-  const planesSection = document.getElementById('planes');
-  if (planesSection) {
-    const planesObs = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          trackEvent('visita_planes', {});
-          planesObs.unobserve(entry.target);
-        }
-      });
-    }, { threshold: 0.2 });
-    planesObs.observe(planesSection);
-  }
 </script>
 </body>
 </html>

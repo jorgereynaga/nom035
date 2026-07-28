@@ -449,10 +449,12 @@
     </a>
     <nav class="nav-links" aria-label="Menú principal">
       <a href="#inicio">Inicio</a>
-      <a href="{% url 'landing_nom035' %}">NOM-035</a>
-      <a href="{% url 'landing_psicometria' %}">Psicometría</a>
-      <a href="{% url 'landing_clima' %}">Clima laboral</a>
-      <a href="{% url 'landing_contacto' %}">Contacto</a>
+      <a href="#soluciones">Soluciones</a>
+      <a href="#nom035">NOM-035</a>
+      <a href="#psicometria">Psicometría</a>
+      <a href="#como-funciona">Cómo funciona</a>
+      <a href="#planes">Planes</a>
+      <a href="#faq">Preguntas</a>
       <a href="/login">Iniciar sesión</a>
     </nav>
     <div class="nav-actions">
@@ -468,10 +470,12 @@
 <!-- ── Mobile nav ─────────────────────────────────────────────────── -->
 <div class="mobile-nav" id="mobileNav" aria-hidden="true">
   <a href="#inicio"        onclick="closeMobileNav()">Inicio</a>
-  <a href="{% url 'landing_nom035' %}"        onclick="closeMobileNav()">NOM-035</a>
-  <a href="{% url 'landing_psicometria' %}"   onclick="closeMobileNav()">Psicometría</a>
-  <a href="{% url 'landing_clima' %}"         onclick="closeMobileNav()">Clima laboral</a>
-  <a href="{% url 'landing_contacto' %}"      onclick="closeMobileNav()">Contacto</a>
+  <a href="#soluciones"    onclick="closeMobileNav()">Soluciones</a>
+  <a href="#nom035"        onclick="closeMobileNav()">NOM-035</a>
+  <a href="#psicometria"   onclick="closeMobileNav()">Psicometría</a>
+  <a href="#como-funciona" onclick="closeMobileNav()">Cómo funciona</a>
+  <a href="#planes"        onclick="closeMobileNav()">Planes</a>
+  <a href="#faq"           onclick="closeMobileNav()">Preguntas frecuentes</a>
   <div class="mobile-nav-actions">
     <a href="/login"    class="btn btn-outline" style="justify-content:center">Iniciar sesión</a>
     <a href="/newuser/" class="btn btn-primary" style="justify-content:center" onclick="trackEvent('cta_click',{label:'mobile_explorar'})">Explorar gratis</a>
@@ -490,7 +494,7 @@
           Explorar la plataforma gratis
           <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
         </a>
-        <a href="#soluciones" class="btn btn-outline">Ver cómo funciona</a>
+        <a href="#como-funciona" class="btn btn-outline">Ver cómo funciona</a>
       </div>
       <p class="hero-note">Crea una cuenta y explora la plataforma con datos de demostración. No necesitas contratar para conocer sus funciones y reportes.</p>
     </div>
@@ -586,12 +590,12 @@
   </div>
 </section>
 
-<!-- ── 4. Soluciones (resumen, con enlace a cada página dedicada) ──── -->
+<!-- ── 4. Soluciones ──────────────────────────────────────────────── -->
 <section class="solutions" id="soluciones">
   <div class="container">
     <div class="section-header">
       <h2 class="section-title font-display">Dos necesidades de Recursos Humanos.<br>Una sola plataforma.</h2>
-      <p class="section-sub">Elige el módulo que necesitas — cada uno tiene su propia página con el detalle completo.</p>
+      <p class="section-sub">Utiliza únicamente el módulo que necesitas o integra cumplimiento normativo y evaluación de talento en un mismo sistema.</p>
     </div>
     <div class="solutions-grid">
       <div class="sol-card fade-up">
@@ -599,27 +603,482 @@
           <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
         </div>
         <div class="sol-title">NOM-035</div>
-        <p class="sol-desc">Digitaliza la aplicación de cuestionarios, calcula resultados automáticamente y mantén organizada la documentación de cada centro de trabajo — sin hojas de cálculo.</p>
+        <p class="sol-desc">Gestiona la NOM-035 sin hojas de cálculo. Digitaliza la aplicación de cuestionarios, consulta el avance, calcula resultados automáticamente y mantén organizada la documentación de cada centro de trabajo.</p>
         <ul class="sol-benefits">
           <li class="sol-benefit"><svg class="sol-check" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Aplicación digital de las guías I, II y III</li>
+          <li class="sol-benefit"><svg class="sol-check" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Seguimiento de participación en tiempo real</li>
+          <li class="sol-benefit"><svg class="sol-check" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Resultados por empresa, centro de trabajo y área</li>
           <li class="sol-benefit"><svg class="sol-check" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Cálculo automático de niveles de riesgo</li>
+          <li class="sol-benefit"><svg class="sol-check" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Generación de documentos y reportes</li>
           <li class="sol-benefit"><svg class="sol-check" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Portafolio centralizado de evidencias</li>
         </ul>
-        <a href="{% url 'landing_nom035' %}" class="btn btn-outline btn-sm sol-cta" onclick="trackEvent('seleccion_modulo',{modulo:'nom035'})">Conocer módulo NOM-035 →</a>
+        <a href="#nom035" class="btn btn-outline btn-sm sol-cta" onclick="trackEvent('seleccion_modulo',{modulo:'nom035'})">Conocer módulo NOM-035 →</a>
       </div>
       <div class="sol-card fade-up">
         <div class="sol-icon">
           <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         </div>
         <div class="sol-title">Psicometría</div>
-        <p class="sol-desc">Evalúa candidatos con más información que una entrevista, con 6 instrumentos y un perfil narrativo asistido por IA que explica los resultados en lenguaje claro.</p>
+        <p class="sol-desc">Evalúa candidatos con más información que una entrevista. Aplica evaluaciones de personalidad, aptitud, liderazgo, valores y competencias para complementar tus decisiones de selección y desarrollo.</p>
         <ul class="sol-benefits">
           <li class="sol-benefit"><svg class="sol-check" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Evaluaciones en línea, sin instalación</li>
+          <li class="sol-benefit"><svg class="sol-check" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Gestión de candidatos desde el panel</li>
           <li class="sol-benefit"><svg class="sol-check" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Resultados automáticos al concluir</li>
+          <li class="sol-benefit"><svg class="sol-check" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Perfiles comparables entre candidatos</li>
           <li class="sol-benefit"><svg class="sol-check" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Perfil narrativo asistido por IA</li>
+          <li class="sol-benefit"><svg class="sol-check" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Información clara para el equipo de RH</li>
         </ul>
-        <a href="{% url 'landing_psicometria' %}" class="btn btn-outline btn-sm sol-cta" onclick="trackEvent('seleccion_modulo',{modulo:'psicometria'})">Conocer psicometría →</a>
+        <a href="#psicometria" class="btn btn-outline btn-sm sol-cta" onclick="trackEvent('seleccion_modulo',{modulo:'psicometria'})">Conocer psicometría →</a>
       </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 5. Cómo funciona ───────────────────────────────────────────── -->
+<section class="how" id="como-funciona">
+  <div class="container">
+    <div class="section-header">
+      <h2 class="section-title font-display">Conoce NormaIA antes de contratar</h2>
+      <p class="section-sub">Regístrate gratuitamente y explora un entorno de demostración con información de ejemplo, reportes y resultados precargados.</p>
+    </div>
+    <div class="how-steps">
+      <div class="how-step fade-up">
+        <div class="step-num">1</div>
+        <div class="step-title">Crea tu cuenta</div>
+        <p class="step-desc">Regístrate sin contratar un plan. Solo tu correo y una contraseña.</p>
+      </div>
+      <div class="how-step fade-up">
+        <div class="step-num">2</div>
+        <div class="step-title">Explora los datos de demostración</div>
+        <p class="step-desc">Consulta empresas, empleados, candidatos, cuestionarios, resultados y documentos de ejemplo, listos desde el primer inicio de sesión.</p>
+      </div>
+      <div class="how-step fade-up">
+        <div class="step-num">3</div>
+        <div class="step-title">Conoce lo que recibirás</div>
+        <p class="step-desc">Revisa reportes, perfiles psicométricos, resultados por área y el portafolio de evidencias con datos ilustrativos.</p>
+      </div>
+      <div class="how-step fade-up">
+        <div class="step-num">4</div>
+        <div class="step-title">Elige tu solución</div>
+        <p class="step-desc">Contrata NOM-035, psicometría o una suite que integre ambos módulos cuando estés listo.</p>
+      </div>
+    </div>
+    <div class="how-cta-wrap">
+      <a href="/newuser/" class="btn btn-primary" onclick="trackEvent('cta_click',{label:'demo_como_funciona'});trackEvent('inicio_registro',{})">
+        Crear cuenta de demostración
+        <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </a>
+      <p class="how-note">Los datos mostrados en la demostración son ficticios y tienen fines exclusivamente ilustrativos.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── 6. Panel centralizado ─────────────────────────────────────── -->
+<section class="panel-section">
+  <div class="container panel-inner">
+    <div>
+      <div class="panel-mockup">
+        <div class="mockup-bar">
+          <div class="mockup-dots"><div class="mockup-dot mockup-dot-r"></div><div class="mockup-dot mockup-dot-y"></div><div class="mockup-dot mockup-dot-g"></div></div>
+          <div class="mockup-url">normaia.com/empresa/centros</div>
+        </div>
+        <div class="panel-metrics">
+          <div class="panel-metric"><div class="panel-metric-val">3</div><div class="panel-metric-lbl">Centros de trabajo</div></div>
+          <div class="panel-metric"><div class="panel-metric-val">124</div><div class="panel-metric-lbl">Cuestionarios enviados</div></div>
+          <div class="panel-metric"><div class="panel-metric-val">12</div><div class="panel-metric-lbl">Candidatos evaluados</div></div>
+          <div class="panel-metric"><div class="panel-metric-val">6</div><div class="panel-metric-lbl">Documentos generados</div></div>
+          <div class="panel-metric" style="grid-column:span 2"><div class="panel-metric-val" style="font-size:1.1rem">Evidencias pendientes: <span style="color:#d97706">4</span></div><div class="panel-metric-lbl">de 18 evidencias totales</div></div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="section-tag">Panel centralizado</div>
+      <h2 class="section-title font-display">Tu proceso, organizado en un solo panel</h2>
+      <p class="section-sub" style="margin-bottom:36px">Consulta el avance de tus procesos sin buscar información en distintos archivos, correos o formularios.</p>
+      <div class="panel-items">
+        <div class="panel-item"><div class="panel-item-icon"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><div class="panel-item-text"><strong>Cuestionarios enviados y participación</strong><span>Sigue el avance por centro de trabajo, área o empleado</span></div></div>
+        <div class="panel-item"><div class="panel-item-icon"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div><div class="panel-item-text"><strong>Documentos generados y evidencias</strong><span>Accede a todos los archivos desde un solo lugar</span></div></div>
+        <div class="panel-item"><div class="panel-item-icon"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div><div class="panel-item-text"><strong>Candidatos evaluados</strong><span>Resultados psicométricos y perfiles narrativos disponibles al instante</span></div></div>
+        <div class="panel-item"><div class="panel-item-icon"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></div><div class="panel-item-text"><strong>Múltiples centros de trabajo</strong><span>Cada uno con su propia información, administrados desde una cuenta</span></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 7. NOM-035 ─────────────────────────────────────────────────── -->
+<section class="nom-section" id="nom035">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-tag">NOM-035</div>
+      <h2 class="section-title font-display">Del cuestionario al reporte, sin procesos manuales</h2>
+      <p class="section-sub">NormaIA ayuda a organizar las distintas etapas de la NOM-035: configuración del centro de trabajo, aplicación de cuestionarios, cálculo de resultados, generación de documentos y concentración de evidencias.</p>
+    </div>
+    <div class="nom-cards">
+      <div class="nom-card fade-up">
+        <div class="nom-icon"><svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+        <h3>Cuestionarios digitales</h3>
+        <p>Aplica las guías I, II y III directamente en línea. Los participantes acceden desde cualquier dispositivo sin crear cuenta propia.</p>
+      </div>
+      <div class="nom-card fade-up">
+        <div class="nom-icon"><svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+        <h3>Cálculo automático</h3>
+        <p>Los niveles de riesgo se calculan en cuanto los cuestionarios son respondidos. Sin fórmulas manuales ni hojas de cálculo.</p>
+      </div>
+      <div class="nom-card fade-up">
+        <div class="nom-icon"><svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></div>
+        <h3>Resultados por área</h3>
+        <p>Consulta el detalle de resultados segmentado por centro de trabajo, área organizacional o grupo de empleados.</p>
+      </div>
+      <div class="nom-card fade-up">
+        <div class="nom-icon"><svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+        <h3>Documentos y reportes</h3>
+        <p>Genera los documentos de resultados en PDF desde el panel. Disponibles para descargar en cualquier momento.</p>
+      </div>
+      <div class="nom-card fade-up">
+        <div class="nom-icon"><svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+        <h3>Seguimiento continuo</h3>
+        <p>Monitorea quién ha respondido y quién tiene pendiente en cada proceso. Recuerda y da seguimiento desde el mismo panel.</p>
+      </div>
+      <div class="nom-card fade-up">
+        <div class="nom-icon"><svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
+        <h3>Portafolio de evidencias</h3>
+        <p>Centraliza los documentos generados y las evidencias adicionales que tu organización incorpore al expediente NOM-035.</p>
+      </div>
+    </div>
+    <div class="nom-legal">
+      <strong>Nota importante:</strong> NormaIA facilita la gestión y documentación del proceso. El cumplimiento de la NOM-035 también depende de la correcta implementación de las medidas y obligaciones que correspondan a cada empresa.
+    </div>
+  </div>
+</section>
+
+<!-- ── 8. Portafolio de evidencias ───────────────────────────────── -->
+<section class="portfolio-section">
+  <div class="container portfolio-inner">
+    <div>
+      <div class="section-tag">Documentación</div>
+      <h2 class="section-title font-display">Tu documentación disponible cuando la necesites</h2>
+      <p class="section-sub" style="margin-bottom:32px">Conserva en un solo espacio los documentos generados por NormaIA y las evidencias que incorpore tu organización.</p>
+      <div class="portfolio-benefits">
+        <div class="port-benefit"><div class="port-benefit-icon"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div><div class="port-benefit-text"><strong>Menos documentos dispersos</strong><span>Todo el expediente en un solo lugar, sin archivos perdidos en correos o carpetas locales</span></div></div>
+        <div class="port-benefit"><div class="port-benefit-icon"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></div><div class="port-benefit-text"><strong>Información organizada por centro de trabajo</strong><span>Cada centro con su propia carpeta de documentos y evidencias</span></div></div>
+        <div class="port-benefit"><div class="port-benefit-icon"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div><div class="port-benefit-text"><strong>Consulta rápida ante revisiones</strong><span>Accede a cualquier documento o evidencia de forma inmediata cuando lo necesites</span></div></div>
+        <div class="port-benefit"><div class="port-benefit-icon"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><div class="port-benefit-text"><strong>Identificación de pendientes</strong><span>El panel te muestra qué evidencias faltan completar en cada proceso</span></div></div>
+      </div>
+    </div>
+    <div>
+      <div class="portfolio-mockup">
+        <div class="port-row">
+          <div class="port-ext">PDF</div>
+          <div class="port-name">Reporte_NOM035_Planta_Norte.pdf</div>
+          <div class="port-date" style="margin-right:8px">14 jun 2025</div>
+          <div class="port-status port-ok">Listo</div>
+        </div>
+        <div class="port-row">
+          <div class="port-ext">PDF</div>
+          <div class="port-name">Resultado_Area_Produccion.pdf</div>
+          <div class="port-date" style="margin-right:8px">14 jun 2025</div>
+          <div class="port-status port-ok">Listo</div>
+        </div>
+        <div class="port-row">
+          <div class="port-ext">PDF</div>
+          <div class="port-name">Reporte_NOM035_Corporativo.pdf</div>
+          <div class="port-date" style="margin-right:8px">02 may 2025</div>
+          <div class="port-status port-ok">Listo</div>
+        </div>
+        <div class="port-row">
+          <div class="port-ext" style="background:#fff8f0;color:#d97706">DOC</div>
+          <div class="port-name">Plan_de_accion_Area_Ventas.docx</div>
+          <div class="port-date" style="margin-right:8px">—</div>
+          <div class="port-status port-pending">Pendiente</div>
+        </div>
+        <div class="port-row">
+          <div class="port-ext" style="background:#fff8f0;color:#d97706">EVD</div>
+          <div class="port-name">Evidencia_capacitacion_julio.pdf</div>
+          <div class="port-date" style="margin-right:8px">—</div>
+          <div class="port-status port-pending">Pendiente</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 9. Psicometría ─────────────────────────────────────────────── -->
+<section class="psico-section" id="psicometria">
+  <div class="container psico-inner">
+    <div>
+      <div class="section-tag">Psicometría</div>
+      <h2 class="section-title font-display">Evalúa más que un currículum</h2>
+      <p class="section-sub" style="margin-bottom:32px">Complementa entrevistas y referencias con evaluaciones que ayudan a conocer personalidad, aptitudes, valores, liderazgo y competencias laborales.</p>
+      <a href="/newuser/" class="btn btn-primary" onclick="trackEvent('cta_click',{label:'psico_explorar'})">Explorar evaluaciones de ejemplo →</a>
+    </div>
+    <div class="psico-instruments">
+      <div class="psico-inst fade-up">
+        <div class="psico-inst-num">1</div>
+        <div><div class="psico-inst-name">DISC</div><div class="psico-inst-desc">Personalidad y estilo de comportamiento en el entorno laboral</div></div>
+      </div>
+      <div class="psico-inst fade-up">
+        <div class="psico-inst-num">2</div>
+        <div><div class="psico-inst-name">Raven</div><div class="psico-inst-desc">Aptitud intelectual no verbal y razonamiento abstracto</div></div>
+      </div>
+      <div class="psico-inst fade-up">
+        <div class="psico-inst-num">3</div>
+        <div><div class="psico-inst-name">Moss</div><div class="psico-inst-desc">Habilidades de supervisión y liderazgo en contexto organizacional</div></div>
+      </div>
+      <div class="psico-inst fade-up">
+        <div class="psico-inst-num">4</div>
+        <div><div class="psico-inst-name">Zavic</div><div class="psico-inst-desc">Valores personales, motivaciones e integridad</div></div>
+      </div>
+      <div class="psico-inst fade-up">
+        <div class="psico-inst-num">5</div>
+        <div><div class="psico-inst-name">Competencias Laborales</div><div class="psico-inst-desc">Evaluación de competencias clave para el desempeño en el puesto</div></div>
+      </div>
+      <div class="psico-inst fade-up">
+        <div class="psico-inst-num">6</div>
+        <div><div class="psico-inst-name">Perfil Comercial y Servicio al Cliente</div><div class="psico-inst-desc">Orientación hacia el cliente, venta y atención en el trabajo</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 10. Perfil narrativo con IA ───────────────────────────────── -->
+<section class="ai-section">
+  <div class="container ai-inner">
+    <div>
+      <div class="ai-mockup">
+        <div class="ai-mockup-header">
+          <div class="ai-mockup-candidate">Candidato: Ejemplo (datos ficticios)</div>
+          <div class="ai-mockup-sub">Evaluaciones aplicadas: DISC · Raven · Zavic</div>
+        </div>
+        <div class="ai-mockup-body">
+          <div class="ai-block">
+            <div class="ai-block-label">Resumen del perfil</div>
+            <div class="ai-block-text">Persona orientada a resultados con capacidad analítica destacada y estilo de comunicación directo. Muestra disposición a asumir responsabilidades y tomar iniciativa en entornos estructurados.</div>
+          </div>
+          <div class="ai-block">
+            <div class="ai-block-label">Principales fortalezas</div>
+            <div class="ai-block-tags">
+              <span class="ai-tag">Orientación a resultados</span>
+              <span class="ai-tag">Pensamiento analítico</span>
+              <span class="ai-tag">Toma de iniciativa</span>
+              <span class="ai-tag">Comunicación directa</span>
+            </div>
+          </div>
+          <div class="ai-block">
+            <div class="ai-block-label">Áreas de desarrollo</div>
+            <div class="ai-block-text">Puede beneficiarse de desarrollar mayor flexibilidad ante cambios no planificados y habilidades de escucha activa en entornos colaborativos.</div>
+          </div>
+          <div class="ai-block">
+            <div class="ai-block-label">Consideraciones del puesto</div>
+            <div class="ai-block-text">Se adapta bien a posiciones que requieran autonomía, metas claras y rendición de cuentas. Considerar roles de coordinación con acompañamiento inicial.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="section-tag">Perfil narrativo con IA</div>
+      <h2 class="section-title font-display">Resultados psicométricos explicados con claridad</h2>
+      <p class="section-sub" style="margin-bottom:20px">El perfil narrativo asistido por IA convierte los resultados de las evaluaciones en una explicación comprensible de fortalezas, tendencias conductuales y áreas de desarrollo.</p>
+      <p class="section-sub" style="margin-bottom:24px">Presentado en lenguaje claro para apoyar el análisis del equipo de Recursos Humanos, sin necesidad de interpretar tablas de puntajes crudos.</p>
+      <ul style="display:flex;flex-direction:column;gap:10px;margin-bottom:24px">
+        <li style="display:flex;gap:10px;font-size:.9rem;color:var(--fg)"><svg width="16" height="16" fill="none" stroke="var(--primary)" stroke-width="2.5" viewBox="0 0 24 24" style="flex-shrink:0;margin-top:2px"><polyline points="20 6 9 17 4 12"/></svg> Resumen del perfil del candidato</li>
+        <li style="display:flex;gap:10px;font-size:.9rem;color:var(--fg)"><svg width="16" height="16" fill="none" stroke="var(--primary)" stroke-width="2.5" viewBox="0 0 24 24" style="flex-shrink:0;margin-top:2px"><polyline points="20 6 9 17 4 12"/></svg> Principales fortalezas identificadas</li>
+        <li style="display:flex;gap:10px;font-size:.9rem;color:var(--fg)"><svg width="16" height="16" fill="none" stroke="var(--primary)" stroke-width="2.5" viewBox="0 0 24 24" style="flex-shrink:0;margin-top:2px"><polyline points="20 6 9 17 4 12"/></svg> Áreas de desarrollo sugeridas</li>
+        <li style="display:flex;gap:10px;font-size:.9rem;color:var(--fg)"><svg width="16" height="16" fill="none" stroke="var(--primary)" stroke-width="2.5" viewBox="0 0 24 24" style="flex-shrink:0;margin-top:2px"><polyline points="20 6 9 17 4 12"/></svg> Tendencias de comportamiento</li>
+        <li style="display:flex;gap:10px;font-size:.9rem;color:var(--fg)"><svg width="16" height="16" fill="none" stroke="var(--primary)" stroke-width="2.5" viewBox="0 0 24 24" style="flex-shrink:0;margin-top:2px"><polyline points="20 6 9 17 4 12"/></svg> Consideraciones para el puesto</li>
+      </ul>
+      <div class="ai-disclaimer">
+        <strong>Aviso importante:</strong> El perfil narrativo es una herramienta de apoyo. No sustituye la valoración profesional ni determina por sí solo la contratación, promoción o rechazo de una persona.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 11. Clima laboral ──────────────────────────────────────────── -->
+<section class="clima-section">
+  <div class="container clima-inner">
+    <div>
+      <div class="section-tag">Clima laboral</div>
+      <h2 class="section-title font-display">Conoce cómo percibe tu equipo el entorno de trabajo</h2>
+      <p class="section-sub" style="margin-bottom:28px">Aplica encuestas anónimas para conocer la percepción del personal sobre liderazgo, comunicación, condiciones laborales y ambiente organizacional.</p>
+      <div class="clima-benefits">
+        <div class="clima-benefit"><div class="clima-benefit-icon"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div><p>Respuestas anónimas que favorecen la sinceridad</p></div>
+        <div class="clima-benefit"><div class="clima-benefit-icon"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><p>Resultados visuales por área y tema</p></div>
+        <div class="clima-benefit"><div class="clima-benefit-icon"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div><p>Identificación de temas prioritarios de atención</p></div>
+        <div class="clima-benefit"><div class="clima-benefit-icon"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg></div><p>Información para orientar acciones de mejora organizacional</p></div>
+      </div>
+      <p style="font-size:.8125rem;color:var(--muted);margin-top:20px">Disponible en los planes NOM-035 y Suite Empresarial.</p>
+    </div>
+    <div>
+      <div class="clima-mockup">
+        <div class="clima-chart-title">Resultados de clima laboral — Empresa Demo (datos ficticios)</div>
+        <div class="clima-bars">
+          <div class="clima-bar-item">
+            <div class="clima-bar-lbl">Liderazgo <span>72%</span></div>
+            <div class="clima-bar"><div class="clima-bar-fill" style="width:72%"></div></div>
+          </div>
+          <div class="clima-bar-item">
+            <div class="clima-bar-lbl">Comunicación <span>65%</span></div>
+            <div class="clima-bar"><div class="clima-bar-fill" style="width:65%"></div></div>
+          </div>
+          <div class="clima-bar-item">
+            <div class="clima-bar-lbl">Condiciones laborales <span>81%</span></div>
+            <div class="clima-bar"><div class="clima-bar-fill" style="width:81%"></div></div>
+          </div>
+          <div class="clima-bar-item">
+            <div class="clima-bar-lbl">Ambiente organizacional <span>78%</span></div>
+            <div class="clima-bar"><div class="clima-bar-fill" style="width:78%"></div></div>
+          </div>
+          <div class="clima-bar-item">
+            <div class="clima-bar-lbl">Trabajo en equipo <span>84%</span></div>
+            <div class="clima-bar"><div class="clima-bar-fill" style="width:84%"></div></div>
+          </div>
+        </div>
+        <p style="font-size:.72rem;color:var(--muted);margin-top:16px">Datos ficticios para fines ilustrativos</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 12. Multiempresa ───────────────────────────────────────────── -->
+<section class="multi-section">
+  <div class="container">
+    <div class="section-header">
+      <h2 class="section-title font-display">Administra toda tu operación desde una sola cuenta</h2>
+      <p class="section-sub">Gestiona empresas, sucursales, plantas o centros de trabajo sin mezclar su información. Todos los planes permiten administrar tantos centros de trabajo como necesites.</p>
+    </div>
+    <div class="multi-cards">
+      <div class="multi-card fade-up">
+        <div class="multi-icon"><svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg></div>
+        <div class="multi-title">Para empresas</div>
+        <p class="multi-desc">Consulta por separado la información de cada sucursal o centro de trabajo. La NOM-035 y la psicometría de cada unidad se mantienen organizadas e independientes, accesibles desde una misma cuenta.</p>
+      </div>
+      <div class="multi-card fade-up">
+        <div class="multi-icon"><svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+        <div class="multi-title">Para consultores</div>
+        <p class="multi-desc">Administra diferentes clientes o empresas desde un mismo acceso. Cada cliente tiene su propia información separada, y tú gestionas todos sus procesos sin confundir sus datos.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 13. Comparación ────────────────────────────────────────────── -->
+<section class="comparison-section">
+  <div class="container">
+    <div class="section-header">
+      <h2 class="section-title font-display">De archivos dispersos a una gestión centralizada</h2>
+    </div>
+    <div style="overflow-x:auto">
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th>Aspecto</th>
+            <th>Procesos manuales</th>
+            <th>Con NormaIA</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Aplicación de cuestionarios</td>
+            <td><span class="cmp-icon-bad">✗</span> Impresión, distribución y recolección en papel</td>
+            <td><span class="cmp-icon-good">✓</span> Digital, desde cualquier dispositivo</td>
+          </tr>
+          <tr>
+            <td>Cálculo de resultados</td>
+            <td><span class="cmp-icon-bad">✗</span> Fórmulas manuales en hojas de cálculo</td>
+            <td><span class="cmp-icon-good">✓</span> Automático al concluir cada cuestionario</td>
+          </tr>
+          <tr>
+            <td>Seguimiento de participación</td>
+            <td><span class="cmp-icon-bad">✗</span> Listas físicas o correos individuales</td>
+            <td><span class="cmp-icon-good">✓</span> Panel en tiempo real con avance por área</td>
+          </tr>
+          <tr>
+            <td>Generación de documentos</td>
+            <td><span class="cmp-icon-bad">✗</span> Elaboración manual, formato variable</td>
+            <td><span class="cmp-icon-good">✓</span> PDF generado desde el panel, descargable</td>
+          </tr>
+          <tr>
+            <td>Organización de evidencias</td>
+            <td><span class="cmp-icon-bad">✗</span> Carpetas físicas o correos dispersos</td>
+            <td><span class="cmp-icon-good">✓</span> Portafolio digital organizado por centro</td>
+          </tr>
+          <tr>
+            <td>Evaluación de candidatos</td>
+            <td><span class="cmp-icon-bad">✗</span> Pruebas físicas, calificación manual</td>
+            <td><span class="cmp-icon-good">✓</span> En línea, resultados y perfil narrativo automáticos</td>
+          </tr>
+          <tr>
+            <td>Acceso a información histórica</td>
+            <td><span class="cmp-icon-bad">✗</span> Búsqueda en archivos físicos o correos</td>
+            <td><span class="cmp-icon-good">✓</span> Consulta desde el panel en cualquier momento</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ── 14. Demo visual ────────────────────────────────────────────── -->
+<section class="demo-section" id="demo">
+  <div class="container">
+    <div class="section-header">
+      <h2 class="section-title font-display">Explora lo que recibirás antes de pagar</h2>
+      <p class="section-sub">La cuenta de demostración incluye información de ejemplo para que conozcas la experiencia completa de NormaIA.</p>
+    </div>
+    <div class="gallery-track-wrap">
+      <div class="gallery-track" id="galleryTrack">
+        <div class="gallery-card">
+          <div class="gallery-card-img"><svg width="64" height="64" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></div>
+          <div class="gallery-card-body"><div class="gallery-card-title">Dashboard principal</div><div class="gallery-card-desc">Vista general del estado de tus procesos NOM-035 y psicometría en un solo panel.</div></div>
+        </div>
+        <div class="gallery-card">
+          <div class="gallery-card-img"><svg width="64" height="64" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg></div>
+          <div class="gallery-card-body"><div class="gallery-card-title">Empresas y centros de trabajo</div><div class="gallery-card-desc">Gestión de múltiples unidades organizativas desde un solo acceso.</div></div>
+        </div>
+        <div class="gallery-card">
+          <div class="gallery-card-img"><svg width="64" height="64" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+          <div class="gallery-card-body"><div class="gallery-card-title">Seguimiento de cuestionarios</div><div class="gallery-card-desc">Avance de participación en tiempo real, con detalle por empleado y área.</div></div>
+        </div>
+        <div class="gallery-card">
+          <div class="gallery-card-img"><svg width="64" height="64" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></div>
+          <div class="gallery-card-body"><div class="gallery-card-title">Resultados por área</div><div class="gallery-card-desc">Niveles de riesgo segmentados por área, centro de trabajo y empresa.</div></div>
+        </div>
+        <div class="gallery-card">
+          <div class="gallery-card-img"><svg width="64" height="64" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+          <div class="gallery-card-body"><div class="gallery-card-title">Reporte NOM-035</div><div class="gallery-card-desc">Documento PDF generado automáticamente con los resultados del proceso.</div></div>
+        </div>
+        <div class="gallery-card">
+          <div class="gallery-card-img"><svg width="64" height="64" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
+          <div class="gallery-card-body"><div class="gallery-card-title">Portafolio de evidencias</div><div class="gallery-card-desc">Todos los documentos y evidencias del proceso NOM-035 en un solo lugar.</div></div>
+        </div>
+        <div class="gallery-card">
+          <div class="gallery-card-img"><svg width="64" height="64" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div>
+          <div class="gallery-card-body"><div class="gallery-card-title">Gestión de candidatos</div><div class="gallery-card-desc">Envío de evaluaciones, seguimiento y comparación de perfiles.</div></div>
+        </div>
+        <div class="gallery-card">
+          <div class="gallery-card-img"><svg width="64" height="64" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+          <div class="gallery-card-body"><div class="gallery-card-title">Resultado psicométrico</div><div class="gallery-card-desc">Vista detallada de puntajes y gráficas por instrumento aplicado.</div></div>
+        </div>
+        <div class="gallery-card">
+          <div class="gallery-card-img"><svg width="64" height="64" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12" y2="17"/></svg></div>
+          <div class="gallery-card-body"><div class="gallery-card-title">Perfil narrativo con IA</div><div class="gallery-card-desc">Explicación en lenguaje claro de los resultados de las evaluaciones.</div></div>
+        </div>
+        <div class="gallery-card">
+          <div class="gallery-card-img"><svg width="64" height="64" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+          <div class="gallery-card-body"><div class="gallery-card-title">Selección de planes</div><div class="gallery-card-desc">Compara opciones de NOM-035, psicometría y suite directamente en la plataforma.</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="gallery-nav">
+      <button class="gallery-btn" id="galleryPrev" aria-label="Anterior">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <button class="gallery-btn" id="galleryNext" aria-label="Siguiente">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+      </button>
+    </div>
+    <div style="text-align:center;margin-top:32px">
+      <a href="/newuser/" class="btn btn-primary" onclick="trackEvent('cta_click',{label:'demo_galeria'})">Explorar la demostración</a>
     </div>
   </div>
 </section>
@@ -828,6 +1287,33 @@
   </div>
 </section>
 
+<!-- ── 16. Producto (reemplaza testimonios) ───────────────────────── -->
+<section class="product-proof">
+  <div class="container">
+    <div class="section-header">
+      <h2 class="section-title font-display">Conoce el producto con información real de la plataforma</h2>
+      <p class="section-sub">Explora la demostración gratuita para ver cómo NormaIA organiza cada etapa del proceso.</p>
+    </div>
+    <div class="proof-grid">
+      <div class="proof-card fade-up">
+        <div class="proof-icon"><svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+        <div class="proof-title">Demostración disponible al registrarse</div>
+        <p class="proof-desc">Al crear tu cuenta accedes de inmediato a una empresa demo con empleados, cuestionarios respondidos y resultados psicométricos de ejemplo — sin contratar ningún plan.</p>
+      </div>
+      <div class="proof-card fade-up">
+        <div class="proof-icon"><svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+        <div class="proof-title">Reportes y documentos de ejemplo</div>
+        <p class="proof-desc">Puedes revisar cómo se ven los reportes generados, el portafolio de evidencias y los perfiles narrativos antes de evaluar si NormaIA es lo que necesitas.</p>
+      </div>
+      <div class="proof-card fade-up">
+        <div class="proof-icon"><svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+        <div class="proof-title">Datos demo que no se mezclan con los reales</div>
+        <p class="proof-desc">Cuando contratas, se crea un centro de trabajo nuevo y real. Los datos de demostración permanecen en tu cuenta como referencia, separados de tu información real.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- ── 17. Seguridad ──────────────────────────────────────────────── -->
 <section class="security-section">
   <div class="container-narrow">
@@ -841,6 +1327,56 @@
       <div class="sec-item"><div class="sec-icon"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></div><div><strong>Separación de información por empresa</strong><p>Cada cuenta accede únicamente a sus propios datos. La información de una empresa no es visible para otras.</p></div></div>
       <div class="sec-item"><div class="sec-icon"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg></div><div><strong>Control de accesos</strong><p>Los usuarios de cada cuenta solo pueden ver y modificar la información que les corresponde según sus permisos.</p></div></div>
       <div class="sec-item"><div class="sec-icon"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div><div><strong>Copias de seguridad</strong><p>La información de la plataforma cuenta con respaldos periódicos para proteger los datos ante fallos técnicos.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Contacto ───────────────────────────────────────────────────── -->
+<section class="contact-section" id="contacto">
+  <div class="container contact-inner">
+    <div>
+      <div class="section-tag">Contacto</div>
+      <h2 class="section-title font-display">¿Tienes preguntas?</h2>
+      <p class="section-sub" style="margin-bottom:32px">Escríbenos y te respondemos a la brevedad.</p>
+      <div class="contact-info">
+        <div class="contact-info-item">
+          <div class="contact-info-icon"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div>
+          <div><strong>Correo electrónico</strong><span>soporte@normaia.com</span></div>
+        </div>
+        <div class="contact-info-item">
+          <div class="contact-info-icon"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
+          <div><strong>Ubicación</strong><span>México</span></div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <form class="contact-form" id="contactForm" onsubmit="submitContact(event)">
+        <div class="form-row">
+          <div class="form-field">
+            <label for="contactName">Nombre *</label>
+            <input type="text" id="contactName" name="name" placeholder="Tu nombre" required />
+          </div>
+          <div class="form-field">
+            <label for="contactEmail">Correo electrónico *</label>
+            <input type="email" id="contactEmail" name="email" placeholder="correo@empresa.com" required />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-field">
+            <label for="contactPhone">Teléfono</label>
+            <input type="tel" id="contactPhone" name="phone" placeholder="55 0000 0000" />
+          </div>
+          <div class="form-field">
+            <label for="contactCname">Empresa</label>
+            <input type="text" id="contactCname" name="cname" placeholder="Nombre de tu empresa" />
+          </div>
+        </div>
+        <div id="contactMessage" class="form-message" role="alert"></div>
+        <button type="submit" class="btn btn-primary">
+          Enviar mensaje
+          <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </button>
+      </form>
     </div>
   </div>
 </section>
@@ -973,17 +1509,19 @@
       <div class="footer-col">
         <h4>Producto</h4>
         <ul>
-          <li><a href="{% url 'landing_nom035' %}">NOM-035</a></li>
-          <li><a href="{% url 'landing_psicometria' %}">Psicometría</a></li>
-          <li><a href="{% url 'landing_clima' %}">Clima laboral</a></li>
+          <li><a href="#nom035">NOM-035</a></li>
+          <li><a href="#psicometria">Psicometría</a></li>
           <li><a href="#planes">Planes</a></li>
+          <li><a href="#">Seguridad</a></li>
+          <li><a href="#">Portafolio de evidencias</a></li>
         </ul>
       </div>
       <div class="footer-col">
         <h4>Recursos</h4>
         <ul>
+          <li><a href="#como-funciona">Cómo funciona</a></li>
           <li><a href="#faq">Preguntas frecuentes</a></li>
-          <li><a href="{% url 'landing_contacto' %}">Contacto</a></li>
+          <li><a href="#contacto">Contacto</a></li>
         </ul>
       </div>
       <div class="footer-col">
@@ -1059,6 +1597,50 @@
     const isOpen = item.classList.contains('open');
     document.querySelectorAll('.accordion-item').forEach(i => i.classList.remove('open'));
     if (!isOpen) item.classList.add('open');
+  }
+
+  // ── Galería con botones ────────────────────────────────────────
+  const galleryTrack = document.getElementById('galleryTrack');
+  const SCROLL_AMT   = 320;
+  document.getElementById('galleryPrev').addEventListener('click', () => {
+    galleryTrack.scrollBy({ left: -SCROLL_AMT, behavior: 'smooth' });
+  });
+  document.getElementById('galleryNext').addEventListener('click', () => {
+    galleryTrack.scrollBy({ left: SCROLL_AMT, behavior: 'smooth' });
+  });
+
+  // ── Formulario de contacto (GET /contact/) ─────────────────────
+  async function submitContact(e) {
+    e.preventDefault();
+    const form = e.target;
+    const msg  = document.getElementById('contactMessage');
+    const name  = form.name.value.trim();
+    const email = form.email.value.trim();
+    const phone = form.phone.value.trim();
+    const cname = form.cname.value.trim();
+
+    msg.className = 'form-message';
+    msg.textContent = '';
+
+    const qs = new URLSearchParams({ name, email, phone, cname }).toString();
+    try {
+      const res  = await fetch('/contact/?' + qs);
+      const data = await res.json();
+      if (data.status === 'ok') {
+        msg.classList.add('success');
+        msg.textContent = '¡Mensaje enviado! Te responderemos pronto.';
+        form.reset();
+        trackEvent('envio_contacto', { ok: true });
+      } else {
+        msg.classList.add('error');
+        msg.textContent = 'Hubo un problema al enviar el mensaje. Por favor verifica tu nombre y correo.';
+        trackEvent('envio_contacto', { ok: false });
+      }
+    } catch {
+      msg.classList.add('error');
+      msg.textContent = 'No se pudo conectar con el servidor. Intenta de nuevo más tarde.';
+      trackEvent('envio_contacto', { ok: false, error: 'network' });
+    }
   }
 
   // ── Scroll reveal ──────────────────────────────────────────────

@@ -36,6 +36,10 @@ from rest_framework.authtoken import views
 #from django.contrib.staticfiles.views import serve
 urlpatterns = [
     path('', LandingView.as_view(), name='landing'),
+    path('nom035/', LandingNom035View.as_view(), name='landing_nom035'),
+    path('psicometria/', LandingPsicometriaView.as_view(), name='landing_psicometria'),
+    path('clima-laboral/', LandingClimaView.as_view(), name='landing_clima'),
+    path('contacto/', LandingContactoView.as_view(), name='landing_contacto'),
     path('stripe/webhook/', stripe_webhook, name='stripe-webhook'),
     path('api-auth/', include('rest_framework.urls')),
     path('api-token-auth/', views.obtain_auth_token),
