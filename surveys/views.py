@@ -684,6 +684,35 @@ class WorkplaceView(LoginRequiredMixin,View):
 			"kpi_riesgo_predominante_nombre": riesgo_predominante_nombre,
 		}
 		return render(request, 'workplace.html', ctx)
+class SupportView(LoginRequiredMixin,View):
+	login_url = reverse_lazy('login')
+	redirect_field_name = 'redirect_to'
+	AREAS = {
+		'soporte': 'Soporte técnico',
+		'compras': 'Compras y facturación',
+		'administracion': 'Administración',
+	}
+	def get(self, request, *args, **kwargs):
+		nombre = ''
+		telefono = ''
+		if hasattr(request.user, 'userapp'):
+			nombre = request.user.userapp.name
+			telefono = request.user.userapp.phone
+		ctx = {"nombre": nombre, "telefono": telefono, "correo": request.user.email}
+		return render(request, 'soporte.html', ctx)
+	def post(self, request, *args, **kwargs):
+		area_key = request.POST.get('area', '')
+		area = self.AREAS.get(area_key, area_key)
+		message = request.POST.get('message', '')
+		name = request.POST.get('name', '')
+		email = request.POST.get('email', '')
+		phone = request.POST.get('phone', '')
+		if message == '' or area_key not in self.AREAS:
+			return JsonResponse({'status': 'error'}, status=400)
+		ctx = {"cname": name, "phone": phone, "email": email, "name": name, "area": area, "message": message,
+			"type": 2, "title": "Soporte", "date_today": datetime.now().strftime('%d/%m/%Y')}
+		send_mail(["normaia.sistemas@gmail.com"], ctx=ctx, subject=f'Soporte ({area}) — {request.user.email}')
+		return JsonResponse({'status': 'ok'})
 class EditProfileView(LoginRequiredMixin,View):
 	login_url = reverse_lazy('login')
 	redirect_field_name = 'redirect_to'
@@ -1817,13 +1846,14 @@ def contact(request):
 	phone=request.POST.get('phone','')
 	email=request.POST.get('email','')
 	name=request.POST.get('name','')
+	message=request.POST.get('message','')
 	if email =='' and name =='':
 		return JsonResponse({'status':'error'},status=400),
 	if phone =='' and cname =='':
-		ctx={"cname":cname,"phone":phone,"email":email,"name":name,"type":1,"title":"Contacto","date_today":datetime.now().strftime('%d/%m/%Y')}
+		ctx={"cname":cname,"phone":phone,"email":email,"name":name,"message":message,"type":1,"title":"Contacto","date_today":datetime.now().strftime('%d/%m/%Y')}
 	else:
-		ctx={"cname":cname,"phone":phone,"email":email,"name":name,"type":2,"title":"Contacto","date_today":datetime.now().strftime('%d/%m/%Y')}
-	send_mail(["normaia.sistemas@gmail.com"],ctx=ctx,subject=f'{name}, quiere ponerse en contacto con nosotros. (Prueba)')
+		ctx={"cname":cname,"phone":phone,"email":email,"name":name,"message":message,"type":2,"title":"Contacto","date_today":datetime.now().strftime('%d/%m/%Y')}
+	send_mail(["normaia.sistemas@gmail.com"],ctx=ctx,subject=f'{name} quiere ponerse en contacto con nosotros')
 	return JsonResponse({'status':'ok'})
 
 def add_evidence(request):

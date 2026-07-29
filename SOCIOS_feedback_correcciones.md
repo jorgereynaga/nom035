@@ -344,6 +344,22 @@ No es un bug nuevo de código — es el mismo pendiente ya registrado desde el d
 
 **Corregido:** nombre del centro demo actualizado en `cargar_datos_demo.py` (aplica a datos demo generados de aquí en adelante — usar "Borrar datos de prueba" para regenerar con el nombre nuevo en cuentas que ya tenían demo cargado). Las 3 etiquetas de `workplaceform.html` actualizadas. Verificado visualmente y desplegado en producción.
 
+## 16. Formulario de contacto de la landing con campo de Mensaje + nuevo formulario de Soporte dentro de la app — ✅ RESUELTO (29 jul 2026)
+
+**Pedido de Jorge:** hacer funcionar el formulario de contacto de la landing agregando un campo de mensaje, y crear un acceso nuevo dentro de la plataforma (menú "Cuenta", junto a Configuración) para contactar a Soporte técnico, Compras y facturación, o Administración — con selector de área y campo de mensaje.
+
+**Decisiones confirmadas con Jorge:** las 3 áreas se envían al mismo buzón (`normaia.sistemas@gmail.com`, único configurado hoy) indicando el área en el asunto/cuerpo del correo — no se crearon cuentas de correo nuevas.
+
+**Implementado:**
+- `landing_contacto.html`: campo "Mensaje" (textarea, requerido) agregado al formulario.
+- `contact` view (`surveys/views.py`): ahora lee y envía `message`; se aprovechó para quitar el "(Prueba)" que había quedado hardcodeado en el asunto del correo desde una sesión anterior.
+- `email-template.html`: agregados bloques condicionales `{% if area %}`/`{% if message %}` para mostrar ambos datos en el correo recibido (no rompe el otro uso de esta plantilla, el correo de registro de nuevo usuario, que no envía esas variables).
+- Nueva vista `SupportView` (`/soporte/`, requiere login) — formulario con selector de área (Soporte técnico / Compras y facturación / Administración), mensaje, y datos de contacto prellenados desde la cuenta del usuario (`Userapp.name`/`phone`, `User.email`).
+- Nuevo link "Soporte" en el sidebar, grupo "Cuenta", junto a Configuración.
+- Validado end-to-end con datos reales (Django test client + navegador): ambos formularios procesan correctamente name/email/area/message y llegan hasta el envío de correo — el único fallo en local es la falta de credenciales SMTP reales (mismo comportamiento ya documentado en hallazgos anteriores, se resuelve solo en el VPS).
+
+**Hallazgo de paso, registrado pero no corregido:** `workplaceform.html` tiene el mismo patrón de `<style>` anidado dentro del `<style>` del layout base que causó el hallazgo #14 (bug de `stripe_planes.html`) — su propio bloque `:root{--primary:#4f46e5...}` también se descarta silenciosamente. No genera un bug visible urgente ahí porque no depende de una variable `--primary-hover` inexistente, pero conviene corregirlo cuando se ataque este patrón de forma sistemática en el resto de las plantillas que extienden `index.html`.
+
 ## PENDIENTE: más observaciones por llegar (Jorge sigue enviando antes de armar el prompt final para Replit)
 
 Jorge las irá pasando conforme los socios se las compartan. Se agregan aquí mismo conforme lleguen, verificadas contra el código antes de anotarlas como "confirmado" o "por verificar".
