@@ -576,15 +576,15 @@
         <ul>
           <li><a href="#">Acerca de NormaIA</a></li>
           <li><a href="#">Soporte</a></li>
-          <li><a href="#">Términos de servicio</a></li>
-          <li><a href="#">Aviso de privacidad</a></li>
-          <li><a href="#">Política de cookies</a></li>
+          <li><a href="{% url 'tyc' %}">Términos de servicio</a></li>
+          <li><a href="{% url 'tyc' %}">Aviso de privacidad</a></li>
+          <li><a href="{% url 'tyc' %}">Política de cookies</a></li>
         </ul>
       </div>
     </div>
     <div class="footer-bottom">
       <span>&copy; <span id="year"></span> NormaIA. Todos los derechos reservados.</span>
-      <span><a href="#">Aviso de privacidad</a> · <a href="#">Términos de servicio</a></span>
+      <span><a href="{% url 'tyc' %}">Aviso de privacidad</a> · <a href="{% url 'tyc' %}">Términos de servicio</a></span>
     </div>
   </div>
 </footer>
