@@ -2792,3 +2792,18 @@ Jorge quiere retomar cambios de diseno en las vistas, pero esta vez
 mockup para revisar y aprobar antes de tocar el codigo real. Sin fecha
 ni vistas especificas definidas todavia -- confirmar con Jorge por donde
 empezar al iniciar esa sesion.
+
+## Sesion 28 jul 2026 (cont.) -- Dashboard, Centros de Trabajo y Landing multipagina -- COMPLETADO Y DESPLEGADO ✅
+Tres mockups hechos por Claude, aprobados por Jorge, implementados y desplegados en produccion (VPS):
+1. **Dashboard** (`index.html`): secciones NOM-035/Acciones pendientes/Psicometria/Clima Laboral pasan de titulo-con-linea a tarjeta con fondo tenue por tema (Propuesta B del mockup). Rama `design/dashboard-secciones-fondo-difuminado`.
+2. **Centros de Trabajo** (`workplace.html`): tarjetas rediseñadas con el mismo lenguaje visual del catalogo de Evaluaciones (hero degradado, franja de color superior por riesgo, estado de evaluacion). Se agrego `survey_completion_pct`/`evaluacion_estado` a `WorkplaceView` (`views.py`). Rama `design/centros-trabajo-tarjetas-evaluaciones`.
+3. **Landing multipagina**: la landing publica (20 secciones) se recorto a 9 en el Inicio; NOM-035, Psicometria, Clima Laboral y Contacto pasaron a rutas propias (`/nom035/`, `/psicometria/`, `/clima-laboral/`, `/contacto/`), cada una con su CTA de registro. Se agrego respaldo tecnico de los instrumentos psicometricos (citas de cada prueba + rigor metodologico de construccion). Se corrigio `contact` view de GET a POST (`@csrf_exempt`, PII ya no viaja en la URL). 4 vistas nuevas en `views.py` (`LandingNom035View`, etc.), rutas en `urls.py`. Rama `design/landing-multipagina`.
+
+Los 3 backups (`index.html` sin backup explicito por ser cambio de CSS/estructura minimo, `workplace_backup_pre_rediseno.html`, `landing_backup_pre_multipagina.html`) guardados como en sesiones previas.
+
+## PENDIENTE INMEDIATO -- 4 hallazgos nuevos registrados, NO implementados aun (Jorge pidio "registrar todo, resolvemos en un rato")
+Detalle completo de cada uno en `SOCIOS_feedback_correcciones.md` (hallazgos #13-15):
+1. **Bug con causa raiz ya encontrada, fix listo para aplicar (#13):** "Ver resultados" desde Centros de Trabajo manda a la evaluacion en curso (sin datos) en vez de la ultima completada -- `workplace.html` enlaza sin numero de evaluacion, bug preexistente (confirmado contra el backup, no lo causo el rediseno de hoy). Fix: usar `item.eval_to_check` (ya calculado en `WorkplaceView`) en el link.
+2. **Bug por confirmar (#14):** boton "Contratar" en `/stripe/planes/` posiblemente texto blanco sobre fondo blanco en `:hover` -- el CSS estatico no muestra la causa, falta revisar el JS que maneja el estado del boton segun plan activo.
+3. **Cambio de nombre (#15):** centro de trabajo demo se llama "Empresa Demo S.A. de C.V." (deberia ser "Centro de Trabajo Demo", no es una empresa) -- hardcodeado en `cargar_datos_demo.py:129`.
+4. **Rediseno de formulario, alcance mayor (#15):** `workplaceform.html` mezcla datos de empresa (ej. "Objetivo de la empresa") con datos del centro de trabajo -- Jorge propone que el alta de centro solo pida nombre/actividad/empleados/domicilio, y los datos de empresa vivan en Configuracion. Requiere revisar el modelo `Workplace` antes de escribir especificacion (no es cambio trivial).
