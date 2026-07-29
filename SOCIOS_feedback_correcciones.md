@@ -314,6 +314,35 @@ No es un bug nuevo de código — es el mismo pendiente ya registrado desde el d
 
 **Implementado:** buscador instantáneo (nombre/puesto/correo, con debounce de 300ms — sin recargar la página), filtro por tipo (Candidato externo/Empleado actual), y paginación real del lado del servidor (15 por página). Nueva vista JSON `candidates_dt`. Validado exhaustivamente y confirmado desplegado en producción.
 
+## 13. Bug confirmado: "Ver resultados" desde Centros de Trabajo manda a la evaluación equivocada (sin datos) — PENDIENTE (28 jul 2026)
+
+**Reportado por Jorge:** si entras a Centros de Trabajo → "Ver resultados", te manda a una evaluación que aparece sin datos contestados (aunque sí los hay). Si en cambio entras a Centros de Trabajo → "Ver detalle" → "Ver resultados" desde ahí, sí muestra los datos correctos. Confuso, dos caminos al mismo destino con resultado distinto.
+
+**Causa raíz confirmada en código:**
+- `workplace.html` (lista de Centros de Trabajo): el botón "Ver resultados" enlaza a `/workplace_result/{id}/` **sin especificar número de evaluación**.
+- Sin ese número, `WorkplaceResultView` (`surveys/views.py:773`) usa por default `wk.evaluation` — la evaluación **en curso** (nueva, sin respuestas todavía), no la última completada.
+- `workplace_detail.html` (Ver detalle) sí funciona porque su enlace pasa explícitamente `{{evaluation|add:"-1"}}` — la evaluación anterior, la que ya tiene respuestas.
+- **Es un bug preexistente**, no introducido por el rediseño de esta sesión — confirmado contra `workplace_backup_pre_rediseno.html`, el enlace roto ya estaba ahí desde antes.
+
+**Fix propuesto, listo para aplicar (no implementado aún, a la espera de Jorge):** `WorkplaceView` (`surveys/views.py`) ya calcula internamente `eval_to_check` (la evaluación correcta) para decidir qué nivel de riesgo mostrar en cada tarjeta de Centros de Trabajo — es la misma variable que ya alimenta el badge de riesgo. El fix es exponer ese mismo valor al template (`item.eval_to_check`) y usarlo en el link de "Ver resultados" (`/workplace_result/{id}/{eval_to_check}/`, ruta `workplace_result2` ya existe en `urls.py:81`), para que el botón siempre apunte a la misma evaluación que la tarjeta ya está mostrando. Cambio de ~2 líneas (`views.py` + `workplace.html`).
+
+## 14. Bug por confirmar: botón "Contratar" en `/stripe/planes/` posiblemente ilegible en hover (28 jul 2026)
+
+**Reportado por Jorge:** en `https://normaia.ihes.mx/stripe/planes/`, al pasar el cursor sobre el botón de un plan, "desaparece" — aclaración de Jorge: puede no ser que desaparezca del todo, sino que el color del texto quede igual que el fondo (blanco sobre blanco), sigue siendo clickeable aunque no se vea.
+
+**Verificado parcialmente en código (`surveys/templates/stripe_planes.html`):** el único botón de esta página es `.btn-contratar-plan` (líneas 189-208), con fondo `var(--primary)` en reposo y `var(--primary-hover)` (`#4338ca`, indigo oscuro) en hover — ambas variables sí están definidas en `:root`, así que el CSS estático no muestra un bug obvio de blanco-sobre-blanco. No hay una variante secundaria/outline de este botón en el archivo. **Pendiente investigar**: revisar si algún JS (línea ~347 en adelante, maneja `data-plan` y probablemente el estado "plan actual/deshabilitado") cambia dinámicamente el texto/color del botón según el plan activo del usuario, lo cual podría no reflejarse en una revisión solo del CSS estático.
+
+## 15. Propuesta: renombrar el centro de trabajo demo y separar datos de Empresa vs. Centro en el alta — PENDIENTE (28 jul 2026)
+
+**Observación de Jorge:**
+1. El centro de trabajo de datos demo se llama **"Empresa Demo S.A. de C.V."** — pero es un *centro de trabajo*, no una empresa. Debería llamarse algo como "Centro de Trabajo Demo".
+2. El formulario de alta de un nuevo centro de trabajo (`workplaceform.html`) pide datos que en realidad son de la **empresa**, no del centro — no es coherente. Debería pedir solo: nombre del centro de trabajo, actividad del centro, número de empleados y domicilio. Los datos de la empresa (razón social, etc.) deberían vivir en **Configuración**, no en el alta de un centro.
+
+**Verificado en código:**
+- El nombre "Empresa Demo S.A. de C.V." está hardcodeado en `surveys/management/commands/cargar_datos_demo.py:129`.
+- `workplaceform.html` (líneas ~131-215) mezcla campos de empresa y de centro: "Nombre o Denominación" (placeholder "Empresa S.A. de C.V."), "Actividad principal", **"Objetivo de la empresa"**, "Otras actividades principales" — junto con campos que sí son del centro: número de empleados y domicilio (calle, localidad, estado, código postal). El campo "Objetivo de la empresa" en particular confirma la mezcla que señala Jorge.
+- **Pendiente de alcance mayor:** esto probablemente requiere revisar el modelo `Workplace` (¿tiene campos que en realidad pertenecen a una entidad "Empresa" separada que no existe hoy?) y la vista de Configuración, antes de escribir una especificación de corrección — no es un cambio de una sola línea como el #13.
+
 ## PENDIENTE: más observaciones por llegar (Jorge sigue enviando antes de armar el prompt final para Replit)
 
 Jorge las irá pasando conforme los socios se las compartan. Se agregan aquí mismo conforme lleguen, verificadas contra el código antes de anotarlas como "confirmado" o "por verificar".
