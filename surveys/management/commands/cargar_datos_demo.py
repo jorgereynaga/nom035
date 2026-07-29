@@ -126,7 +126,7 @@ class Command(BaseCommand):
 
         wp = Workplace.objects.create(
             user=user,
-            name='Empresa Demo S.A. de C.V.',
+            name='Centro de Trabajo Demo',
             main_activity='Manufactura y distribución de productos',
             objective='Producción y comercialización de bienes',
             other_activities='Distribución, logística y servicio al cliente',

@@ -667,6 +667,7 @@ class WorkplaceView(LoginRequiredMixin,View):
 				"riesgo_nivel_nombre": nivel_nombre,
 				"survey_completion_pct": survey_completion_pct,
 				"evaluacion_estado": evaluacion_estado,
+				"eval_to_check": eval_to_check,
 			})
 
 		total_centros = len(workplaces)
