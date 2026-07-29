@@ -337,8 +337,9 @@
     .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
     .form-field { display: flex; flex-direction: column; gap: 6px; }
     .form-field label { font-size: .8125rem; font-weight: 600; color: var(--fg); }
-    .form-field input { padding: 11px 14px; border: 1.5px solid var(--border); border-radius: 9px; font-size: .875rem; font-family: inherit; color: var(--fg); outline: none; transition: border-color .2s; background: #fff; }
-    .form-field input:focus { border-color: var(--primary); }
+    .form-field input, .form-field textarea { padding: 11px 14px; border: 1.5px solid var(--border); border-radius: 9px; font-size: .875rem; font-family: inherit; color: var(--fg); outline: none; transition: border-color .2s; background: #fff; }
+    .form-field input:focus, .form-field textarea:focus { border-color: var(--primary); }
+    .form-field textarea { resize: vertical; min-height: 96px; }
     .form-message { font-size: .875rem; padding: 12px 16px; border-radius: 9px; display: none; }
     .form-message.success { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; display: block; }
     .form-message.error { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; display: block; }
@@ -518,6 +519,12 @@
             <input type="text" id="contactCname" name="cname" placeholder="Nombre de tu empresa" />
           </div>
         </div>
+        <div class="form-row" style="grid-template-columns: 1fr;">
+          <div class="form-field">
+            <label for="contactMsg">Mensaje *</label>
+            <textarea id="contactMsg" name="message" placeholder="Cuéntanos en qué podemos ayudarte" required></textarea>
+          </div>
+        </div>
         <div id="contactMessage" class="form-message" role="alert"></div>
         <button type="submit" class="btn btn-primary">
           Enviar mensaje
@@ -639,15 +646,16 @@
     e.preventDefault();
     const form = e.target;
     const msg  = document.getElementById('contactMessage');
-    const name  = form.name.value.trim();
-    const email = form.email.value.trim();
-    const phone = form.phone.value.trim();
-    const cname = form.cname.value.trim();
+    const name    = form.name.value.trim();
+    const email   = form.email.value.trim();
+    const phone   = form.phone.value.trim();
+    const cname   = form.cname.value.trim();
+    const message = form.message.value.trim();
 
     msg.className = 'form-message';
     msg.textContent = '';
 
-    const body = new URLSearchParams({ name, email, phone, cname });
+    const body = new URLSearchParams({ name, email, phone, cname, message });
     try {
       const res  = await fetch('/contact/', { method: 'POST', body });
       const data = await res.json();

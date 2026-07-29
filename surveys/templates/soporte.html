@@ -1,0 +1,183 @@
+{% extends 'index.html'%}
+{% load static %}
+
+{% block style %}
+    .wf-page { max-width: 780px; margin: 0 auto; padding: 32px 16px 60px; }
+
+    .wf-header { margin-bottom: 28px; }
+    .wf-header h1 {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-size: 22px; font-weight: 700;
+        color: var(--text-primary); margin-bottom: 4px;
+    }
+    .wf-header p { font-size: 14px; color: var(--text-muted); margin: 0; }
+
+    .wf-card {
+        background: var(--bg-base);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 32px;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .wf-section-title {
+        font-size: 11px; font-weight: 700; letter-spacing: .8px;
+        text-transform: uppercase; color: var(--text-muted);
+        margin: 0 0 16px; padding-bottom: 8px;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .wf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+    .wf-grid.single { grid-template-columns: 1fr; }
+
+    .wf-field { display: flex; flex-direction: column; gap: 6px; }
+    .wf-field label {
+        font-size: 12px; font-weight: 600;
+        color: var(--text-secondary);
+    }
+    .wf-field label span { color: #dc2626; margin-left: 2px; }
+
+    .wf-input, .wf-select, .wf-textarea {
+        width: 100%;
+        padding: 10px 14px;
+        border: 1.5px solid var(--border);
+        border-radius: var(--radius-md);
+        font-family: 'Inter', sans-serif;
+        font-size: 14px; color: var(--text-primary);
+        background: var(--bg-base);
+        transition: border-color .15s, box-shadow .15s;
+        outline: none;
+    }
+    .wf-input:focus, .wf-select:focus, .wf-textarea:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(79,70,229,.1);
+    }
+    .wf-input::placeholder, .wf-textarea::placeholder { color: var(--text-muted); }
+    .wf-textarea { resize: vertical; min-height: 110px; }
+
+    .wf-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 8px; }
+    .btn-wf-save {
+        padding: 10px 24px; border-radius: var(--radius-md);
+        font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600;
+        border: none; background: var(--primary); color: #fff;
+        cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+        transition: background .15s;
+    }
+    .btn-wf-save:hover { background: var(--primary-dark); }
+    .btn-wf-save:disabled { opacity: .65; cursor: not-allowed; }
+
+    .wf-form-message { font-size: 13px; padding: 11px 14px; border-radius: 8px; display: none; margin-bottom: 20px; }
+    .wf-form-message.success { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; display: block; }
+    .wf-form-message.error { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; display: block; }
+
+    @media (max-width: 600px) {
+        .wf-grid { grid-template-columns: 1fr; }
+        .wf-card { padding: 20px; }
+    }
+{% endblock %}
+
+{% block dashboard %}
+<div class="wf-page">
+
+    <div class="wf-header">
+        <h1>Contactar a Soporte</h1>
+        <p>Escríbenos y te responderemos a la brevedad al correo que nos indiques.</p>
+    </div>
+
+    <div class="wf-card">
+        <div id="supportMessage" class="wf-form-message" role="alert"></div>
+        <form id="supportForm">
+            {% csrf_token %}
+            <p class="wf-section-title">Tu solicitud</p>
+            <div class="wf-grid single">
+                <div class="wf-field">
+                    <label for="support_area">Área <span>*</span></label>
+                    <select id="support_area" name="area" class="wf-select" required>
+                        <option value="" disabled selected>Selecciona un área</option>
+                        <option value="soporte">Soporte técnico — cuando algo falla en la plataforma</option>
+                        <option value="compras">Compras y facturación</option>
+                        <option value="administracion">Administración</option>
+                    </select>
+                </div>
+            </div>
+            <div class="wf-grid single">
+                <div class="wf-field">
+                    <label for="support_message">Mensaje <span>*</span></label>
+                    <textarea id="support_message" name="message" class="wf-textarea" placeholder="Cuéntanos con detalle en qué podemos ayudarte" required></textarea>
+                </div>
+            </div>
+
+            <p class="wf-section-title">Datos de contacto</p>
+            <div class="wf-grid">
+                <div class="wf-field">
+                    <label for="support_name">Nombre <span>*</span></label>
+                    <input type="text" id="support_name" name="name" class="wf-input" value="{{ nombre }}" required>
+                </div>
+                <div class="wf-field">
+                    <label for="support_email">Correo electrónico <span>*</span></label>
+                    <input type="email" id="support_email" name="email" class="wf-input" value="{{ correo }}" required>
+                </div>
+            </div>
+            <div class="wf-grid">
+                <div class="wf-field">
+                    <label for="support_phone">Teléfono</label>
+                    <input type="tel" id="support_phone" name="phone" class="wf-input" value="{{ telefono }}">
+                </div>
+            </div>
+
+            <div class="wf-actions">
+                <button type="submit" id="support_submit_btn" class="btn-wf-save">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                    Enviar solicitud
+                </button>
+            </div>
+        </form>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('supportForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    var form = e.target;
+    var msg = document.getElementById('supportMessage');
+    var btn = document.getElementById('support_submit_btn');
+    msg.className = 'wf-form-message';
+    msg.textContent = '';
+    btn.disabled = true;
+
+    var body = new URLSearchParams({
+        area: form.area.value,
+        message: form.message.value,
+        name: form.name.value,
+        email: form.email.value,
+        phone: form.phone.value
+    });
+
+    fetch("{% url 'soporte' %}", {
+        method: 'POST',
+        headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+        body: body
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        btn.disabled = false;
+        if (data.status === 'ok') {
+            msg.classList.add('success');
+            msg.textContent = 'Solicitud enviada. Te responderemos a la brevedad.';
+            form.reset();
+        } else {
+            msg.classList.add('error');
+            msg.textContent = 'Hubo un problema al enviar tu solicitud. Verifica los campos requeridos.';
+        }
+    })
+    .catch(function() {
+        btn.disabled = false;
+        msg.classList.add('error');
+        msg.textContent = 'No se pudo conectar con el servidor. Intenta de nuevo más tarde.';
+    });
+});
+</script>
+{% endblock %}
