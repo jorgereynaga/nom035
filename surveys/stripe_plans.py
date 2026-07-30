@@ -24,7 +24,7 @@ PLANS = {
         "visible": False,
     },
     "nom035_pyme": {
-        "price_id": "price_1TmbFUKv0IwwlafKNdHPKxmL",
+        "price_id": "price_1TyvGE3VxDt1tMk1vG4SD0Wv",
         "name": "NOM-035 PyME",
         "descripcion": "50 evaluaciones con vigencia de un año",
         "precio": 1190,
@@ -34,7 +34,7 @@ PLANS = {
         "visible": True,
     },
     "nom035_empresarial": {
-        "price_id": "price_1TmbWAKv0IwwlafKLkizNhJ7",
+        "price_id": "price_1TyvGz3VxDt1tMk1VyziuDjv",
         "name": "NOM-035 Empresarial",
         "descripcion": "100 evaluaciones con vigencia de un año",
         "precio": 2400,
@@ -44,7 +44,7 @@ PLANS = {
         "visible": True,
     },
     "nom035_ilimitado": {
-        "price_id": "price_1TmbWlKv0IwwlafKRMeC838m",
+        "price_id": "price_1TyvHU3VxDt1tMk19bS1Zn3V",
         "name": "NOM-035 Ilimitado",
         "descripcion": "Evaluaciones ilimitadas con vigencia de un año",
         "precio": 12000,
@@ -56,7 +56,7 @@ PLANS = {
 
     # ── PSICOMETRIA ───────────────────────────────────────────
     "psico_starter": {
-        "price_id": "price_1TmbXWKv0IwwlafKplaxn3fI",
+        "price_id": "price_1TyvIM3VxDt1tMk1YjV77nKu",
         "name": "Psicometría Starter",
         "descripcion": "20 evaluaciones por mes, se renuevan cada mes",
         "precio": 390,
@@ -67,7 +67,7 @@ PLANS = {
         "visible": True,
     },
     "psico_ilimitado_mensual": {
-        "price_id": "price_1TmbYNKv0IwwlafKU3K8usO2",
+        "price_id": "price_1TyvIr3VxDt1tMk1hmOJg8cM",
         "name": "Psicometría Ilimitado Mensual",
         "descripcion": "Evaluaciones ilimitadas, pago mensual",
         "precio": 1500,
@@ -78,7 +78,7 @@ PLANS = {
         "visible": True,
     },
     "psico_ilimitado_anual": {
-        "price_id": "price_1TmcFcKv0IwwlafKyuCJiBCw",
+        "price_id": "price_1TyvJf3VxDt1tMk1SIs7HT9p",
         "name": "Psicometría Ilimitado Anual",
         "descripcion": "Evaluaciones ilimitadas, pago anual",
         "precio": 12500,
@@ -91,7 +91,7 @@ PLANS = {
 
     # ── SUITE EMPRESARIAL (anual) ─────────────────────────────
     "suite_pro_50": {
-        "price_id": "price_1TmcHEKv0IwwlafKcUaYDZCv",
+        "price_id": "price_1TyvKD3VxDt1tMk1MOnelPBx",
         "name": "Suite Pro 50",
         "descripcion": "50 evaluaciones NOM-035 + psicometría ilimitada — anual",
         "precio": 13000,
@@ -102,7 +102,7 @@ PLANS = {
         "visible": True,
     },
     "suite_pro_100": {
-        "price_id": "price_1TmcJ7Kv0IwwlafKxcy9ZHWB",
+        "price_id": "price_1TyvKg3VxDt1tMk1ZSIQ9qWM",
         "name": "Suite Pro 100",
         "descripcion": "100 evaluaciones NOM-035 + psicometría ilimitada — anual",
         "precio": 13800,
@@ -113,7 +113,7 @@ PLANS = {
         "visible": True,
     },
     "suite_pro_ilimitado": {
-        "price_id": "price_1TmcL3Kv0IwwlafK4YTtbibt",
+        "price_id": "price_1TyvLF3VxDt1tMk13TOgEoiO",
         "name": "Suite Pro Ilimitado",
         "descripcion": "NOM-035 ilimitado + psicometría ilimitada — anual",
         "precio": 16000,
