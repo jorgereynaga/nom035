@@ -1083,14 +1083,25 @@
           Sin plan activo — contratar
         </a>
         {% endif %}
-		{% if tiene_datos_demo %}
-                <button onclick="borrarDemo()" class="plan-badge sin-plan" style="border:1px solid #e2e8f0;background:#fff8f0;color:#92400e;cursor:pointer;">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg>
-                  Borrar datos de prueba
-                </button>
-                {% endif %}
               </div>
             </div>
+
+            {% if tiene_datos_demo %}
+            <div class="alert alert-warning" style="justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;">
+              <div style="display:flex;align-items:flex-start;gap:10px;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-top:1px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                <div>
+                  <strong>Estás viendo datos de demostración.</strong>
+                  <div>Son ficticios y sirven para que conozcas la plataforma. Bórralos cuando quieras empezar a usar tu cuenta con información real de tu empresa.</div>
+                </div>
+              </div>
+              <button onclick="borrarDemo()" style="background:#fff;border:1px solid #fde68a;color:#92400e;padding:8px 16px;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:6px;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+                Borrar datos de prueba
+              </button>
+            </div>
+            {% endif %}
+
             <script>
             function borrarDemo() {
               if (!confirm('¿Seguro que deseas eliminar todos los datos de prueba? Esta acción no se puede deshacer.')) return;
