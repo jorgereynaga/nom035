@@ -1788,7 +1788,7 @@ def employees_dt(request,workplace_id,t,evaluation):
 			elif item.surveyA.filter(evaluation=evaluation).last() and item.workplace.survey_type()!=3:
 				_sum=0
 				for field in RiskSurveyA._meta.fields:
-					if field.name not in ['id','employee','evaluation','record_create','record_update','r2_p_a','r2_p_b']:
+					if field.name not in ['id','employee','evaluation','record_create','record_update','r2_p_a','r2_p_b','es_demo']:
 						_sum=_sum+(getattr(item.surveyA.filter(evaluation=evaluation).last(),field.attname) or 0)
 				val=f"{_sum}/184"
 				result_class,result_text=("#9be5f7","Riesgo nulo") if _sum<20 else (("#6bf56e","Riesgo bajo") if _sum<45 else (("#ffff00","Riesgo medio") if _sum<70 else (("#ffc000","Riesgo alto") if _sum<90 else ("#ff7070","Riesgo muy alto"))))
@@ -1883,7 +1883,7 @@ def get_questions(request):
 				'field_choices':[{'id':choice[0],'title':choice[1]}for choice in item.choices] if item.choices else None,
 				'type':1 if item.choices else 0,
 				} for item in RiskSurveyA._meta.fields if item.name not in [
-				'id','employee','evaluation','record_create','record_update'] ]
+				'id','employee','evaluation','record_create','record_update','es_demo'] ]
 			return JsonResponse({'data':{"questions":questions},'form_name':RiskSurveyA._meta.verbose_name,'form':RiskSurveyA._meta.model_name})
 		elif not emp.surveyB.filter(Q(evaluation=workplace.evaluation)) and workplace.survey_type()==3:
 			questions=[{'field_name':item.name,'field_desc':item.verbose_name,
@@ -1902,7 +1902,7 @@ def get_questions(request):
 				'field_choices':[{'id':choice[0],'title':choice[1]}for choice in item.choices] if item.choices else None,
 				'type':1 if item.choices else 0,
 				} for item in Employee._meta.fields if item.name not in [
-				'id','workplace','record_create','record_update'] ]
+				'id','workplace','record_create','record_update','es_demo'] ]
 
 			return JsonResponse({'data':{"questions":questions},'form_name':Employee._meta.verbose_name,'form':Employee._meta.model_name})
 	return JsonResponse({'data':{"questions":[]},'form_name':'invalid form','form':''})
@@ -3060,7 +3060,7 @@ class EmployeeList(generics.ListCreateAPIView):
 			elif survey_a_actual and emp.workplace.survey_type()!=3:
 				_sum=0
 				for field in RiskSurveyA._meta.fields:
-					if field.name not in ['id','employee','evaluation','record_create','record_update','r2_p_a','r2_p_b']:
+					if field.name not in ['id','employee','evaluation','record_create','record_update','r2_p_a','r2_p_b','es_demo']:
 						_sum=_sum+(getattr(survey_a_actual,field.attname) or 0)
 				val=f"{_sum}/184"
 				result_text="Riesgo nulo" if _sum<20 else ("Riesgo bajo" if _sum<45 else ("Riesgo medio" if _sum<70 else ("Riesgo alto" if _sum<90 else "Riesgo muy alto")))
@@ -3252,7 +3252,7 @@ class PDFCreate(APIView):
 			elif employee.surveyA.filter(evaluation=evaluation).last() and employee.workplace.survey_type()!=3:
 				res=0
 				for field in RiskSurveyA._meta.fields:
-					if field.name not in ['id','employee','evaluation','record_create','record_update','r2_p_a','r2_p_b']:
+					if field.name not in ['id','employee','evaluation','record_create','record_update','r2_p_a','r2_p_b','es_demo']:
 						res=res+(getattr(employee.surveyA.filter(evaluation=evaluation).last(),field.attname) or 0)
 				val=f"{res}/184"
 				promedio=round((res/184)*100)
