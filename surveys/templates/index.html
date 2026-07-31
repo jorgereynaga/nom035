@@ -618,7 +618,7 @@
 
       <!-- NOM-035 -->
       <div class="nav-section-label">NOM-035</div>
-      <a class="nav-item-link" href="{% url 'workplaces' %}">
+      <a class="nav-item-link" href="{% url 'workplaces' %}" id="tour-centros">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
         Centros de Trabajo
       </a>
@@ -633,18 +633,18 @@
            clima laboral viven en la ficha de ese centro). -->
       <!-- Psicometría -->
       <div class="nav-section-label">Psicometría</div>
-      <a class="nav-item-link" href="{% url 'instrumentos_catalogo' %}">
+      <a class="nav-item-link" href="{% url 'instrumentos_catalogo' %}" id="tour-evaluaciones">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
         Evaluaciones
       </a>
-      <a class="nav-item-link" href="{% url 'candidatos' %}">
+      <a class="nav-item-link" href="{% url 'candidatos' %}" id="tour-candidatos">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
         Candidatos
       </a>
 
       <!-- Cuenta -->
       <div class="nav-section-label">Cuenta</div>
-      <a class="nav-item-link" href="{% url 'stripe_planes' %}">
+      <a class="nav-item-link" href="{% url 'stripe_planes' %}" id="tour-planes">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
         Planes
       </a>
@@ -652,7 +652,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a4 4 0 014-4h4a4 4 0 014 4v2"/></svg>
         Configuración
       </a>
-      <a class="nav-item-link" href="{% url 'soporte' %}">
+      <a class="nav-item-link" href="{% url 'soporte' %}" id="tour-soporte">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
         Soporte
       </a>
@@ -1063,6 +1063,42 @@
         .clima-wp-center { border-right: none; border-bottom: 1px solid var(--border); }
         .psico-grid     { grid-template-columns: 1fr; }
       }
+
+      /* ── Recorrido guiado ── */
+      #tourOverlay { position: fixed; inset: 0; z-index: 900; display: none; }
+      #tourOverlay.active { display: block; pointer-events: auto; }
+      .tour-spotlight { position: fixed; border-radius: 12px; box-shadow: 0 0 0 9999px rgba(10,14,25,.65); transition: all .35s cubic-bezier(.4,0,.2,1); pointer-events: none; }
+      .tour-bubble {
+        position: fixed; z-index: 910; max-width: 290px; background: #fff; border-radius: 16px;
+        box-shadow: 0 20px 50px rgba(15,23,42,.25); padding: 16px 18px 14px;
+        transition: top .35s cubic-bezier(.4,0,.2,1), left .35s cubic-bezier(.4,0,.2,1);
+        font-size: 13px;
+      }
+      .tour-bubble::before { content: ''; position: absolute; width: 16px; height: 16px; background: #fff; transform: rotate(45deg); border-radius: 3px; }
+      .tour-bubble[data-side="right"]::before { left: -7px; top: 26px; }
+      .tour-bubble[data-side="left"]::before { right: -7px; top: 26px; }
+      .tour-bubble[data-side="bottom"]::before { top: -7px; left: 26px; }
+      .tour-bubble[data-side="top"]::before { bottom: -7px; left: 26px; }
+      .tour-step-count { font-size: 10px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--primary); margin-bottom: 6px; }
+      .tour-title { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14.5px; font-weight: 800; margin: 0 0 6px; }
+      .tour-text { color: var(--text-secondary); line-height: 1.5; margin: 0 0 14px; }
+      .tour-footer { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+      .tour-skip { background: none; border: none; color: var(--text-muted); font-size: 11.5px; font-weight: 600; cursor: pointer; padding: 4px 2px; }
+      .tour-skip:hover { color: var(--text-secondary); }
+      .tour-nav { display: flex; gap: 6px; }
+      .tour-btn { border: none; border-radius: 8px; padding: 7px 14px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; }
+      .tour-btn-prev { background: var(--bg-surface); color: var(--text-secondary); }
+      .tour-btn-next { background: var(--primary); color: #fff; }
+      .tour-btn-next:hover { background: var(--primary-dark); }
+      .tour-dots { display: flex; gap: 4px; margin-top: 12px; justify-content: center; }
+      .tour-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--border); }
+      .tour-dot.on { background: var(--primary); width: 14px; border-radius: 3px; }
+      .tour-welcome { position: fixed; inset: 0; z-index: 910; display: none; align-items: center; justify-content: center; }
+      .tour-welcome.active { display: flex; pointer-events: auto; background: rgba(10,14,25,.65); }
+      .tour-welcome-card { background: #fff; border-radius: 20px; box-shadow: 0 20px 50px rgba(15,23,42,.25); padding: 32px 30px; max-width: 340px; text-align: center; }
+      .tour-welcome-icon { width: 52px; height: 52px; border-radius: 14px; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; }
+      .tour-welcome-card h2 { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 18px; font-weight: 800; margin: 0 0 8px; }
+      .tour-welcome-card p { font-size: 13px; color: var(--text-secondary); line-height: 1.6; margin: 0 0 20px; }
     </style>
 
     <!-- ── Header ─────────────────────────────────────────────── -->
@@ -1135,7 +1171,7 @@
     </div>
     {% endif %}
 
-    <div class="kpi-row">
+    <div class="kpi-row" id="tour-kpis">
       <div class="kpi-card"><p class="kpi-label">Centros de trabajo</p><p class="kpi-value">{{kpi_total_centros}}</p></div>
       <div class="kpi-card"><p class="kpi-label">Empleados totales</p><p class="kpi-value">{{kpi_empleados_totales}}</p></div>
       <div class="kpi-card"><p class="kpi-label">Evaluaciones aplicadas</p><p class="kpi-value">{{kpi_evaluaciones_totales}}</p></div>
@@ -1144,7 +1180,7 @@
     </div>
 
     <!-- Dashboard executive risk summary -->
-    <section class="db-section section-nom035">
+    <section class="db-section section-nom035" id="tour-atencion">
       <div class="db-section-header"><div class="db-section-title"><div class="db-section-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg></div>NOM-035 — Centros que necesitan atención</div><div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;"><span class="credit-pill credit-pill-blue">{{nom035_disponibles}} crédito{% if nom035_disponibles != 1 %}s{% endif %} disponible{% if nom035_disponibles != 1 %}s{% endif %}</span><a href="{% url 'workplaces' %}" class="link-all">Ver todos los centros</a></div></div>
       {% if centros_atencion %}<div class="atencion-list">{% for item in centros_atencion %}<div class="atencion-card risk-{{item.riesgo_nivel}}"><div><p class="atencion-name">{{item.name}}</p><p class="atencion-meta">{{item.empleados_registrados}} empleados · Evaluación #{{item.cat}} · {{item.survey_completion}}% aplicado</p></div><span class="risk-pill risk-{{item.riesgo_nivel}}">Riesgo: {{item.riesgo_nivel_nombre}}</span><a href="{% url 'single_workplace' item.id %}" class="btn btn-outline btn-sm">Ver centro</a></div>{% endfor %}</div>{% elif not has_workplaces %}<div class="card"><div class="card-body"><div class="empty-state"><p>No hay centros registrados. <a href="/workplaceform/">Registra el primero</a>.</p></div></div></div>{% else %}<div class="dim-empty">Aún no hay datos de riesgo suficientes en tus centros para mostrar aquí.</div>{% endif %}
     </section>
@@ -1286,6 +1322,127 @@
         btn.style.background = ''; btn.style.color = ''; btn.style.borderColor = '';
       }, 2200);
     }
+    </script>
+
+    <!-- ── Recorrido guiado ── -->
+    <div id="tourOverlay">
+      <div class="tour-spotlight" id="tourSpotlight"></div>
+      <div class="tour-bubble" id="tourBubble" data-side="right">
+        <div class="tour-step-count" id="tourStepCount">Paso 1 de 7</div>
+        <h3 class="tour-title" id="tourTitle"></h3>
+        <p class="tour-text" id="tourText"></p>
+        <div class="tour-footer">
+          <button class="tour-skip" onclick="endTour()">Saltar recorrido</button>
+          <div class="tour-nav">
+            <button class="tour-btn tour-btn-prev" id="tourPrevBtn" onclick="prevTourStep()">Atrás</button>
+            <button class="tour-btn tour-btn-next" id="tourNextBtn" onclick="nextTourStep()">Siguiente</button>
+          </div>
+        </div>
+        <div class="tour-dots" id="tourDots"></div>
+      </div>
+    </div>
+
+    <div class="tour-welcome" id="tourWelcome">
+      <div class="tour-welcome-card">
+        <div class="tour-welcome-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <h2>¡Bienvenido a NormaIA!</h2>
+        <p>Te damos un recorrido rápido por el menú y el Dashboard, para que sepas dónde está todo. Toma menos de un minuto.</p>
+        <button class="tour-btn tour-btn-next" style="width:100%;justify-content:center;padding:10px;" onclick="showTourStep(0)">Empezar recorrido</button>
+        <div style="margin-top:10px;"><button class="tour-skip" onclick="endTour()">Saltar, prefiero explorar solo</button></div>
+      </div>
+    </div>
+
+    <script>
+    (function() {
+      var TOUR_KEY = 'normaia_tour_dashboard_visto';
+      var steps = [
+        { target: '#tour-centros', side: 'right', title: 'Centros de Trabajo', text: 'Aquí administras cada centro: empleados, evaluaciones NOM-035, evidencias y clima laboral.' },
+        { target: '#tour-evaluaciones', side: 'right', title: 'Evaluaciones', text: 'Desde aquí asignas las pruebas psicométricas (DISC, Raven, Zavic y más) a tus candidatos.' },
+        { target: '#tour-candidatos', side: 'right', title: 'Candidatos', text: 'Consulta a las personas que has evaluado y revisa sus resultados y perfil narrativo con IA.' },
+        { target: '#tour-planes', side: 'right', title: 'Planes', text: 'Contrata o cambia tu plan cuando estés listo para dejar de usar datos de demostración.' },
+        { target: '#tour-soporte', side: 'right', title: 'Soporte', text: '¿Algo falla o tienes dudas? Escríbenos a Soporte, Compras o Administración desde aquí.' },
+        { target: '#tour-kpis', side: 'bottom', title: 'Resumen general', text: 'Un vistazo rápido a tus centros, empleados y nivel de cumplimiento documental.' },
+        { target: '#tour-atencion', side: 'top', title: 'Centros que necesitan atención', text: 'Los centros con mayor riesgo aparecen primero, para que sepas por cuál empezar a trabajar.' },
+      ];
+      var current = -1;
+      var overlay = document.getElementById('tourOverlay');
+      var spotlight = document.getElementById('tourSpotlight');
+      var bubble = document.getElementById('tourBubble');
+      var welcome = document.getElementById('tourWelcome');
+
+      function tourAlreadySeen() {
+        try { return localStorage.getItem(TOUR_KEY) === '1'; } catch (e) { return true; }
+      }
+      function markTourSeen() {
+        try { localStorage.setItem(TOUR_KEY, '1'); } catch (e) {}
+      }
+
+      function renderDots() {
+        var wrap = document.getElementById('tourDots');
+        wrap.innerHTML = '';
+        steps.forEach(function(s, i) {
+          var d = document.createElement('div');
+          d.className = 'tour-dot' + (i === current ? ' on' : '');
+          wrap.appendChild(d);
+        });
+      }
+
+      window.showTourStep = function(i) {
+        if (i >= steps.length) { window.endTour(); return; }
+        var step = steps[i];
+        var el = document.querySelector(step.target);
+        if (!el) { window.showTourStep(i + 1); return; }
+        current = i;
+        welcome.classList.remove('active');
+        overlay.classList.add('active');
+
+        var r = el.getBoundingClientRect();
+        var pad = 8;
+        spotlight.style.top = (r.top - pad) + 'px';
+        spotlight.style.left = (r.left - pad) + 'px';
+        spotlight.style.width = (r.width + pad * 2) + 'px';
+        spotlight.style.height = (r.height + pad * 2) + 'px';
+
+        bubble.setAttribute('data-side', step.side);
+        document.getElementById('tourStepCount').textContent = 'Paso ' + (i + 1) + ' de ' + steps.length;
+        document.getElementById('tourTitle').textContent = step.title;
+        document.getElementById('tourText').textContent = step.text;
+        document.getElementById('tourPrevBtn').style.visibility = i === 0 ? 'hidden' : 'visible';
+        document.getElementById('tourNextBtn').textContent = i === steps.length - 1 ? 'Terminar' : 'Siguiente';
+
+        var top, left;
+        if (step.side === 'right') { top = r.top - 10; left = r.right + 18; }
+        else if (step.side === 'left') { top = r.top - 10; left = r.left - 18 - 290; }
+        else if (step.side === 'bottom') { top = r.bottom + 16; left = r.left; }
+        else { top = r.top - 16 - 140; left = r.left; }
+
+        top = Math.max(12, Math.min(top, window.innerHeight - 180));
+        left = Math.max(12, Math.min(left, window.innerWidth - 306));
+
+        bubble.style.top = top + 'px';
+        bubble.style.left = left + 'px';
+        renderDots();
+      };
+
+      window.nextTourStep = function() { window.showTourStep(current + 1); };
+      window.prevTourStep = function() { window.showTourStep(current - 1); };
+      window.endTour = function() {
+        overlay.classList.remove('active');
+        welcome.classList.remove('active');
+        current = -1;
+        markTourSeen();
+      };
+
+      window.addEventListener('resize', function() { if (current >= 0) window.showTourStep(current); });
+
+      if (!tourAlreadySeen()) {
+        document.addEventListener('DOMContentLoaded', function() {
+          welcome.classList.add('active');
+        });
+      }
+    })();
     </script>
 
     {% endblock %}
