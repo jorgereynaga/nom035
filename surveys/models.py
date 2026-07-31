@@ -114,6 +114,9 @@ class Workplace(models.Model):
 			return 3
 		else:
 			return 0
+	def last_completed_evaluation(self):
+		last = self.evaluation_history.aggregate(models.Max('numero_evaluacion'))['numero_evaluacion__max']
+		return last if last else self.evaluation
 
 class ResultFiles(models.Model):
 	workplace=models.ForeignKey(Workplace,related_name="result_files",verbose_name='Centro de trabajo', on_delete=models.PROTECT)

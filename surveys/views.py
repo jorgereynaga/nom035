@@ -154,7 +154,7 @@ class Index(LoginRequiredMixin,View):
 		wk=[]
 		for item in Workplace.objects.filter(user_id=self.request.user.id):
 			employees=item.employees.all()
-			eval_to_check = item.evaluation if item.paid else max(1, item.evaluation - 1)
+			eval_to_check = item.last_completed_evaluation()
 			from django.test import RequestFactory
 			factory = RequestFactory()
 			fake_req_riesgo = factory.get('/get_riesgo_general/', {'workplace_id': str(item.id), 'evaluation': str(eval_to_check)})
@@ -617,7 +617,7 @@ class WorkplaceView(LoginRequiredMixin,View):
 		suma_empleados_registrados = 0
 
 		for wk in workplaces_qs:
-			eval_to_check = wk.evaluation if wk.paid else max(1, wk.evaluation - 1)
+			eval_to_check = wk.last_completed_evaluation()
 
 			fake_req = factory.get('/get_riesgo_general/', {'workplace_id': str(wk.id), 'evaluation': str(eval_to_check)})
 			fake_req.user = request.user
@@ -1042,7 +1042,11 @@ class GenerarInformeResultadosView(LoginRequiredMixin,View):
 		workplace = Workplace.objects.filter(id=workplace_id, user_id=request.user.id).first()
 		if not workplace:
 			return HttpResponseRedirect(reverse_lazy('workplaces'))
-		eval_to_check = workplace.evaluation if workplace.paid else max(1, workplace.evaluation - 1)
+		evaluation_param = request.GET.get('evaluation')
+		if evaluation_param and evaluation_param.isdigit() and 1 <= int(evaluation_param) <= workplace.evaluation:
+			eval_to_check = int(evaluation_param)
+		else:
+			eval_to_check = workplace.last_completed_evaluation()
 		from django.test import RequestFactory
 		factory = RequestFactory()
 		fake_request = factory.get('/get_chart_data/', {'workplace_id': str(workplace_id), 'evaluation': str(eval_to_check)})
@@ -1084,7 +1088,11 @@ class CuestionariosAplicadosView(LoginRequiredMixin,View):
 		workplace = Workplace.objects.filter(id=workplace_id, user_id=request.user.id).first()
 		if not workplace:
 			return HttpResponseRedirect(reverse_lazy('workplaces'))
-		evaluation = workplace.evaluation if workplace.paid else max(1, workplace.evaluation - 1)
+		evaluation_param = request.GET.get('evaluation')
+		if evaluation_param and evaluation_param.isdigit() and 1 <= int(evaluation_param) <= workplace.evaluation:
+			evaluation = int(evaluation_param)
+		else:
+			evaluation = workplace.last_completed_evaluation()
 		empleados = Employee.objects.filter(workplace=workplace)
 		convocados = empleados.count()
 		survey_type = workplace.survey_type()
@@ -1178,14 +1186,20 @@ def get_portafolio_status(request):
 	if not workplace:
 		return JsonResponse({'items': []})
 	portafolio = PortafolioEvidencias.objects.filter(workplace=workplace).first()
-	eval_to_check = workplace.evaluation if workplace.paid else max(1, workplace.evaluation - 1)
+	evaluation_param = request.GET.get('evaluation')
+	if evaluation_param and evaluation_param.isdigit() and 1 <= int(evaluation_param) <= workplace.evaluation:
+		eval_to_check = int(evaluation_param)
+	else:
+		eval_to_check = workplace.last_completed_evaluation()
+	historial_nums = set(workplace.evaluation_history.values_list('numero_evaluacion', flat=True))
+	evaluations = [{'numero': n, 'done': n in historial_nums} for n in range(1, workplace.evaluation + 1)]
 	items = []
 	# 1. Politica de Prevencion
 	politica_completa = bool(portafolio and portafolio.responsable_nombre)
 	items.append({
 		'nombre': 'Politica de Prevencion',
 		'estado': 'completo' if politica_completa else 'pendiente',
-		'detalle': 'Version ' + portafolio.version_politica if politica_completa else 'No generada aun',
+		'detalle': 'Version ' + portafolio.version_politica if politica_completa else 'No generada aun — da clic en Generar para crear la primera version',
 		'url': '/generar_politica/' + str(workplace.id) + '/',
 		'control': 'sistema',
 	})
@@ -1200,8 +1214,8 @@ def get_portafolio_status(request):
 	items.append({
 		'nombre': 'Informe de Resultados',
 		'estado': 'completo' if informe_completo else 'pendiente',
-		'detalle': 'Datos disponibles' if informe_completo else 'Sin respuestas suficientes',
-		'url': '/generar_informe_resultados/' + str(workplace.id) + '/',
+		'detalle': 'Datos disponibles' if informe_completo else 'Se necesita al menos 1 cuestionario respondido en esta evaluacion para poder generarlo',
+		'url': '/generar_informe_resultados/' + str(workplace.id) + '/?evaluation=' + str(eval_to_check),
 		'control': 'sistema',
 	})
 	# 3. Cuestionarios Aplicados
@@ -1224,7 +1238,7 @@ def get_portafolio_status(request):
 		'nombre': 'Cuestionarios Aplicados',
 		'estado': 'completo' if cuestionarios_completo else 'pendiente',
 		'detalle': str(respondieron) + ' de ' + str(convocados) + ' (' + str(porcentaje) + '%)',
-		'url': '/cuestionarios_aplicados/' + str(workplace.id) + '/',
+		'url': '/cuestionarios_aplicados/' + str(workplace.id) + '/?evaluation=' + str(eval_to_check),
 		'control': 'sistema',
 	})
 
@@ -1271,7 +1285,15 @@ def get_portafolio_status(request):
 	items_contables = [i for i in items if i['estado'] != 'no_aplica']
 	completos = sum(1 for i in items_contables if i['estado'] == 'completo')
 	porcentaje_cumplimiento = round((completos / len(items_contables)) * 100) if items_contables else 0
-	return JsonResponse({'items': items, 'porcentaje_cumplimiento': porcentaje_cumplimiento, 'completos': completos, 'total': len(items_contables)})
+	return JsonResponse({
+		'items': items,
+		'porcentaje_cumplimiento': porcentaje_cumplimiento,
+		'completos': completos,
+		'total': len(items_contables),
+		'evaluations': evaluations,
+		'viewing_evaluation': eval_to_check,
+		'workplace_name': workplace.name,
+	})
 class TestView(LoginRequiredMixin,View):
 	login_url = reverse_lazy('login')
 	redirect_field_name = 'redirect_to'
