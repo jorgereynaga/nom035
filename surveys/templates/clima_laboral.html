@@ -29,6 +29,17 @@
     .btn-submit { display: block; width: 100%; padding: 14px; background: #2563eb; color: #fff; border: none; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 28px; }
     .btn-submit:hover { background: #1d4ed8; }
     .anonimo { text-align: center; font-size: 12px; color: #94a3b8; margin-top: 16px; }
+    .reactivo-card.reactivo-missing { box-shadow: 0 0 0 2px #ef4444; }
+    .reactivo-missing-msg { display: none; font-size: 11px; font-weight: 700; color: #ef4444; margin-top: 8px; }
+    .reactivo-card.reactivo-missing .reactivo-missing-msg { display: block; }
+    .clima-error-banner {
+      display: none;
+      position: sticky; top: 0; z-index: 20;
+      background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c;
+      border-radius: 10px; padding: 12px 16px; margin-bottom: 16px;
+      font-size: 13px; font-weight: 600; line-height: 1.5;
+    }
+    .clima-error-banner.active { display: block; }
   </style>
 </head>
 <body>
@@ -44,7 +55,9 @@
     <strong>Instrucciones:</strong> Lee cuidadosamente cada afirmación y selecciona la opción que mejor refleje tu percepción sobre tu entorno laboral actual. No hay respuestas correctas o incorrectas. Responde con honestidad. Esta encuesta es completamente anónima.
   </div>
 
-  <form method="POST">
+  <div class="clima-error-banner" id="climaErrorBanner"></div>
+
+  <form method="POST" id="climaForm" novalidate>
     {% csrf_token %}
 
     <div class="dept-card">
@@ -83,6 +96,7 @@
           <span>Totalmente en desacuerdo</span>
           <span>Totalmente de acuerdo</span>
         </div>
+        <div class="reactivo-missing-msg">Te faltó responder esta pregunta</div>
       </div>
     {% endfor %}
 
@@ -91,5 +105,35 @@
   </form>
 
 </div>
+
+<script>
+document.getElementById('climaForm').addEventListener('submit', function(e){
+  var groups = {};
+  document.querySelectorAll('.reactivo-card input[type="radio"][required]').forEach(function(r){
+    if(!(r.name in groups)) groups[r.name] = false;
+    if(r.checked) groups[r.name] = true;
+  });
+  document.querySelectorAll('.reactivo-card.reactivo-missing').forEach(function(c){
+    c.classList.remove('reactivo-missing');
+  });
+  var missingNames = Object.keys(groups).filter(function(k){ return !groups[k]; });
+  var banner = document.getElementById('climaErrorBanner');
+  if (missingNames.length){
+    e.preventDefault();
+    var firstCard = null;
+    missingNames.forEach(function(name){
+      var input = document.querySelector('input[name="' + name + '"]');
+      var card = input.closest('.reactivo-card');
+      card.classList.add('reactivo-missing');
+      if (!firstCard) firstCard = card;
+    });
+    banner.textContent = 'Te faltó responder ' + missingNames.length + (missingNames.length === 1 ? ' pregunta' : ' preguntas') + '. Están marcadas en rojo, contesta todas antes de enviar.';
+    banner.classList.add('active');
+    firstCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  } else {
+    banner.classList.remove('active');
+  }
+});
+</script>
 </body>
 </html>

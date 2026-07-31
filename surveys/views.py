@@ -799,6 +799,10 @@ class WorkplaceDetailView(LoginRequiredMixin,View):
 			wk=Workplace.objects.filter(id=kwargs['workplace_id']).last()
 			ctx['last_evaluation']=wk.evaluation
 			ctx['evaluation']=kwargs['evaluation']
+		historial_nums=set(wk.evaluation_history.values_list('numero_evaluacion', flat=True))
+		ctx['evaluations']=[{'numero':n, 'done':n in historial_nums} for n in range(1, wk.evaluation+1)]
+		ctx['viewing_done']=ctx['evaluation'] in historial_nums
+		ctx['viewing_is_current']=(ctx['evaluation']==wk.evaluation)
 		return render(request, 'workplace_detail.html',ctx)
 class WorkplaceResultView(LoginRequiredMixin,View):
 	login_url = reverse_lazy('login')

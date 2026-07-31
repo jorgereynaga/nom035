@@ -152,30 +152,48 @@
 .detail-meta-label { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: #c7d2fe; }
 .detail-meta-value { font-size: 15px; font-weight: 700; color: #fff; }
 
-/* Evaluation nav */
-.eval-nav {
-  display: flex; align-items: center; gap: 8px; margin-bottom: 18px;
+/* Evaluation timeline */
+.eval-timeline {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 18px;
   position: relative; z-index: 1;
 }
-.eval-label {
-  font-size: 13px; font-weight: 700; color: #fff;
-  background: rgba(255,255,255,.1);
-  border: 1px solid rgba(255,255,255,.16);
-  border-radius: 999px;
-  padding: 5px 14px;
-}
-.eval-arrow {
-  width: 28px; height: 28px;
-  border: 1px solid rgba(255,255,255,.2);
-  border-radius: var(--radius-sm);
-  display: inline-flex; align-items: center; justify-content: center;
-  background: rgba(255,255,255,.08);
-  color: #fff;
+.eval-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12.5px; font-weight: 700;
   text-decoration: none;
+  border-radius: 999px;
+  padding: 6px 14px;
+  border: 1.5px solid rgba(255,255,255,.22);
+  background: rgba(255,255,255,.1);
+  color: rgba(255,255,255,.65);
+  transition: background .15s, border-color .15s, transform .12s;
+}
+.eval-pill:hover { transform: translateY(-1px); background: rgba(255,255,255,.16); }
+.eval-pill svg { width: 12px; height: 12px; }
+.eval-pill.eval-done {
+  background: rgba(74,222,128,.16);
+  border-color: rgba(74,222,128,.5);
+  color: #bbf7d0;
+}
+.eval-pill.eval-current {
+  background: #fff;
+  border-color: #ffd166;
+  color: #241f6b;
+  box-shadow: 0 0 0 3px rgba(255,209,102,.25);
+}
+.eval-pill-new {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12.5px; font-weight: 700;
+  text-decoration: none;
+  border-radius: 999px;
+  padding: 6px 14px;
+  border: 1.5px dashed rgba(255,255,255,.4);
+  background: transparent;
+  color: rgba(255,255,255,.85);
   transition: background .15s, border-color .15s;
 }
-.eval-arrow:hover { background: rgba(255,255,255,.2); border-color: rgba(255,255,255,.4); }
-.eval-arrow svg { width: 13px; height: 13px; }
+.eval-pill-new:hover { background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.7); }
+.eval-pill-new svg { width: 12px; height: 12px; }
 
 /* Action buttons row */
 .action-row {
@@ -389,19 +407,26 @@ table.dataTable tbody tr:last-child td { border-bottom: none !important; }
     </div>
   </div>
 
-  <!-- Evaluation navigation -->
-  <div class="eval-nav">
-    {% if evaluation > 1 %}
-    <a href="/workplaces/{{workplace_id}}/{{evaluation|add:"-1"}}/" class="eval-arrow">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
-    </a>
-    {% endif %}
-    <span class="eval-label">Evaluación #{{evaluation}}</span>
-    {% if last_evaluation > evaluation %}
-    <a href="/workplaces/{{workplace_id}}/{{evaluation|add:"1"}}/" class="eval-arrow">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
-    </a>
-    {% endif %}
+  <!-- Evaluation timeline -->
+  <div class="eval-timeline">
+    {% for item in evaluations %}
+      {% if item.numero == evaluation %}
+        <a href="/workplaces/{{workplace_id}}/{{item.numero}}/" class="eval-pill eval-current">
+          {% if item.done %}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>{% endif %}
+          Eval. #{{item.numero}}
+        </a>
+      {% elif item.done %}
+        <a href="/workplaces/{{workplace_id}}/{{item.numero}}/" class="eval-pill eval-done">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+          Eval. #{{item.numero}}
+        </a>
+      {% else %}
+        <a href="/workplaces/{{workplace_id}}/{{item.numero}}/" class="eval-pill-new">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+          Nueva evaluación
+        </a>
+      {% endif %}
+    {% endfor %}
   </div>
 
   <!-- Action buttons -->
@@ -415,7 +440,12 @@ table.dataTable tbody tr:last-child td { border-bottom: none !important; }
     </a>
     {% endif %}
 
-    {% if paid %}
+    {% if viewing_done %}
+        <button disabled class="btn btn-outline btn-sm">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+          Evaluación finalizada
+        </button>
+        {% elif paid %}
         <button type="button" id="end_evaluation_confirm" class="btn btn-outline btn-sm">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
           Finalizar aplicación
@@ -423,8 +453,8 @@ table.dataTable tbody tr:last-child td { border-bottom: none !important; }
         {% else %}
         <button disabled class="btn btn-outline btn-sm">Finalizar aplicación</button>
         {% endif %}
-        {% if evaluation > 1 %}
-                <a href="/workplace_result/{{workplace_id}}/{{evaluation|add:"-1"}}/" class="btn btn-primary btn-sm">
+        {% if viewing_done %}
+                <a href="/workplace_result/{{workplace_id}}/{{evaluation}}/" class="btn btn-primary btn-sm">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
                   Ver resultados
                 </a>
@@ -590,7 +620,7 @@ $(function(){
               }
               toastr.success("Se ha cerrado la evaluación","ok");
               $("#confirmModal").removeClass("active");
-              setTimeout(function(){ location.reload(); }, 1500);
+              setTimeout(function(){ window.location.href = "/workplaces/{{workplace_id}}/{{evaluation}}/"; }, 1500);
             }
     });
   });
