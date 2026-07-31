@@ -220,7 +220,7 @@ class Index(LoginRequiredMixin,View):
 						else: nivel,color="Favorable","#6bf56e"
 						climate_dims.append({"name":dim_name,"prom":prom,"nivel":nivel,"color":color})
 			wk.append({"id":item.id,"name":item.name,"address":item.address,"employee_count":item.employee_num,
-			"access_code":f"https://n035.page.link/?link=https://normaia.ihes.mx/app/access?d={item.access_code}",#&apn=ihes.com.mx.n035",
+			"access_code":f"https://normaia.ihes.mx/app/access/?d={item.access_code}",
 			"employee_completion":ceil((employees.count()/item.employee_num)*100),
 			"employee_total":employees.count(),"cat":item.survey_type(),
 			"survey_completed":survey_completed,
@@ -1769,8 +1769,8 @@ def employees_dt(request,workplace_id,t,evaluation):
 			 Por eso te invitamos a contestar las encuestas para identificar factores de riesgo psicosocial en tu centro de trabajo.%0D%0A %0D%0A\
 			*Si tuvieras algún problema o duda* _para responderlo, contáctanos por este medio o marca al número *(33) 1491 1819* en un horario de *9 a 18 horas*._%0D%0A %0D%0A\
 			Agradecemos tu apoyo para la mejora de nuestra empresa.%0D%0A %0D%0A\
-			*Inicia la encuesta en este enlace*: https://n035.page.link/?link=https://normaia.ihes.mx/app/access?d={item.get_code()}%26apn=ihes.com.mx.n035'\
-			  target='_blank'>Compartir</a></span></div></div>",#%26apn=ihes.com.mx.n035
+			*Inicia la encuesta en este enlace*: https://normaia.ihes.mx/app/access/?d={item.get_code()}'\
+			  target='_blank'>Compartir</a></span></div></div>",
 			} for item in workplaces]
 	else:
 		col={"nulo":"#9be5f7","bajo":"#6bf56e","medio":"#ffff00","alto":"#ffc000","muy_alto":"#ff7070"}
@@ -3349,6 +3349,15 @@ class EndEvaluation(APIView):
 			workplace=Workplace.objects.filter(id=workplace_id).last()
 			if workplace.es_demo:
 				return Response({'status':'error', 'error':'No es posible avanzar evaluacion en un centro de trabajo de demostracion.'})
+			employee_ids = list(workplace.employees.values_list('id', flat=True))
+			if not employee_ids:
+				return Response({'status':'error', 'error':'No puedes finalizar la aplicación: no tienes empleados registrados en este centro de trabajo.'})
+			if workplace.survey_type() != 3:
+				respondidas = RiskSurveyA.objects.filter(evaluation=workplace.evaluation, employee_id__in=employee_ids).count()
+			else:
+				respondidas = RiskSurveyB.objects.filter(evaluation=workplace.evaluation, employee_id__in=employee_ids).count()
+			if respondidas == 0:
+				return Response({'status':'error', 'error':'No puedes finalizar la aplicación: ningún empleado ha respondido la encuesta todavía.'})
 			EvaluationHistory.objects.create(
 				workplace=workplace,
 				numero_evaluacion=workplace.evaluation,
