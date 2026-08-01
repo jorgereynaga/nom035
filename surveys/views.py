@@ -1018,7 +1018,11 @@ class GenerarPoliticaView(LoginRequiredMixin,View):
 			'tiempo_respuesta_quejas': portafolio.tiempo_respuesta_quejas if portafolio else '',
 			'periodicidad_revision': portafolio.periodicidad_revision if portafolio else 'Anual',
 		})
-		ctx = {'workplace': workplace, 'form': form, 'portafolio': portafolio}
+		politica_existe = bool(portafolio and portafolio.responsable_nombre)
+		if politica_existe:
+			for campo in form.fields.values():
+				campo.widget.attrs['disabled'] = 'disabled'
+		ctx = {'workplace': workplace, 'form': form, 'portafolio': portafolio, 'politica_existe': politica_existe}
 		return render(request, 'politica_prevencion_form.html', ctx)
 	def post(self, request, *args, **kwargs):
 		workplace_id = kwargs.get('workplace_id')
@@ -1030,6 +1034,14 @@ class GenerarPoliticaView(LoginRequiredMixin,View):
 			portafolio, created = PortafolioEvidencias.objects.get_or_create(workplace=workplace, defaults={'periodo_evaluacion': str(timezone.now().year)})
 			for field in form.cleaned_data:
 				setattr(portafolio, field, form.cleaned_data[field])
+			if not created:
+				try:
+					nueva_version = round(float(portafolio.version_politica) + 0.1, 1)
+				except (TypeError, ValueError):
+					nueva_version = 1.1
+				portafolio.version_politica = f'{nueva_version:.1f}'
+				portafolio.fecha_emision = timezone.now().date()
+				portafolio.fecha_proxima_revision = portafolio.fecha_emision + timedelta(days=365)
 			portafolio.save()
 			return HttpResponseRedirect(reverse_lazy('generar_politica', kwargs={'workplace_id': workplace.id}) + '?print=1')
 		ctx = {'workplace': workplace, 'form': form}

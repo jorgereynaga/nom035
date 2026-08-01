@@ -360,6 +360,18 @@ No es un bug nuevo de código — es el mismo pendiente ya registrado desde el d
 
 **Hallazgo de paso, registrado pero no corregido:** `workplaceform.html` tiene el mismo patrón de `<style>` anidado dentro del `<style>` del layout base que causó el hallazgo #14 (bug de `stripe_planes.html`) — su propio bloque `:root{--primary:#4f46e5...}` también se descarta silenciosamente. No genera un bug visible urgente ahí porque no depende de una variable `--primary-hover` inexistente, pero conviene corregirlo cuando se ataque este patrón de forma sistemática en el resto de las plantillas que extienden `index.html`.
 
+## 17. Flujo de "Generar Política" no distinguía primera generación de actualización — ✅ RESUELTO (1 ago 2026)
+
+En `/generar_politica/<workplace_id>/` (`politica_prevencion_form.html`), una vez que la política ya se generó por primera vez, la pantalla es idéntica a la de generarla desde cero: mismos campos editables, mismo botón "Generar Política". No queda claro si al volver a dar clic se está creando una nueva versión o simplemente reimprimiendo la misma.
+
+**Cambio propuesto por Jorge (a implementar cuando lo confirme):**
+- Si la política ya existe: los campos se muestran **deshabilitados** (solo lectura) por defecto.
+- El botón "Generar Política" cambia a **"Actualizar Política"**; al darle clic, se habilitan los campos para editar.
+- Un segundo botón separado, **"Imprimir Política"**, para ver/imprimir la versión vigente sin entrar a modo edición (ahora mismo ese botón dice "Ver / Imprimir última versión" y ya existe, revisar si conviene renombrarlo a juego con "Actualizar").
+- Al guardar una actualización, el documento debe **incrementar la versión** (ej. de "1.0" a "1.1" o "2.0", falta definir el criterio) y actualizar la fecha de emisión (`fecha_emision`).
+
+Afecta: `surveys/templates/politica_prevencion_form.html` y la vista que maneja el GET/POST de `/generar_politica/<id>/` en `views.py` (buscar `generar_politica`), más el modelo `PortafolioEvidencias` (campo `version_politica`, posible necesidad de historial de versiones si se quiere guardar cada una en vez de sobrescribir).
+
 ## PENDIENTE: más observaciones por llegar (Jorge sigue enviando antes de armar el prompt final para Replit)
 
 Jorge las irá pasando conforme los socios se las compartan. Se agregan aquí mismo conforme lleguen, verificadas contra el código antes de anotarlas como "confirmado" o "por verificar".
