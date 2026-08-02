@@ -121,27 +121,20 @@
 }
 
 /* Areas / Departamentos */
-.area-tag {
-  display: inline-flex; align-items: center; gap: 6px;
-  background: var(--bg-surface); border: 1px solid var(--border);
-  border-radius: 999px; padding: 5px 6px 5px 12px;
-  font-size: 12.5px; font-weight: 600; color: var(--text-primary);
+.areas-select {
+  width: 100%; max-width: 420px;
+  border: 1px solid var(--border); border-radius: var(--radius-md);
+  padding: 4px; font-size: 13px; color: var(--text-primary);
+  background: var(--bg-base); margin-bottom: 12px;
 }
-.area-tag-remove {
-  width: 18px; height: 18px; border-radius: 50%;
-  border: none; background: transparent; color: var(--text-muted);
-  cursor: pointer; font-size: 14px; line-height: 1;
-  display: flex; align-items: center; justify-content: center;
-  transition: background .15s, color .15s;
-}
-.area-tag-remove:hover { background: #fee2e2; color: #dc2626; }
+.areas-select option { padding: 6px 8px; border-radius: 4px; }
+.areas-select option:checked { background: var(--primary-light); color: var(--primary); }
 .areas-input {
   border: 1px solid var(--border); border-radius: var(--radius-md);
   padding: 8px 12px; font-size: 13px; flex: 1;
   background: var(--bg-base); color: var(--text-primary); outline: none;
 }
 .areas-input:focus { border-color: var(--primary); }
-.areas-empty-hint { font-size: 12px; color: var(--text-muted); }
 
 /* Boton "Compartir" por empleado, inyectado por employees_dt en la columna Enlace a encuestas */
 .emp-wa-btn {
@@ -494,16 +487,34 @@ table.dataTable tbody tr:last-child td { border-bottom: none !important; }
   </div>
   <div class="dt-card-body" style="padding:18px 20px;">
     <p style="font-size:12px; color:var(--text-muted); margin:0 0 12px;">Lista que verán tus empleados al autoregistrarse desde el enlace de acceso del centro.</p>
-    <div id="areasTags" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px;">
+    <select id="areasSelect" class="areas-select" size="6" {% if not areas %}data-empty="1"{% endif %}>
       {% for area in areas %}
-      <span class="area-tag" data-area="{{ area }}">{{ area }}<button type="button" class="area-tag-remove">&times;</button></span>
+      <option value="{{ area }}">{{ area }}</option>
       {% empty %}
-      <span class="areas-empty-hint" id="areasEmptyHint">Aún no tienes áreas registradas.</span>
+      <option value="" disabled id="areasEmptyOption">Aún no tienes áreas registradas</option>
       {% endfor %}
-    </div>
-    <div style="display:flex; gap:8px; max-width:420px;">
+    </select>
+    <div style="display:flex; gap:8px; max-width:420px; flex-wrap:wrap;">
       <input type="text" id="newAreaInput" class="areas-input" placeholder="Ej. Almacén">
       <button type="button" id="addAreaBtn" class="btn btn-outline btn-sm">+ Agregar</button>
+      <button type="button" id="removeAreaBtn" class="btn btn-outline btn-sm">Quitar seleccionada</button>
+    </div>
+
+    <hr style="border:none; border-top:1px solid var(--border); margin:18px 0 14px;">
+    {% if not areas %}
+    <p style="font-size:12px; color:#b45309; margin:0 0 10px;">Agrega al menos un área arriba para que el enlace de autoregistro funcione correctamente.</p>
+    {% endif %}
+    <p style="font-size:12px; color:var(--text-muted); margin:0 0 10px;">Comparte este enlace una sola vez (WhatsApp, cartel con QR, correo) — cada empleado entra, se identifica y elige su área.</p>
+    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+      <a href="https://api.whatsapp.com/send?text=Para *{{name}}* es importante conocer la opinión de todos los colaboradores. Por eso le invitamos a registrarse y contestar las encuestas para identificar factores de riesgo psicosocial en el trabajo a través de este enlace: https://normaia.ihes.mx/app/access/?d={{access_code}}"
+        target="_blank" rel="noopener" class="btn btn-sm" style="background:#25d366; color:#fff; border:none;">
+        <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" style="width:14px;height:14px;"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+        Compartir por WhatsApp
+      </a>
+      <button type="button" id="copyRegLinkBtn" class="btn btn-outline btn-sm" data-link="https://normaia.ihes.mx/app/access/?d={{access_code}}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+        Copiar enlace
+      </button>
     </div>
   </div>
 </div>
@@ -550,18 +561,18 @@ $(document).ready(function(){
 
   function get_current_areas(){
     var areas = [];
-    $("#areasTags .area-tag").each(function(){ areas.push($(this).data('area')); });
+    $("#areasSelect option:not(:disabled)").each(function(){ areas.push($(this).val()); });
     return areas;
   }
   function render_areas(areas){
-    var wrap = $("#areasTags");
-    wrap.empty();
+    var select = $("#areasSelect");
+    select.empty();
     if (areas.length === 0){
-      wrap.append('<span class="areas-empty-hint" id="areasEmptyHint">Aún no tienes áreas registradas.</span>');
+      select.append('<option value="" disabled>Aún no tienes áreas registradas</option>');
       return;
     }
     areas.forEach(function(area){
-      wrap.append($('<span class="area-tag"></span>').attr('data-area', area).text(area).append('<button type="button" class="area-tag-remove">&times;</button>'));
+      select.append($('<option></option>').val(area).text(area));
     });
   }
   function save_areas(areas){
@@ -596,13 +607,27 @@ $(document).ready(function(){
   $("#newAreaInput").on('keydown', function(e){
     if (e.key === 'Enter') { e.preventDefault(); $("#addAreaBtn").click(); }
   });
-  $("#areasTags").on('click', '.area-tag-remove', function(){
-    var areas = get_current_areas().filter(function(a){ return a !== $(this).closest('.area-tag').data('area'); }.bind(this));
+  $("#removeAreaBtn").on('click', function(){
+    var selected = $("#areasSelect").val();
+    if (!selected){
+      toastr.error('Selecciona un área de la lista para quitarla.', 'Error');
+      return;
+    }
+    var areas = get_current_areas().filter(function(a){ return a !== selected; });
     if (areas.length === 0){
       toastr.error('Debes tener al menos un área de trabajo.', 'Error');
       return;
     }
     save_areas(areas);
+  });
+  $("#copyRegLinkBtn").on('click', function(){
+    var btn = $(this);
+    var link = btn.data('link');
+    navigator.clipboard.writeText(link).then(function(){
+      toastr.success('Enlace copiado al portapapeles', 'ok');
+    }, function(){
+      toastr.error('No se pudo copiar, copia manualmente: ' + link, 'Error');
+    });
   });
 
   var table = $("#list").DataTable({
