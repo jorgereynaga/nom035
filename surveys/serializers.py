@@ -13,6 +13,8 @@ class UserappSerializer(serializers.ModelSerializer):
 
 		fields = '__all__'
 class WorkplaceSerializer(serializers.ModelSerializer):
+	areas = serializers.ListField(child=serializers.CharField(max_length=100), required=True, allow_empty=False,
+		error_messages={'required':'Debes agregar al menos un área de trabajo.','empty':'Debes agregar al menos un área de trabajo.'})
 
 	class Meta:
 		model = Workplace

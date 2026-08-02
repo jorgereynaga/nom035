@@ -104,6 +104,29 @@
     .btn-wf-save:hover { background: var(--primary-hover); }
 
     .error-msg { font-size: 12px; color: #dc2626; display: none; }
+    .error-msg.wf-areas-error { display: block; }
+
+    .wf-areas-hint { font-size: 12px; color: var(--text-muted); margin: -2px 0 10px; }
+    .wf-area-row { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; }
+    .wf-area-row .wf-input { flex: 1; }
+    .wf-area-remove {
+        flex-shrink: 0; width: 36px; height: 36px;
+        border: 1.5px solid var(--border); border-radius: var(--radius-md);
+        background: var(--bg-surface); color: var(--text-muted);
+        cursor: pointer; font-size: 16px; line-height: 1;
+        display: flex; align-items: center; justify-content: center;
+        transition: background .15s, color .15s;
+    }
+    .wf-area-remove:hover { background: #fee2e2; color: #dc2626; }
+    .wf-area-add {
+        display: inline-flex; align-items: center; gap: 6px;
+        border: 1.5px dashed var(--border); border-radius: var(--radius-md);
+        background: transparent; color: var(--primary);
+        font-size: 13px; font-weight: 600; padding: 8px 14px;
+        cursor: pointer; margin-top: 2px;
+        transition: background .15s, border-color .15s;
+    }
+    .wf-area-add:hover { background: var(--primary-light); border-color: var(--primary); }
 
     @media (max-width: 600px) {
         .wf-grid, .wf-grid.one-third { grid-template-columns: 1fr; }
@@ -178,6 +201,22 @@
 
             <hr class="wf-divider">
 
+            <!-- Sección: Áreas / Departamentos -->
+            <p class="wf-section-title">Áreas / Departamentos <span style="color:#dc2626;">*</span></p>
+            <p class="wf-areas-hint">Los empleados elegirán su área de esta lista al registrarse — agrega al menos una.</p>
+            <div id="areas-list">
+                <div class="wf-area-row">
+                    <input type="text" class="wf-input wf-area-input" placeholder="Ej. Producción">
+                    <button type="button" class="wf-area-remove" title="Quitar">&times;</button>
+                </div>
+            </div>
+            <button type="button" id="add-area-btn" class="wf-area-add">
+                <i class="feather icon-plus"></i> Agregar área
+            </button>
+            <span class="error-msg" id="err-areas"></span>
+
+            <hr class="wf-divider">
+
             <!-- Sección 2: Domicilio -->
             <p class="wf-section-title">Domicilio</p>
             <div class="wf-grid single">
@@ -234,6 +273,27 @@
 <script src="{% static 'app-assets/vendors/js/forms/validation/jquery.validate.min.js' %}"></script>
 <script type="text/javascript">
 $(function(){
+    $("#areas-list").on('click', '.wf-area-remove', function(){
+        if ($("#areas-list .wf-area-row").length > 1) {
+            $(this).closest('.wf-area-row').remove();
+        } else {
+            $(this).closest('.wf-area-row').find('.wf-area-input').val('');
+        }
+    });
+    $("#add-area-btn").on('click', function(){
+        var row = $('<div class="wf-area-row"><input type="text" class="wf-input wf-area-input" placeholder="Ej. Logística"><button type="button" class="wf-area-remove" title="Quitar">&times;</button></div>');
+        $("#areas-list").append(row);
+        row.find('.wf-area-input').focus();
+    });
+    function get_areas(){
+        var areas = [];
+        $(".wf-area-input").each(function(){
+            var val = $(this).val().trim();
+            if (val !== '') areas.push(val);
+        });
+        return areas;
+    }
+
     var validator = $("#register_form").validate({
         ignore: 'input[type=hidden]',
         errorClass: 'validation-error',
@@ -254,6 +314,13 @@ $(function(){
             "employee_num": {required: true, number: true, min: 1}
         },
         submitHandler: function(form) {
+            var areas = get_areas();
+            if (areas.length === 0) {
+                $("#err-areas").text('Agrega al menos un área de trabajo.').addClass('wf-areas-error');
+                $("#areas-list .wf-area-input").first().addClass('validation-error');
+                return;
+            }
+            $("#err-areas").text('').removeClass('wf-areas-error');
             var btn = $('.btn-wf-save');
             btn.prop('disabled', true).html('<i class="feather icon-loader"></i> Guardando...');
             $.ajax({
@@ -265,6 +332,7 @@ $(function(){
                     "main_activity": $("#main_activity").val(),
                     "objective": $("#objective").val(),
                     "other_activities": $("#other_activities").val(),
+                    "areas": areas,
                     "address": $("#address").val(),
                     "address_locality": $("#address_locality").val(),
                     "address_state": $("#address_state").val(),

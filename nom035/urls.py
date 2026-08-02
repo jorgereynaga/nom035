@@ -78,6 +78,7 @@ urlpatterns = [
     path('workplaces/', WorkplaceView.as_view(), name='workplaces'),
     path('workplaces/<int:workplace_id>/', WorkplaceDetailView.as_view(), name='single_workplace'),
     path('workplaces/<int:workplace_id>/<int:evaluation>/', WorkplaceDetailView.as_view(), name='single_workplace2'),
+    path('workplaces/<int:workplace_id>/areas/', UpdateWorkplaceAreasView.as_view(), name='update_workplace_areas'),
     path('workplace_result/<int:workplace_id>/', WorkplaceResultView.as_view(), name='workplace_result'),
     path('workplace_result/<int:workplace_id>/<int:evaluation>/', WorkplaceResultView.as_view(), name='workplace_result2'),
     path('workplaceform/', WorkplaceFormView.as_view(), name='workplaceform'),

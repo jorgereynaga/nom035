@@ -120,6 +120,29 @@
   font-size: 13px; color: rgba(255,255,255,.72);
 }
 
+/* Areas / Departamentos */
+.area-tag {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--bg-surface); border: 1px solid var(--border);
+  border-radius: 999px; padding: 5px 6px 5px 12px;
+  font-size: 12.5px; font-weight: 600; color: var(--text-primary);
+}
+.area-tag-remove {
+  width: 18px; height: 18px; border-radius: 50%;
+  border: none; background: transparent; color: var(--text-muted);
+  cursor: pointer; font-size: 14px; line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .15s, color .15s;
+}
+.area-tag-remove:hover { background: #fee2e2; color: #dc2626; }
+.areas-input {
+  border: 1px solid var(--border); border-radius: var(--radius-md);
+  padding: 8px 12px; font-size: 13px; flex: 1;
+  background: var(--bg-base); color: var(--text-primary); outline: none;
+}
+.areas-input:focus { border-color: var(--primary); }
+.areas-empty-hint { font-size: 12px; color: var(--text-muted); }
+
 /* Boton "Compartir" por empleado, inyectado por employees_dt en la columna Enlace a encuestas */
 .emp-wa-btn {
   display: inline-flex; align-items: center; gap: 6px;
@@ -461,6 +484,30 @@ table.dataTable tbody tr:last-child td { border-bottom: none !important; }
 
 </div>
 
+<!-- ── Áreas / Departamentos ───────────────────────────────── -->
+<div class="dt-card" style="margin-bottom:20px;">
+  <div class="dt-card-header">
+    <span class="dt-card-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      Áreas / Departamentos
+    </span>
+  </div>
+  <div class="dt-card-body" style="padding:18px 20px;">
+    <p style="font-size:12px; color:var(--text-muted); margin:0 0 12px;">Lista que verán tus empleados al autoregistrarse desde el enlace de acceso del centro.</p>
+    <div id="areasTags" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px;">
+      {% for area in areas %}
+      <span class="area-tag" data-area="{{ area }}">{{ area }}<button type="button" class="area-tag-remove">&times;</button></span>
+      {% empty %}
+      <span class="areas-empty-hint" id="areasEmptyHint">Aún no tienes áreas registradas.</span>
+      {% endfor %}
+    </div>
+    <div style="display:flex; gap:8px; max-width:420px;">
+      <input type="text" id="newAreaInput" class="areas-input" placeholder="Ej. Almacén">
+      <button type="button" id="addAreaBtn" class="btn btn-outline btn-sm">+ Agregar</button>
+    </div>
+  </div>
+</div>
+
 <!-- ── Employees DataTable ─────────────────────────────────── -->
 <div class="dt-card">
   <div class="dt-card-header">
@@ -500,6 +547,63 @@ table.dataTable tbody tr:last-child td { border-bottom: none !important; }
 
 <script type="text/javascript">
 $(document).ready(function(){
+
+  function get_current_areas(){
+    var areas = [];
+    $("#areasTags .area-tag").each(function(){ areas.push($(this).data('area')); });
+    return areas;
+  }
+  function render_areas(areas){
+    var wrap = $("#areasTags");
+    wrap.empty();
+    if (areas.length === 0){
+      wrap.append('<span class="areas-empty-hint" id="areasEmptyHint">Aún no tienes áreas registradas.</span>');
+      return;
+    }
+    areas.forEach(function(area){
+      wrap.append($('<span class="area-tag"></span>').attr('data-area', area).text(area).append('<button type="button" class="area-tag-remove">&times;</button>'));
+    });
+  }
+  function save_areas(areas){
+    $.ajax({
+      url: "/workplaces/{{workplace_id}}/areas/",
+      method: 'POST',
+      data: { 'areas[]': areas },
+      dataType: 'json',
+      success: function(resp){
+        if (resp.status === 'ok'){
+          toastr.success('Áreas actualizadas', 'ok');
+          render_areas(resp.areas);
+        } else {
+          toastr.error(resp.error || 'No se pudo guardar', 'Error');
+        }
+      },
+      error: function(xhr){
+        var msg = (xhr.responseJSON && xhr.responseJSON.error) || 'No se pudo guardar el área.';
+        toastr.error(msg, 'Error');
+      }
+    });
+  }
+  $("#addAreaBtn").on('click', function(){
+    var val = $("#newAreaInput").val().trim();
+    if (val === '') { return; }
+    var areas = get_current_areas();
+    if (areas.indexOf(val) !== -1) { toastr.error('Esa área ya existe.', 'Error'); return; }
+    areas.push(val);
+    $("#newAreaInput").val('');
+    save_areas(areas);
+  });
+  $("#newAreaInput").on('keydown', function(e){
+    if (e.key === 'Enter') { e.preventDefault(); $("#addAreaBtn").click(); }
+  });
+  $("#areasTags").on('click', '.area-tag-remove', function(){
+    var areas = get_current_areas().filter(function(a){ return a !== $(this).closest('.area-tag').data('area'); }.bind(this));
+    if (areas.length === 0){
+      toastr.error('Debes tener al menos un área de trabajo.', 'Error');
+      return;
+    }
+    save_areas(areas);
+  });
 
   var table = $("#list").DataTable({
       "lengthMenu": [[5,10,25,50,100],[5,10,25,50,100]],

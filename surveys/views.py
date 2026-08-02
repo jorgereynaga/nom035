@@ -805,7 +805,21 @@ class WorkplaceDetailView(LoginRequiredMixin,View):
 		ctx['evaluations']=[{'numero':n, 'done':n in historial_nums} for n in range(1, wk.evaluation+1)]
 		ctx['viewing_done']=ctx['evaluation'] in historial_nums
 		ctx['viewing_is_current']=(ctx['evaluation']==wk.evaluation)
+		ctx['areas']=wk.areas
 		return render(request, 'workplace_detail.html',ctx)
+class UpdateWorkplaceAreasView(LoginRequiredMixin,View):
+	login_url = reverse_lazy('login')
+	redirect_field_name = 'redirect_to'
+	def post(self, request, workplace_id):
+		wk = Workplace.objects.filter(id=workplace_id, user_id=request.user.id).first()
+		if not wk:
+			return JsonResponse({'status':'error','error':'Centro de trabajo no encontrado.'}, status=404)
+		areas = [a.strip() for a in request.POST.getlist('areas[]') if a.strip()]
+		if not areas:
+			return JsonResponse({'status':'error','error':'Debes tener al menos un área de trabajo.'}, status=400)
+		wk.areas = areas
+		wk.save()
+		return JsonResponse({'status':'ok','areas':wk.areas})
 class WorkplaceResultView(LoginRequiredMixin,View):
 	login_url = reverse_lazy('login')
 	redirect_field_name = 'redirect_to'
@@ -1942,6 +1956,11 @@ def get_questions(request):
 				'type':1 if item.choices else 0,
 				} for item in Employee._meta.fields if item.name not in [
 				'id','workplace','record_create','record_update','es_demo'] ]
+			if workplace.areas:
+				for q in questions:
+					if q['field_name']=='department':
+						q['field_choices']=[{'id':area,'title':area} for area in workplace.areas]
+						q['type']=1
 
 			return JsonResponse({'data':{"questions":questions},'form_name':Employee._meta.verbose_name,'form':Employee._meta.model_name})
 	return JsonResponse({'data':{"questions":[]},'form_name':'invalid form','form':''})

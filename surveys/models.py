@@ -103,6 +103,7 @@ class Workplace(models.Model):
 	access_code = models.CharField(u'Codigo de acceso',max_length=255,unique=True)
 	record_create=models.DateTimeField(auto_now_add=True)
 	es_demo = models.BooleanField(u'Datos de ejemplo', default=False)
+	areas = ArrayField(models.CharField(max_length=100), default=list, blank=True, verbose_name=u'Áreas / Departamentos')
 	def __str__(self):
 		return f"{self.name}"
 	def survey_type(self):
