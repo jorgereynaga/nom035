@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
-from surveys.models import Workplace, Employee, RiskSurveyA, RiskSurveyB, Candidate, WorkEnvironmentSurvey, PortafolioEvidencias, TestResult
+from surveys.models import Workplace, Employee, RiskSurveyA, RiskSurveyB, Candidate, WorkEnvironmentSurvey, PortafolioEvidencias, TestResult, EvaluationHistory
 import random, string
 
 
@@ -178,6 +178,13 @@ class Command(BaseCommand):
             RiskSurveyA.objects.create(employee=emp, evaluation=1, es_demo=True, **PERFILES_A[i])
             RiskSurveyB.objects.create(employee=emp, evaluation=1, **PERFILES_B[i])
             self.stdout.write(f'  Empleado demo: {emp.name}')
+
+        EvaluationHistory.objects.create(
+            workplace=wp,
+            numero_evaluacion=1,
+            guia=wp.survey_type(),
+        )
+        self.stdout.write('Evaluacion 1 marcada como finalizada (EvaluationHistory)')
 
         candidatos_demo = [
             {'nombre': 'Pedro Alvarado Vega', 'email': 'pedro.demo@ejemplo.com', 'puesto': 'Gerente de Ventas'},
