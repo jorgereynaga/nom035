@@ -178,7 +178,7 @@
     </div>
     <div class="wp-card-footer">
       <a href="{% url 'single_workplace' item.id %}" class="wp-btn-line">Ver detalle</a>
-      {% if item.riesgo_nivel is not None %}
+      {% if item.evaluacion_finalizada %}
       <a href="/workplace_result/{{ item.id }}/{{ item.eval_to_check }}/" class="wp-btn-fill">Ver resultados</a>
       {% else %}
       <span class="wp-btn-disabled">Ver resultados</span>
