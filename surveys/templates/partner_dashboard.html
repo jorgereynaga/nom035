@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Panel de Socio — {{ partner.name }} — NormaIA</title>
+  <style>
+    :root{
+      --primary:#4f46e5;
+      --primary-dark:#4338ca;
+      --primary-light:#eef2ff;
+      --hero-a:#0f172a;
+      --hero-b:#312e81;
+      --hero-c:#4f46e5;
+      --page-bg:#f8fafc;
+      --card-bg:#ffffff;
+      --border:#e2e8f0;
+      --text-primary:#0f172a;
+      --text-secondary:#475569;
+      --text-muted:#94a3b8;
+      --radius-md:8px;
+      --radius-lg:12px;
+      --shadow-sm:0 1px 3px rgba(15,23,42,.06);
+      --good:#16a34a; --good-bg:#f0fdf4;
+      --warn:#d97706; --warn-bg:#fffbeb;
+      --bad:#dc2626; --bad-bg:#fef2f2;
+    }
+    *{box-sizing:border-box;}
+    body{
+      font-family:'Inter',ui-sans-serif,sans-serif;
+      background:var(--page-bg); color:var(--text-primary);
+      margin:0; padding:28px 20px 60px;
+    }
+    .wrap{max-width:980px;margin:0 auto;}
+    .top-brand{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
+    .top-brand a{font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:15px;color:var(--text-primary);text-decoration:none;}
+    .top-brand .logout{font-size:12.5px;color:var(--text-muted);text-decoration:none;}
+
+    .hero{
+      background:linear-gradient(135deg, var(--hero-a) 0%, var(--hero-b) 55%, var(--hero-c) 100%);
+      border-radius:var(--radius-lg); padding:24px 26px 22px; color:#fff; margin-bottom:22px;
+      box-shadow:0 10px 30px rgba(79,70,229,.2);
+      display:flex; flex-wrap:wrap; gap:20px; justify-content:space-between; align-items:flex-start;
+    }
+    .hero-id .hero-label{font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#c7d2fe;margin-bottom:4px;}
+    .hero-id h1{font-family:'Plus Jakarta Sans',sans-serif;font-size:20px;font-weight:800;margin:0 0 6px;}
+    .hero-code{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:999px;padding:5px 12px 5px 14px;font-size:12.5px;font-weight:700;}
+    .hero-link{flex:1 1 320px;min-width:280px;}
+    .hero-link-label{font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#c7d2fe;margin-bottom:6px;}
+    .hero-link-row{display:flex;gap:8px;}
+    .hero-link-input{flex:1;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.22);border-radius:var(--radius-md);padding:9px 12px;color:#fff;font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .hero-btn{display:inline-flex;align-items:center;gap:6px;background:#fff;color:var(--primary-dark);border:none;border-radius:var(--radius-md);padding:9px 14px;font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap;}
+    .hero-btn svg{width:13px;height:13px;}
+
+    .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px;}
+    .kpi{background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 18px;box-shadow:var(--shadow-sm);}
+    .kpi-label{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;}
+    .kpi-value{font-family:'Plus Jakarta Sans',sans-serif;font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;}
+    .kpi-sub{font-size:11.5px;color:var(--text-secondary);margin-top:4px;}
+    .kpi.accent .kpi-value{color:var(--primary);}
+    .kpi.pending .kpi-value{color:var(--warn);}
+    @media (max-width:760px){ .kpis{grid-template-columns:repeat(2,1fr);} }
+
+    .card{background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);overflow:hidden;margin-bottom:22px;}
+    .card-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;padding:16px 20px;border-bottom:1px solid var(--border);}
+    .card-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;font-weight:800;}
+    .card-sub{font-size:11.5px;color:var(--text-muted);}
+    .table-scroll{overflow-x:auto;}
+    table{width:100%;border-collapse:collapse;min-width:640px;}
+    thead th{background:var(--page-bg);border-bottom:1px solid var(--border);font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--text-muted);padding:10px 16px;text-align:left;white-space:nowrap;}
+    tbody td{padding:12px 16px;font-size:13px;border-bottom:1px solid var(--border);vertical-align:middle;}
+    tbody tr:last-child td{border-bottom:none;}
+    .client-name{font-weight:700;}
+    .client-meta{font-size:11.5px;color:var(--text-muted);}
+    .num{font-variant-numeric:tabular-nums;}
+    .pill{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:999px;white-space:nowrap;}
+    .pill .dot{width:6px;height:6px;border-radius:50%;background:currentColor;}
+    .pill.good{background:var(--good-bg);color:var(--good);}
+    .pill.warn{background:var(--warn-bg);color:var(--warn);}
+    .pill.bad{background:var(--bad-bg);color:var(--bad);}
+    .comm-good{color:var(--good);font-weight:700;}
+    .muted{color:var(--text-muted);}
+    .payout-row{display:flex;justify-content:space-between;align-items:center;padding:12px 20px;border-bottom:1px solid var(--border);font-size:13px;}
+    .payout-row:last-child{border-bottom:none;}
+    .payout-date{color:var(--text-secondary);font-size:12px;}
+    .payout-amount{font-weight:700;font-variant-numeric:tabular-nums;color:var(--good);}
+    .empty-hint{padding:24px 20px;text-align:center;color:var(--text-muted);font-size:13px;}
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="top-brand">
+    <a href="/">NormaIA</a>
+    <a class="logout" href="{% url 'logout' %}">Cerrar sesión</a>
+  </div>
+
+  <div class="hero">
+    <div class="hero-id">
+      <div class="hero-label">Panel de socio comercial</div>
+      <h1>{{ partner.name }}</h1>
+      <span class="hero-code">Código <b>{{ partner.code }}</b></span>
+    </div>
+    <div class="hero-link">
+      <div class="hero-link-label">Tu enlace de referido</div>
+      <div class="hero-link-row">
+        <div class="hero-link-input" id="refLink">{{ ref_link }}</div>
+        <button class="hero-btn" type="button" id="copyRefLinkBtn" data-link="{{ ref_link }}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+          Copiar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="kpis">
+    <div class="kpi">
+      <div class="kpi-label">Clientes referidos</div>
+      <div class="kpi-value">{{ total_referidos }}</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Clientes activos</div>
+      <div class="kpi-value">{{ total_activos }}</div>
+      <div class="kpi-sub">Con plan vigente</div>
+    </div>
+    <div class="kpi accent">
+      <div class="kpi-label">Comisión generada</div>
+      <div class="kpi-value">${{ total_generado }}</div>
+      <div class="kpi-sub">Acumulado histórico</div>
+    </div>
+    <div class="kpi pending">
+      <div class="kpi-label">Pendiente de pago</div>
+      <div class="kpi-value">${{ total_pendiente }}</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Clientes referidos</span>
+      <span class="card-sub">Comisión: $300 fijo o 10% según el plan (5% en renovaciones)</span>
+    </div>
+    {% if clientes %}
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Cliente</th>
+            <th>Plan</th>
+            <th>Alta</th>
+            <th>Estado</th>
+            <th style="text-align:right;">Valor del plan</th>
+            <th style="text-align:right;">Tu comisión</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for c in clientes %}
+          <tr>
+            <td><div class="client-name">{{ c.nombre }}</div><div class="client-meta">{{ c.correo }}</div></td>
+            <td>{{ c.plan_nombre }}</td>
+            <td class="num">{{ c.fecha_alta|date:"d/m/Y" }}</td>
+            <td>
+              {% if c.estado == 'activo' %}<span class="pill good"><span class="dot"></span>Activo</span>
+              {% elif c.estado == 'cancelado' %}<span class="pill bad"><span class="dot"></span>Cancelado</span>
+              {% else %}<span class="pill warn"><span class="dot"></span>Prueba</span>{% endif %}
+            </td>
+            <td class="num" style="text-align:right;">{% if c.valor_plan %}${{ c.valor_plan }}{% else %}—{% endif %}</td>
+            <td class="num" style="text-align:right;">
+              {% if c.comision %}<span class="comm-good">${{ c.comision }}</span>{% else %}<span class="muted">—</span>{% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-hint">Aún no tienes clientes referidos. Comparte tu enlace para empezar.</div>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Historial de pagos de comisión</span>
+    </div>
+    {% if pagos %}
+    <div>
+      {% for p in pagos %}
+      <div class="payout-row">
+        <div>
+          <div style="font-weight:600;">{{ p.referred_userapp.name }}</div>
+          <div class="payout-date">Pagado el {{ p.fecha_pago|date:"d/m/Y" }}</div>
+        </div>
+        <div class="payout-amount num">${{ p.monto_comision }}</div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-hint">Todavía no se ha registrado ningún pago de comisión.</div>
+    {% endif %}
+  </div>
+
+</div>
+<script>
+document.getElementById('copyRefLinkBtn').addEventListener('click', function(){
+  var link = this.dataset.link;
+  navigator.clipboard.writeText(link).then(function(){
+    alert('Enlace copiado');
+  }, function(){
+    prompt('Copia manualmente:', link);
+  });
+});
+</script>
+</body>
+</html>

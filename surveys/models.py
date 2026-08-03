@@ -83,6 +83,7 @@ class Userapp(models.Model):
 	record_create=models.DateTimeField(auto_now_add=True)
 	record_update=models.DateTimeField(auto_now=True)
 	image=models.FileField(u'Logo de la empresa', upload_to=user_directory_path, storage=protected_storage, validators=[validate_file_extension], blank=True, null=True)
+	referred_by = models.ForeignKey('Partner', related_name='referred_clients', verbose_name=u'Referido por', on_delete=models.SET_NULL, null=True, blank=True)
 
 
 class Workplace(models.Model):
@@ -1080,3 +1081,43 @@ class PlanAccionItem(models.Model):
 		return f"{self.tipo_accion} - {self.workplace.name} ({self.get_estado_display()})"
 	class Meta:
 		ordering = ['fecha_programada']
+
+
+class Partner(models.Model):
+	code = models.CharField(u'Código de referido', max_length=30, unique=True)
+	name = models.CharField(u'Nombre', max_length=150)
+	contact_email = models.EmailField(u'Correo de contacto', blank=True)
+	contact_phone = models.CharField(u'Teléfono de contacto', max_length=20, blank=True)
+	active = models.BooleanField(u'Activo', default=True)
+	user = models.OneToOneField(User, related_name='partner_profile', verbose_name=u'Usuario de acceso al panel', on_delete=models.SET_NULL, null=True, blank=True)
+	record_create = models.DateTimeField(auto_now_add=True)
+	def __str__(self):
+		return f"{self.name} ({self.code})"
+	class Meta:
+		ordering = ['name']
+
+
+class PartnerCommission(models.Model):
+	ESTADO_CHOICES = (
+		('pendiente', 'Pendiente'),
+		('pagada', 'Pagada'),
+	)
+	TIPO_CHOICES = (
+		('venta', 'Venta inicial'),
+		('renovacion', 'Renovación'),
+	)
+	partner = models.ForeignKey(Partner, related_name='commissions', verbose_name=u'Socio comercial', on_delete=models.CASCADE)
+	referred_userapp = models.ForeignKey(Userapp, related_name='commissions_generated', verbose_name=u'Cliente referido', on_delete=models.SET_NULL, null=True)
+	plan_key = models.CharField(u'Plan', max_length=100, blank=True)
+	tipo = models.CharField(u'Tipo', max_length=20, choices=TIPO_CHOICES, default='venta')
+	monto_plan = models.DecimalField(u'Valor del plan (MXN)', max_digits=10, decimal_places=2, default=0)
+	monto_comision = models.DecimalField(u'Comisión (MXN)', max_digits=10, decimal_places=2, default=0)
+	estado = models.CharField(u'Estado', max_length=20, choices=ESTADO_CHOICES, default='pendiente')
+	fecha_pago = models.DateField(u'Fecha de pago', null=True, blank=True)
+	stripe_invoice_id = models.CharField(u'Stripe Invoice ID', max_length=100, blank=True, null=True)
+	record_create = models.DateTimeField(auto_now_add=True)
+	def __str__(self):
+		cliente = self.referred_userapp.name if self.referred_userapp else 'cliente eliminado'
+		return f"{self.partner.name} - {cliente} - ${self.monto_comision}"
+	class Meta:
+		ordering = ['-record_create']

@@ -60,3 +60,19 @@ admin.site.register(ResultFiles)
 admin.site.register(Candidate)
 
 admin.site.register(WorkEnvironmentSurvey)
+
+class PartnerAdmin(admin.ModelAdmin):
+	list_display = ('name', 'code', 'active', 'user', 'record_create')
+	search_fields = ['name', 'code', 'contact_email']
+	list_filter = ('active',)
+class PartnerCommissionAdmin(admin.ModelAdmin):
+	list_display = ('partner', 'referred_userapp', 'plan_key', 'monto_plan', 'monto_comision', 'estado', 'fecha_pago', 'record_create')
+	list_filter = ('estado', 'partner')
+	search_fields = ['partner__name', 'partner__code', 'referred_userapp__name']
+	actions = ['marcar_pagada']
+	def marcar_pagada(self, request, queryset):
+		from django.utils import timezone
+		queryset.filter(estado='pendiente').update(estado='pagada', fecha_pago=timezone.now().date())
+	marcar_pagada.short_description = 'Marcar como pagada (hoy)'
+admin.site.register(Partner, PartnerAdmin)
+admin.site.register(PartnerCommission, PartnerCommissionAdmin)

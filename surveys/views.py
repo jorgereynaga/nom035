@@ -581,8 +581,14 @@ class ApiLoginView(View):
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=400)
 
+def capture_referral(request):
+    ref = request.GET.get('ref')
+    if ref:
+        request.session['referral_code'] = ref.strip().upper()
+
 class LandingView(View):
     def get(self, request):
+        capture_referral(request)
         if request.user.is_authenticated:
             return redirect('index')
         return render(request, 'landing.html')
@@ -600,7 +606,9 @@ class LandingContactoView(View):
 		return render(request, 'landing_contacto.html')
 class NewUserView(View):
 	def get(self, request, *args, **kwargs):
-		return render(request, 'auth-register.html', {'recaptcha_site_key': settings.RECAPTCHA_SITE_KEY})
+		capture_referral(request)
+		ctx = {'recaptcha_site_key': settings.RECAPTCHA_SITE_KEY, 'referral_code': request.session.get('referral_code', '')}
+		return render(request, 'auth-register.html', ctx)
 class WorkplaceView(LoginRequiredMixin,View):
 	login_url = reverse_lazy('login')
 	redirect_field_name = 'redirect_to'
@@ -715,6 +723,60 @@ class SupportView(LoginRequiredMixin,View):
 			"type": 2, "title": "Soporte", "date_today": datetime.now().strftime('%d/%m/%Y')}
 		send_mail(["normaia.sistemas@gmail.com"], ctx=ctx, subject=f'Soporte ({area}) — {request.user.email}')
 		return JsonResponse({'status': 'ok'})
+class PartnerDashboardView(LoginRequiredMixin,View):
+	login_url = reverse_lazy('login')
+	redirect_field_name = 'redirect_to'
+	def get(self, request, *args, **kwargs):
+		partner = Partner.objects.filter(user=request.user).first()
+		if not partner:
+			return HttpResponseRedirect(reverse_lazy('index'))
+		from django.db.models import Sum
+		from surveys.stripe_plans import PLANS as STRIPE_PLANS
+		referidos = partner.referred_clients.select_related('user').order_by('-record_create')
+		clientes = []
+		activos = 0
+		for u in referidos:
+			plan_key = u.stripe_plan_key or u.psico_plan_key
+			tuvo_compra = PlanPurchaseEvent.objects.filter(user=u.user).exists()
+			if plan_key:
+				estado = 'activo'
+				activos += 1
+				plan_nombre = STRIPE_PLANS.get(plan_key, {}).get('name', plan_key)
+				valor_plan = STRIPE_PLANS.get(plan_key, {}).get('precio', 0)
+			elif tuvo_compra:
+				estado = 'cancelado'
+				plan_nombre = 'Sin plan activo'
+				valor_plan = None
+			else:
+				estado = 'prueba'
+				plan_nombre = 'Sin plan / prueba'
+				valor_plan = None
+			comision = PartnerCommission.objects.filter(partner=partner, referred_userapp=u).first()
+			clientes.append({
+				'nombre': u.name,
+				'correo': u.user.email,
+				'plan_nombre': plan_nombre,
+				'valor_plan': valor_plan,
+				'fecha_alta': u.record_create,
+				'estado': estado,
+				'comision': comision.monto_comision if comision else None,
+			})
+		commissions = PartnerCommission.objects.filter(partner=partner)
+		total_generado = commissions.aggregate(total=Sum('monto_comision'))['total'] or 0
+		total_pendiente = commissions.filter(estado='pendiente').aggregate(total=Sum('monto_comision'))['total'] or 0
+		pagos = commissions.filter(estado='pagada').order_by('-fecha_pago')
+		ref_link = request.build_absolute_uri(reverse_lazy('newuser')) + f'?ref={partner.code}'
+		ctx = {
+			'partner': partner,
+			'ref_link': ref_link,
+			'clientes': clientes,
+			'total_referidos': len(clientes),
+			'total_activos': activos,
+			'total_generado': total_generado,
+			'total_pendiente': total_pendiente,
+			'pagos': pagos,
+		}
+		return render(request, 'partner_dashboard.html', ctx)
 class EditProfileView(LoginRequiredMixin,View):
 	login_url = reverse_lazy('login')
 	redirect_field_name = 'redirect_to'
@@ -2959,6 +3021,11 @@ class UserappList(generics.ListCreateAPIView):
 			try:
 				new_user=serializer.save()
 				new_user.validated_email=True
+				ref_code = (dic2.get('referral_code') or '').strip() or request.session.pop('referral_code', None)
+				if ref_code:
+					partner = Partner.objects.filter(code__iexact=ref_code, active=True).first()
+					if partner:
+						new_user.referred_by = partner
 				new_user.save()
 				try:
 					from django.core.management import call_command
@@ -3661,6 +3728,20 @@ def _stripe_handle_checkout_completed(session):
             periodo=_plan.get('periodo', ''),
             stripe_customer_id=userapp.stripe_customer_id,
         )
+        if userapp.referred_by and userapp.referred_by.active and not PartnerCommission.objects.filter(partner=userapp.referred_by, referred_userapp=userapp).exists():
+            from surveys.services.partner_commissions import calcular_comision_partner
+            monto_plan = _plan.get('precio', 0) or 0
+            monto_comision = calcular_comision_partner(plan_key, monto_plan, es_renovacion=False)
+            if monto_comision > 0:
+                PartnerCommission.objects.create(
+                    partner=userapp.referred_by,
+                    referred_userapp=userapp,
+                    plan_key=plan_key,
+                    tipo='venta',
+                    monto_plan=monto_plan,
+                    monto_comision=monto_comision,
+                )
+                p_.info(f"Comision de venta generada para partner {userapp.referred_by.code}: ${monto_comision} por user_id={user.id}")
         p_.info(f"Stripe webhook: plan {plan_key} activado para user_id={user.id}")
     except Exception as e:
         p_.error(f"Stripe webhook checkout.session.completed: error guardando plan para user_id={user.id}: {e}")
@@ -3682,6 +3763,25 @@ def _stripe_handle_invoice_paid(invoice):
         p_.warning(f"Stripe webhook invoice.paid: Userapp sin plan activo, customer={customer_id}")
         return
     assign_nom035_credits(userapp.user, plan_key)
+    if userapp.referred_by and userapp.referred_by.active:
+        invoice_id = invoice.get('id')
+        ya_registrada = invoice_id and PartnerCommission.objects.filter(stripe_invoice_id=invoice_id).exists()
+        if not ya_registrada:
+            from surveys.services.partner_commissions import calcular_comision_partner
+            from surveys.stripe_plans import PLANS as STRIPE_PLANS
+            monto_plan = STRIPE_PLANS.get(plan_key, {}).get('precio', 0) or 0
+            monto_comision = calcular_comision_partner(plan_key, monto_plan, es_renovacion=True)
+            if monto_comision > 0:
+                PartnerCommission.objects.create(
+                    partner=userapp.referred_by,
+                    referred_userapp=userapp,
+                    plan_key=plan_key,
+                    tipo='renovacion',
+                    monto_plan=monto_plan,
+                    monto_comision=monto_comision,
+                    stripe_invoice_id=invoice_id,
+                )
+                p_.info(f"Comision de renovacion generada para partner {userapp.referred_by.code}: ${monto_comision}, customer={customer_id}")
     p_.info(f"Stripe webhook: renovacion acreditada, plan={plan_key}, customer={customer_id}")
 
 

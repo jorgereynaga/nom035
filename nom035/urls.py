@@ -73,6 +73,7 @@ urlpatterns = [
     path('password_recover', PasswordRecover.as_view(), name='password_recover'),
     path('edit_profile/', EditProfileView.as_view(), name="edit_profile"),
     path('soporte/', SupportView.as_view(), name="soporte"),
+    path('partner/', PartnerDashboardView.as_view(), name="partner_dashboard"),
     path('logout/', LoginView.as_view(), name='logout'),
     path('newuser/', NewUserView.as_view(), name='newuser'),
     path('workplaces/', WorkplaceView.as_view(), name='workplaces'),

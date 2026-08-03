@@ -226,6 +226,19 @@
         </div>
 
         <div class="form-group">
+          <label class="form-label" for="inputReferralCode">Código de referido <span style="font-weight:400;color:#94a3b8;">(opcional)</span></label>
+          <input
+            type="text"
+            id="inputReferralCode"
+            name="referral_code"
+            class="form-control"
+            placeholder="Ej. ROBERTOHRH"
+            autocomplete="off"
+            value="{{ referral_code|default:'' }}"
+          />
+        </div>
+
+        <div class="form-group">
           <label class="form-label" for="inputPassword">Contraseña</label>
           <input
             type="password"
@@ -327,6 +340,7 @@
               "username": $("#inputEmail").val(),
               "phone": $("#inputPhone").val(),
               "email": $("#inputEmail").val(),
+              "referral_code": $("#inputReferralCode").val(),
               "webform": token,
               "password1": $("#inputPassword").val(),
               "password2": $("#inputConfPassword").val(),
