@@ -28,6 +28,8 @@ from django.contrib.auth import update_session_auth_hash
 from django.conf import settings
 from celery.result import AsyncResult
 from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+from django_ratelimit.decorators import ratelimit
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad,unpad
 from datetime import datetime,timedelta
@@ -325,6 +327,7 @@ class Index(LoginRequiredMixin,View):
 		
 class SaveAnswers(generics.GenericAPIView):
 	serializer_class = WorkplaceSerializer
+	@method_decorator(ratelimit(key='ip', rate='60/m', method='POST', block=True))
 	def post(self, request, *args, **kwargs):
 		#[null, name[omar.mendoza], gender[0], age[6], civil_state[3], study_level[4], ocupation[omar.mendoza], department[omar.mendoza], charge_type[2], contract_type[2], employee_type[2], shift_type[1], shift_rotation[0], time_in_charge[4]]
 		#[{'name': 'asd'}, {'gender': '1'}, {'age': '10'}, {'civil_state': '2'}, {'study_level': '2'}, {'ocupation': 'eeee'}, {'department': 'wwww'}, {'charge_type': '2'}, {'contract_type': '3'}, {'employee_type': '1'}, {'shift_type': '0'}, {'shift_rotation': '0'}, {'time_in_charge': '5'}, {'exp': '5'}]
@@ -532,9 +535,10 @@ class TokenCreation(generics.GenericAPIView):
 					return Response("Verifica tu correo electrónico antes de iniciar sesión.", status=status.HTTP_401_UNAUTHORIZED)
 		return Response("Verifica tus datos, alguno está mal", status=status.HTTP_401_UNAUTHORIZED)
 
+@method_decorator(ratelimit(key='ip', rate='15/m', method='POST', block=True), name='post')
 class LoginView(View):
 	def get(self, request, *args, **kwargs):
-		if "logout" in request.path:			
+		if "logout" in request.path:
 			logout(request)
 		ctx = {'form':LoginForm(),'msg':""}
 		return render(request, 'auth-login.html', ctx)
@@ -566,6 +570,7 @@ class LoginView(View):
 		ctx['form'] = form
 		ctx['msg'] = msg
 		return render(request, 'auth-login.html', ctx)
+@method_decorator(ratelimit(key='ip', rate='15/m', method='POST', block=True), name='post')
 class ApiLoginView(View):
     def post(self, request):
         import json
@@ -976,6 +981,7 @@ class EmailVerification(View):
 			messages.success(request, "email_not_provided")
 		return render(request, 'valid_email.html',ct)
 
+@method_decorator(ratelimit(key='ip', rate='5/m', method='POST', block=True), name='post')
 class PasswordRecover(View):
 	def get(self, request, *args, **kwargs):
 		if request.user.is_authenticated:
