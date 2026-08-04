@@ -404,6 +404,10 @@ table.dataTable tbody tr:last-child td { border-bottom: none !important; }
       </h2>
       <p class="detail-address">{{address}}</p>
     </div>
+    <button type="button" class="tour-replay-btn" style="background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.3);color:#fff;" onclick="startNormaTour(DETALLE_CENTRO_TOUR_CONFIG)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+      ¿Cómo empiezo?
+    </button>
   </div>
 
   <div class="detail-meta-row">
@@ -598,6 +602,22 @@ table.dataTable tbody tr:last-child td { border-bottom: none !important; }
     </div>
   </div>
 </div>
+
+<script>
+var DETALLE_CENTRO_TOUR_CONFIG = {
+  storageKey: null,
+  welcomeTitle: '¿Cómo empiezo mi evaluación NOM-035?',
+  welcomeText: 'Este es el recorrido de este centro de trabajo: te mostramos el orden para dejar lista tu evaluación.',
+  steps: [
+    { target: '.eval-timeline', side: 'bottom', title: 'Tus evaluaciones', text: 'Aquí ves todas las evaluaciones de este centro. La resaltada es la que estás viendo ahora; las verdes con palomita ya están finalizadas.' },
+    { target: '.action-row .action-item:nth-of-type(1)', side: 'bottom', title: 'Paso 1: carga empleados', text: 'Registra a tus empleados uno por uno, o de golpe subiendo un Excel con varios a la vez.' },
+    { target: '#areasSelect', side: 'right', title: 'Paso 2: define las áreas', text: 'Agrega las áreas o departamentos de tu centro — tus empleados elegirán una de esta lista al registrarse, así que agrega al menos una antes de compartir el enlace.' },
+    { target: '#copyRegLinkBtn', side: 'left', title: 'Paso 3: comparte el enlace', text: 'Comparte este enlace una sola vez (WhatsApp, cartel con QR, correo). Cada empleado entra, se identifica y contesta su cuestionario — no tienes que mandarles un link distinto a cada quien.' },
+    { target: '.action-row .action-item:nth-of-type(2)', side: 'bottom', title: 'Paso 4: finaliza la aplicación', text: 'Cuando ya tengas empleados registrados y al menos una encuesta contestada, da clic aquí para cerrar el ciclo y generar los resultados.' },
+    { target: '.action-row .action-item:nth-of-type(3)', side: 'bottom', title: 'Paso 5: revisa tus resultados', text: 'Una vez finalizada la aplicación, aquí se habilita el análisis de riesgo psicosocial de esta evaluación.' },
+  ],
+};
+</script>
 
 {% endblock %}
 
