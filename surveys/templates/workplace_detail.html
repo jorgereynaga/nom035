@@ -214,7 +214,7 @@
   border-top: 1px solid rgba(255,255,255,.14);
   position: relative; z-index: 1;
 }
-.action-row .btn { box-shadow: 0 2px 8px rgba(0,0,0,.15); }
+.action-row .btn { box-shadow: 0 2px 8px rgba(0,0,0,.15); padding: 11px 18px; font-size: 13.5px; }
 .action-row .btn-outline {
   background: rgba(255,255,255,.08);
   border: 1px solid rgba(255,255,255,.24);
@@ -225,6 +225,30 @@
   opacity: .4; cursor: not-allowed; pointer-events: none;
   background: rgba(255,255,255,.06) !important; border-color: rgba(255,255,255,.14) !important; color: rgba(255,255,255,.6) !important;
 }
+
+/* Help icon + tooltip por boton de accion */
+.action-item { display: inline-flex; align-items: center; gap: 6px; position: relative; }
+.help-icon {
+  width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0;
+  border: 1.5px solid rgba(255,255,255,.35); background: rgba(255,255,255,.08);
+  color: rgba(255,255,255,.85); font-size: 12px; font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: background .15s, border-color .15s;
+}
+.help-icon:hover, .help-icon.active { background: rgba(255,255,255,.22); border-color: rgba(255,255,255,.6); }
+.help-tooltip {
+  display: none; position: absolute; bottom: calc(100% + 10px); left: 50%; transform: translateX(-50%);
+  background: #0f172a; color: #fff; font-size: 12px; font-weight: 500; line-height: 1.55;
+  padding: 11px 13px; border-radius: 9px; width: 240px; text-align: left;
+  box-shadow: 0 10px 28px rgba(0,0,0,.35); z-index: 40;
+}
+.help-tooltip::after {
+  content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
+  border: 6px solid transparent; border-top-color: #0f172a;
+}
+.action-item:hover .help-tooltip,
+.help-tooltip.active { display: block; }
+@media (max-width: 480px) { .help-tooltip { width: 190px; left: 0; transform: none; } .help-tooltip::after { left: 16px; transform: none; } }
 
 /* ── DataTable card ─────────────────────────────────────── */
 .dt-card {
@@ -433,6 +457,7 @@ table.dataTable tbody tr:last-child td { border-bottom: none !important; }
 
   <!-- Action buttons -->
   <div class="action-row">
+    <div class="action-item">
     {% if not employees_available %}
     <button disabled class="btn btn-primary btn-sm">Cargar empleados</button>
     {% else %}
@@ -441,7 +466,11 @@ table.dataTable tbody tr:last-child td { border-bottom: none !important; }
       Cargar empleados
     </a>
     {% endif %}
+    <button type="button" class="help-icon" data-help="Registra a los empleados de este centro: uno por uno, o de golpe subiendo un Excel con varios a la vez.">?</button>
+    <div class="help-tooltip">Registra a los empleados de este centro: uno por uno, o de golpe subiendo un Excel con varios a la vez.</div>
+    </div>
 
+    <div class="action-item">
     {% if viewing_done %}
         <button disabled class="btn btn-outline btn-sm">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
@@ -455,6 +484,11 @@ table.dataTable tbody tr:last-child td { border-bottom: none !important; }
         {% else %}
         <button disabled class="btn btn-outline btn-sm">Finalizar aplicación</button>
         {% endif %}
+    <button type="button" class="help-icon" data-help="Cierra el ciclo de cuestionarios de esta evaluación cuando ya tengas empleados registrados y al menos una encuesta contestada. Esto habilita los resultados y deja lista una evaluación nueva para el siguiente ciclo.">?</button>
+    <div class="help-tooltip">Cierra el ciclo de cuestionarios de esta evaluación cuando ya tengas empleados registrados y al menos una encuesta contestada. Esto habilita los resultados y deja lista una evaluación nueva para el siguiente ciclo.</div>
+    </div>
+
+    <div class="action-item">
         {% if viewing_done %}
                 <a href="/workplace_result/{{workplace_id}}/{{evaluation}}/" class="btn btn-primary btn-sm">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
@@ -467,14 +501,27 @@ table.dataTable tbody tr:last-child td { border-bottom: none !important; }
                 {% else %}
                 <button disabled class="btn btn-outline btn-sm">Ver resultados</button>
                 {% endif %}
+    <button type="button" class="help-icon" data-help="Muestra el análisis de riesgo psicosocial (por dominio y categoría) de la evaluación que ya finalizaste. Solo se habilita después de dar clic en Finalizar aplicación.">?</button>
+    <div class="help-tooltip">Muestra el análisis de riesgo psicosocial (por dominio y categoría) de la evaluación que ya finalizaste. Solo se habilita después de dar clic en Finalizar aplicación.</div>
+    </div>
+
+    <div class="action-item">
     <a href="{% url 'evidence' %}?workplace_id={{workplace_id}}" class="btn btn-outline btn-sm">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6z"/></svg>
       Portafolio de evidencias
     </a>
+    <button type="button" class="help-icon" data-help="Documentos y evidencias que pide la norma para este centro: política de prevención, evidencia de difusión, plan de acción, y demás — con su estatus de cumplimiento.">?</button>
+    <div class="help-tooltip">Documentos y evidencias que pide la norma para este centro: política de prevención, evidencia de difusión, plan de acción, y demás — con su estatus de cumplimiento.</div>
+    </div>
+
+    <div class="action-item">
     <a href="{% url 'clima_resultados' workplace_id %}" class="btn btn-outline btn-sm">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
       Ver clima laboral
     </a>
+    <button type="button" class="help-icon" data-help="Resultados de la encuesta de clima laboral de este centro de trabajo, respondida de forma anónima por tus empleados.">?</button>
+    <div class="help-tooltip">Resultados de la encuesta de clima laboral de este centro de trabajo, respondida de forma anónima por tus empleados.</div>
+    </div>
   </div>
 
 </div>
@@ -565,6 +612,22 @@ table.dataTable tbody tr:last-child td { border-bottom: none !important; }
 
 <script type="text/javascript">
 $(document).ready(function(){
+
+  $(".help-icon").on('click', function(e){
+    e.stopPropagation();
+    var tooltip = $(this).siblings('.help-tooltip');
+    var wasActive = tooltip.hasClass('active');
+    $(".help-tooltip").removeClass('active');
+    $(".help-icon").removeClass('active');
+    if (!wasActive) {
+      tooltip.addClass('active');
+      $(this).addClass('active');
+    }
+  });
+  $(document).on('click', function(){
+    $(".help-tooltip").removeClass('active');
+    $(".help-icon").removeClass('active');
+  });
 
   function get_current_areas(){
     var areas = [];
