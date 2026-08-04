@@ -17,6 +17,8 @@ import json
 
 p_ = logging.getLogger(__name__)
 
+CANDIDATOS_MAX_POR_CUENTA = 2000
+
 
 class CandidateListView(LoginRequiredMixin, View):
     login_url = reverse_lazy('login')
@@ -84,6 +86,8 @@ class CandidateCreateView(LoginRequiredMixin, View):
     login_url = reverse_lazy('login')
 
     def post(self, request):
+        if Candidate.objects.filter(user=request.user).count() >= CANDIDATOS_MAX_POR_CUENTA:
+            return JsonResponse({"error": f"Has alcanzado el límite de autoservicio de {CANDIDATOS_MAX_POR_CUENTA} candidatos. Para más candidatos, contáctanos."}, status=403)
         nombre = request.POST.get('nombre', '').strip()
         email = request.POST.get('email', '').strip()
         puesto = request.POST.get('puesto', '').strip()
