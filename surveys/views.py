@@ -1433,6 +1433,8 @@ EMPLEADO_CAMPOS_CARGA_MASIVA = [
 	]),
 ]
 CARGA_MASIVA_MAX_FILAS = 500
+EMPLOYEE_NUM_MAX_POR_CENTRO = 3000
+WORKPLACES_MAX_POR_CUENTA = 200
 
 def download_employee_template(request, workplace_id):
 	if not request.user.is_authenticated:
@@ -3101,9 +3103,16 @@ class WorkplaceList(generics.ListCreateAPIView):
 		return response
 	def post(self, request):
 		data=request.data.copy()
-		data['user']=self.request.user.id or request.user.id 
+		data['user']=self.request.user.id or request.user.id
 		print(request.user.id )
 		print(self.request.user.id )
+		if Workplace.objects.filter(user_id=self.request.user.id).count() >= WORKPLACES_MAX_POR_CUENTA:
+			return Response(f"Has alcanzado el límite de autoservicio de {WORKPLACES_MAX_POR_CUENTA} centros de trabajo. Para cuentas empresariales con más centros, contáctanos.", status=status.HTTP_400_BAD_REQUEST)
+		try:
+			if int(data.get("employee_num", 0)) > EMPLOYEE_NUM_MAX_POR_CENTRO:
+				return Response(f"El número de empleados no puede exceder {EMPLOYEE_NUM_MAX_POR_CENTRO} por centro de trabajo. Para centros más grandes, contáctanos.", status=status.HTTP_400_BAD_REQUEST)
+		except (TypeError, ValueError):
+			pass
 		# encription = AES.new("!K3y_toUnl0ck![]".encode(), AES.MODE_CBC)
 		# encription = AES.new('!K3y_toUnl0ck![]', AES.MODE_CBC, '.S0m3Ran_dom-txt')
 		# name=data['name'][:6]
