@@ -1066,8 +1066,6 @@ class WorkplaceFormView(LoginRequiredMixin,View):
 	login_url = reverse_lazy('login')
 	redirect_field_name = 'redirect_to'
 	def get(self, request, *args, **kwargs):
-		if not getattr(request.user.userapp, "stripe_plan_key", None) and not getattr(request.user.userapp, "nom035_creditos", 0):
-			return HttpResponseRedirect(reverse_lazy('index') + '?msg=plan_requerido')
 		ctx={"workplaces":[{"id":item.id,"name":item.name,"employee_count":item.employee_num
 		} for item in Workplace.objects.filter(user_id=self.request.user.id)]}
 		ctx['workplaces_available']=request.user.userapp.workplaces_available
@@ -1738,8 +1736,6 @@ class EmployeeFormView(LoginRequiredMixin,View):
 	login_url = reverse_lazy('login')
 	redirect_field_name = 'redirect_to'
 	def get(self, request, *args, **kwargs):
-		if not getattr(request.user.userapp, "stripe_plan_key", None) and not getattr(request.user.userapp, "nom035_creditos", 0):
-			return HttpResponseRedirect(reverse_lazy('index') + '?msg=plan_requerido')
 		ctx={"workplaces":[{"id":item.id,"name":item.name,"employee_count":item.employee_num
 		} for item in Workplace.objects.filter(user_id=self.request.user.id)]}
 		if 'workplace_id' in kwargs:
