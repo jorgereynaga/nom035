@@ -1,14 +1,16 @@
-# ESTADO NormaIA — Actualizado 8 Jul 2026 (sesión 10)
+# ESTADO NormaIA — Actualizado 4 Ago 2026 (sesión larga post-compactación, ver entrada al final del archivo)
 
 ## Stack
-- Django 3.2 + PostgreSQL + Stripe + Railway
-- Deploy: git push origin main
+- Django 3.2 + PostgreSQL + Stripe (modo LIVE) + VPS propio con Docker Compose
+- **Railway YA NO SE USA** (desactivado, referencias viejas abajo son historicas)
+- Deploy: push a `main` en GitHub -> en el VPS: `cd /webapps/NormaIA && git pull && docker compose up -d --build web` (el propio contenedor corre `migrate` automatico en su arranque, NO correr `migrate` a mano aparte — causa condiciones de carrera, ver incidente de sesion 2026-08-03)
 - Admin: /ihes_admin/ admin/IhesAdmin2026!
 - Test: prueba/TestIhes2026! | jorge.reynaga.j@gmail.com (usuario con datos demo)
-- URLs: nom035-production.up.railway.app / 035.ihes.mx
+- URL real de produccion: https://normaia.ihes.mx (035.ihes.mx redirige ahi via nginx)
 - Repo: github.com/jorgereynaga/nom035
-- Local: C:\Users\JorgeAlbertoReynagaJ\Documents\nom 035\nom035\
+- Local (checkout oficial): C:\NormaIA-Pruebas\nom035
 - Editor: Sublime Text, terminal Git Bash en Windows
+- Flujo git: rama de feature -> `auditoria-local` -> `main`, cada push confirmado explicitamente por Jorge ("si") en cada paso
 
 ## IMPORTANTE — Flujo de trabajo con dos cuentas Claude
 - Jorge alterna entre dos cuentas de Claude para no detenerse si una llega al límite de uso
@@ -2807,3 +2809,79 @@ Detalle completo de cada uno en `SOCIOS_feedback_correcciones.md` (hallazgos #13
 2. **Bug por confirmar (#14):** boton "Contratar" en `/stripe/planes/` posiblemente texto blanco sobre fondo blanco en `:hover` -- el CSS estatico no muestra la causa, falta revisar el JS que maneja el estado del boton segun plan activo.
 3. **Cambio de nombre (#15):** centro de trabajo demo se llama "Empresa Demo S.A. de C.V." (deberia ser "Centro de Trabajo Demo", no es una empresa) -- hardcodeado en `cargar_datos_demo.py:129`.
 4. **Rediseno de formulario, alcance mayor (#15):** `workplaceform.html` mezcla datos de empresa (ej. "Objetivo de la empresa") con datos del centro de trabajo -- Jorge propone que el alta de centro solo pida nombre/actividad/empleados/domicilio, y los datos de empresa vivan en Configuracion. Requiere revisar el modelo `Workplace` antes de escribir especificacion (no es cambio trivial).
+
+## Sesion 2026-08-01 a 2026-08-04 (sesion larga, contexto compactado varias veces) — MULTIPLES FEATURES, TODO DESPLEGADO EXCEPTO EL ULTIMO AJUSTE (ver PENDIENTE INMEDIATO al final)
+
+Nota: los hallazgos #13/#15 de la entrada anterior de este archivo (bug de "Ver resultados", rename de "Empresa Demo") ya quedaron resueltos en esta sesion (ver abajo) -- quedan obsoletos, no hace falta retomarlos.
+
+### 1. Navegacion entre evaluaciones (workplace_detail.html) -- DESPLEGADO
+- Linea de pastillas por evaluacion (verde+check=finalizada, dorada=la que ves, punteada="Eval. #N" abierta) reemplaza las flechas viejas.
+- "Finalizar aplicacion" ya no te saca de la vista -- te quedas viendo la evaluacion que acabas de cerrar.
+- "Ver resultados" requiere evaluacion formalmente finalizada (registro en EvaluationHistory), no solo que tenga datos -- aplica igual en la tarjeta de "Centros de Trabajo" (antes esa lista era mas laxa, se corrigio para ser consistente). Confirmado explicitamente por Jorge: la regla de "no finalizar sin >=1 empleado y >=1 encuesta contestada" se queda igual, eso NO cambio.
+- Workplace.last_completed_evaluation() (metodo nuevo en models.py) es la fuente de verdad -- reemplazo un heuristico viejo basado en workplace.paid que estaba roto (se quedaba pegado en True para siempre tras la primera compra, asi que despues de la 2a evaluacion siempre apuntaba mal). Se corrigio en Index, WorkplaceView, GenerarInformeResultadosView, CuestionariosAplicadosView, get_portafolio_status, employees_dt (6 lugares).
+
+### 2. Portafolio de evidencias -- selector de evaluacion -- DESPLEGADO
+- get_portafolio_status acepta ?evaluation=N; el portafolio ahora tiene selector de pastillas (igual que el detalle del centro) para ver Informe de Resultados / Cuestionarios Aplicados de cualquier evaluacion cerrada, no solo la ultima.
+- Politica de Prevencion y el checklist de evidencias (difusion, registros, quejas, etc.) NO son por evaluacion -- son del centro completo, no cambian con el selector (asi es el modelo de datos real, no es un bug).
+
+### 3. Flujo "Generar/Actualizar Politica de Prevencion" -- DESPLEGADO
+- Primera vez: formulario editable normal.
+- Ya generada: campos bloqueados, boton "Actualizar Politica" los habilita, boton separado "Imprimir Politica". Al guardar una actualizacion, version_politica sube solo (1.0 -> 1.1...) y fecha_emision/fecha_proxima_revision se refrescan (antes se quedaban fijas desde la primera vez).
+
+### 4. Botones de compartir encuesta -- rediseno -- DESPLEGADO
+- Se quito el boton "Compartir encuesta" del encabezado del centro (mandaba un link generico de autoregistro que causaba confusion, ver punto 5).
+- El boton "Compartir" por empleado (columna de la tabla, generado en employees_dt en views.py) paso de chip gris a pastilla verde de WhatsApp con icono.
+
+### 5. Catalogo de Areas/Departamentos + autoregistro por seleccion -- DESPLEGADO
+Motivado por: quitar el boton de compartir masivo no escala para centros con muchos empleados (no se puede mandar 300 links individuales). Se recupero el link unico de autoregistro (el que ya existia via access_code del centro), pero antes fallaba porque el empleado escribia su area/departamento libremente sin saber que poner.
+- Workplace.areas (ArrayField) -- catalogo de areas del centro.
+- Alta de centro (workplaceform.html): seccion de areas obligatoria (bloquea guardar sin al menos 1, cliente y servidor -- WorkplaceSerializer.areas declarado explicito required=True, allow_empty=False porque el modelo tiene blank=True y DRF lo trataba como opcional si no se declaraba asi).
+- Detalle del centro: nueva tarjeta "Areas / Departamentos" -- UI final es un select compacto (dropdown de una linea, NO listbox con scroll -- iteracion pedida por Jorge tras ver el primer intento) + botones Agregar/Quitar seleccionada. Endpoint UpdateWorkplaceAreasView (/workplaces/<id>/areas/).
+- Misma tarjeta: boton de WhatsApp + "Copiar enlace" con el link de autoregistro (/app/access/?d=<access_code>), en 2 columnas (areas a la izquierda, compartir a la derecha -- iteracion de layout pedida por Jorge).
+- get_questions(): cuando el autoregistro genera la pregunta "Departamento, Seccion o Area", si el centro tiene areas cargadas se presentan como opciones seleccionables en vez de texto libre (mismo mecanismo de reflexion de campos de modelo que ya usa el resto del sistema).
+
+### 6. Programa de Socios Comerciales / Referidos (Partners) -- DESPLEGADO
+- Modelos Partner (code, name, contact, active, user opcional para login al panel) y PartnerCommission (venta/renovacion, monto, estado pendiente/pagada, stripe_invoice_id para deduplicar webhooks).
+- Userapp.referred_by -- atribucion permanente al registrarse.
+- Atribucion por 2 vias: link ?ref=CODIGO (se guarda en sesion) O campo manual "Codigo de referido" en el registro (pedido explicito de Jorge/socios para promocionar en redes sociales donde no siempre se comparte un link limpio). El campo manual tiene prioridad si esta lleno.
+- Reglas de comision (confirmadas con Jorge y los socios, con un ajuste de ultima hora), viven en surveys/services/partner_commissions.py:
+  - Psicometria Starter: sin comision (ingreso muy bajo).
+  - NOM-035 Micro/PyME/Empresarial + Psico Ilimitado Mensual: $300 fijo, igual en venta y renovacion.
+  - NOM-035 Ilimitado, Psico Ilimitado Anual, Suite Pro (50/100/Ilimitado): 10% en la venta inicial, 5% en cada renovacion (originalmente se aprobo 15%/7.5%, Jorge lo bajo a 10%/5% el mismo dia antes de desplegar -- el 15/7.5 nunca llego a produccion).
+- Comision se genera sola via los webhooks de Stripe que ya existian (checkout.session.completed = venta, invoice.paid con billing_reason=subscription_cycle = renovacion).
+- Dashboard del socio en /partner/ (standalone, no extiende index.html): enlace de referido, KPIs, tabla de clientes referidos (activo/prueba/cancelado), historial de pagos. Redirige a /main si el usuario logueado no tiene un Partner asociado.
+- Alta/edicion de partners y comisiones via /ihes_admin/ (accion en lote "Marcar como pagada").
+- Los codigos de partner los inventa Jorge a mano al dar de alta cada uno en el admin (sin generador automatico, a proposito -- mejor un codigo memorable tipo ROBERTOHRH que uno random, ya que se comparte de palabra).
+
+### 7. Stripe: codigos promocionales + bug real de produccion encontrado y arreglado -- DESPLEGADO
+- allow_promotion_codes=True en la creacion del Checkout Session -- ahora aparece el campo de codigo promocional en la pantalla de pago. Los cupones/codigos se crean y administran 100% desde el Dashboard de Stripe (Productos -> Cupones, luego Codigos promocionales), sin tocar codigo por campana.
+- Bug real encontrado al probar el Portal de Cliente de Stripe: usuarios registrados antes del cambio de Stripe a modo LIVE (sesion previa) se quedaron con un stripe_customer_id de modo TEST guardado -- ya no existe en modo live, asi que tanto "Administrar metodos de pago" (Portal) como el checkout de compra fallaban en silencio con "No such customer" (visto en logs del VPS). Se agrego get_or_create_stripe_customer() en stripe_views.py: valida que el customer_id guardado siga existiendo antes de reusarlo; si no, crea uno nuevo automatico. Autorepara cada cuenta afectada sola, sin intervencion manual, la primera vez que esa cuenta intenta pagar o entrar al portal.
+- Tambien se guio a Jorge para activar el Portal de Cliente de Stripe (Dashboard de Stripe -> Configuracion -> Facturacion -> Portal de cliente) -- no estaba activado, por eso los botones de "Configuracion" nunca habian funcionado.
+
+### 8. Comando de reparacion de datos: reparar_evaluationhistory -- DESPLEGADO Y CORRIDO
+Cuentas demo creadas ANTES del fix al punto 1 de arriba (o antes de que cargar_datos_demo.py incluyera el registro de EvaluationHistory) se quedaron con wk.evaluation avanzado pero sin el historial correspondiente -- mismo sintoma que el bug del punto 1 pero en datos viejos que el fix de codigo no toca retroactivamente.
+python manage.py reparar_evaluationhistory (dry-run por default, --aplicar para escribir) recorre todos los centros y detecta/corrige el patron. Ya se corrio en produccion (2026-08-03): eran 3 centros afectados ("Empresa Demo S.A. de C.V." x2 + "Centro de Trabajo Demo" x1), reparados. Es idempotente y seguro de re-correr si aparecen mas casos.
+
+### 9. Botones mas grandes + tooltip de ayuda (deteccion de tester) -- DESPLEGADO, solo en Detalle del centro por ahora
+workplace_detail.html: los 5 botones de accion (Cargar empleados, Finalizar aplicacion, Ver resultados, Portafolio de evidencias, Ver clima laboral) suben de tamano y cada uno tiene un icono "?" al lado que explica que hace -- funciona con hover (desktop) Y con clic (touch/movil, se cierra al hacer clic afuera). Pendiente replicar a otras pantallas (Centros de Trabajo, Portafolio, etc.) una vez que Jorge lo valide mas a fondo -- no se ha pedido todavia.
+
+### 10. Recorridos guiados por pantalla (deteccion de tester: "ya pague, y ahora que?") -- DESPLEGADO
+- El motor del recorrido guiado (spotlight + burbujas + tarjeta de bienvenida), que antes SOLO existia en el Dashboard (vivia dentro de {% block dashboard %}, que cada vista hija reemplaza por completo), se saco a la parte de index.html que no se sobreescribe, para que cualquier vista que extienda index.html lo pueda usar.
+- API: window.startNormaTour(config) (lo fuerza a mostrarse, para botones "Ayuda"/"Ver recorrido") y window.initNormaTourAutoShow(config) (solo la primera vez, via localStorage -- el Dashboard sigue usando esto para su comportamiento original).
+- Importante: cada pantalla tiene su PROPIO recorrido operativo, no una copia generica del Dashboard -- fue una correccion explicita de Jorge a media implementacion. El objetivo es responder "como uso esta pantalla", no solo señalar botones.
+  - Dashboard: boton "Ver recorrido" para repetir el original.
+  - Centros de Trabajo (workplace.html): boton "¿Como empiezo?", 4 pasos (crear tu primer centro -> buscar/filtrar -> leer las tarjetas -> entrar al detalle).
+  - Detalle del centro (workplace_detail.html): boton "¿Como empiezo a cumplir con la NOM-035?" (texto y estilo de boton ajustados el 2026-08-04 tras feedback de Jorge -- boton blanco solido en vez de semitransparente, se perdia contra el fondo morado), 6 pasos (evaluaciones -> cargar empleados -> areas -> compartir enlace -> finalizar aplicacion -> ver resultados).
+
+### Incidente de deploy (para no repetirlo): NUNCA correr migrate manual aparte
+El Dockerfile.vps ya corre "python manage.py migrate --noinput" automatico como parte de su CMD de arranque. Dos veces en esta sesion se le dijo a Jorge que corriera "docker compose exec web python manage.py migrate" como paso extra despues de "docker compose up -d --build web" -- las dos veces causo una condicion de carrera (dos procesos de migrate al mismo tiempo, uno gana y el otro truena con "column already exists"), tumbando el contenedor web (502 Bad Gateway) hasta que se reinicio a mano. Regla: el deploy normal (docker compose up -d --build web) ya incluye migraciones, nunca agregar el paso de migrate aparte.
+
+### Deuda tecnica encontrada pero NO tocada (requiere decision explicita, riesgo de perder datos)
+Al correr makemigrations varias veces esta sesion aparecio SIEMPRE la misma migracion fantasma: el modelo EvidenciaFaseC ya no tiene el campo archivo en models.py pero la migracion nunca se genero (drift preexistente, no de esta sesion), y PsychoInstrument.tipo tiene choices distintos en codigo vs. la ultima migracion aplicada. Se aislaron manualmente estas 2 operaciones de CADA migracion nueva para no incluirlas sin querer -- sobre todo archivo, que si tiene datos reales de evidencias subidas en produccion, un RemoveField los borraria. Pendiente: decidir con Jorge que hacer con esto antes de que se acumule mas drift.
+
+## PENDIENTE INMEDIATO al cerrar esta sesion (2026-08-04) -- cambios sin commitear
+En surveys/templates/workplace_detail.html hay 2 ediciones ya hechas pero NO verificadas en navegador ni commiteadas, pedidas por Jorge tras ver el recorrido guiado desplegado:
+1. Texto del paso "Paso 4: finaliza la aplicacion" del recorrido de Detalle del centro, cambiado de "Cuando ya tengas empleados registrados y al menos una encuesta contestada..." a "Cuando tengas las encuestas contestadas o quieras finalizar el ciclo, da clic aqui y genera los resultados."
+2. Boton "¿Como empiezo...?" de Detalle del centro: era casi invisible (fondo semitransparente sobre el hero morado) -- se cambio a fondo blanco solido + texto "¿Como empiezo a cumplir con la NOM-035?" (antes decia solo "¿Como empiezo?").
+
+Siguiente paso al retomar: verificar ambos cambios en navegador (Claude Browser, preview_start con nom035-dev, sesion inyectada via force_login/cookie como se hizo toda la sesion), luego seguir el flujo de commit de siempre: mostrar diff -> "si" de Jorge -> commit en rama de feature -> merge+push auditoria-local -> merge+push main -> Jorge hace git pull && docker compose up -d --build web en el VPS (sin migrate aparte, ver seccion de arriba).
