@@ -14,6 +14,29 @@ logger = logging.getLogger(__name__)
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
 
+def get_or_create_stripe_customer(userapp, user):
+    """Devuelve un customer_id de Stripe valido para el modo actual (test/live).
+
+    Si el customer_id guardado ya no existe en Stripe (tipicamente porque se
+    creo en modo test y luego se cambio a modo live, o se borro manualmente
+    en el Dashboard), se crea uno nuevo y se actualiza el registro.
+    """
+    if userapp.stripe_customer_id:
+        try:
+            stripe.Customer.retrieve(userapp.stripe_customer_id)
+            return userapp.stripe_customer_id
+        except stripe.error.InvalidRequestError:
+            logger.warning(f"stripe_customer_id invalido para user_id={user.id}, se creara uno nuevo")
+    customer = stripe.Customer.create(
+        email=user.email,
+        name=f"{user.first_name} {user.last_name}",
+        metadata={'user_id': user.id}
+    )
+    userapp.stripe_customer_id = customer.id
+    userapp.save()
+    return customer.id
+
+
 # ─────────────────────────────────────────────────────────────
 # 1. LISTA DE PLANES (pública — para mostrar en la landing)
 # ─────────────────────────────────────────────────────────────
@@ -50,18 +73,8 @@ class StripeCheckoutView(LoginRequiredMixin, View):
             user = request.user
             userapp = Userapp.objects.get(user=user)
 
-            # Obtener o crear cliente en Stripe
-            if userapp.stripe_customer_id:
-                customer_id = userapp.stripe_customer_id
-            else:
-                customer = stripe.Customer.create(
-                    email=user.email,
-                    name=f"{user.first_name} {user.last_name}",
-                    metadata={'user_id': user.id}
-                )
-                customer_id = customer.id
-                userapp.stripe_customer_id = customer_id
-                userapp.save()
+            # Obtener o crear cliente en Stripe (auto-repara si el customer_id guardado ya no existe)
+            customer_id = get_or_create_stripe_customer(userapp, user)
 
             # Configurar modo según tipo de plan
             if plan['periodo'] == 'unico':
@@ -79,6 +92,7 @@ class StripeCheckoutView(LoginRequiredMixin, View):
                     'quantity': 1,
                 }],
                 mode=mode,
+                allow_promotion_codes=True,
                 success_url=f"{base_url}/payments/success/?session_id={{CHECKOUT_SESSION_ID}}",
                 cancel_url=f"{base_url}/payments/cancel/",
                 metadata={
@@ -108,19 +122,11 @@ class StripePortalView(LoginRequiredMixin, View):
     def get(self, request):
         try:
             userapp = Userapp.objects.get(user=request.user)
-
-            if not userapp.stripe_customer_id:
-                customer = stripe.Customer.create(
-                    email=request.user.email,
-                    name=f"{request.user.first_name} {request.user.last_name}",
-                    metadata={'user_id': request.user.id}
-                )
-                userapp.stripe_customer_id = customer.id
-                userapp.save()
+            customer_id = get_or_create_stripe_customer(userapp, request.user)
 
             base_url = request.build_absolute_uri('/').rstrip('/')
             session = stripe.billing_portal.Session.create(
-                customer=userapp.stripe_customer_id,
+                customer=customer_id,
                 return_url=f"{base_url}/edit_profile/",
             )
             return redirect(session.url)
