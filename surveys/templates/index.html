@@ -805,26 +805,29 @@
       .accion-pend-name{font-size:13px;font-weight:700;color:var(--text-primary);margin:0 0 2px;}.accion-pend-meta{font-size:11px;color:var(--text-muted);}.accion-pend-fecha{font-size:11.5px;font-weight:700;color:var(--warning);white-space:nowrap;}.accion-pend-fecha.vencida{color:var(--danger);}
       .clima-summary-row{display:grid;grid-template-columns:1fr 1fr 1.4fr;gap:16px;align-items:center;}.clima-stat{text-align:center;padding:14px;border-radius:var(--radius-md);background:#f0fdfa;border:1px solid #99f6e4;}.clima-stat-val{font-family:'Plus Jakarta Sans',sans-serif;font-size:24px;font-weight:800;color:#0f766e;}.clima-stat-label{font-size:11px;color:#0f766e;font-weight:600;margin-top:2px;}.clima-worst{padding:14px 16px;border-radius:var(--radius-md);background:#fffbeb;border:1px solid #fde68a;}.clima-worst-label{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:#a16207;margin:0 0 4px;}.clima-worst-name{font-size:14px;font-weight:800;color:#78350f;margin:0 0 2px;}.clima-worst-val{font-size:12px;color:#92400e;}
 
+      .db-subsection-title { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; font-weight: 800; letter-spacing: -.01em; margin: 4px 0 12px; }
+
       /* NOM-035 — azul */
-      .section-nom035 { background: #eff6ff; border-color: #bfdbfe; }
+      .section-nom035 { background: #eff6ff; border-color: #bfdbfe; border-left: 4px solid #2563eb; }
       .section-nom035 .db-section-header { border-color: #bfdbfe; }
       .section-nom035 .db-section-title  { color: #1e40af; }
       .section-nom035 .db-section-icon   { background: #fff; color: #1d4ed8; }
+      .section-nom035 .db-subsection-title { color: #1e40af; }
 
       /* Acciones pendientes — rojo */
-      .section-acciones { background: #fef2f2; border-color: #fecaca; }
+      .section-acciones { background: #fef2f2; border-color: #fecaca; border-left: 4px solid #dc2626; }
       .section-acciones .db-section-header { border-color: #fecaca; }
       .section-acciones .db-section-title  { color: #b91c1c; }
       .section-acciones .db-section-icon   { background: #fff; color: #dc2626; }
 
       /* Psicometría — violeta */
-      .section-psico { background: #faf5ff; border-color: #ddd6fe; }
+      .section-psico { background: #faf5ff; border-color: #ddd6fe; border-left: 4px solid #7c3aed; }
       .section-psico .db-section-header  { border-color: #ddd6fe; }
       .section-psico .db-section-title   { color: #5b21b6; }
       .section-psico .db-section-icon    { background: #fff; color: #7c3aed; }
 
       /* Clima Laboral — teal */
-      .section-clima { background: #f0fdfa; border-color: #99f6e4; }
+      .section-clima { background: #f0fdfa; border-color: #99f6e4; border-left: 4px solid #0d9488; }
       .section-clima .db-section-header  { border-color: #99f6e4; }
       .section-clima .db-section-title   { color: #115e59; }
       .section-clima .db-section-icon    { background: #fff; color: #0f766e; }
@@ -1184,17 +1187,17 @@
     </div>
     {% endif %}
 
-    <div class="kpi-row" id="tour-kpis">
-      <div class="kpi-card"><p class="kpi-label">Centros de trabajo</p><p class="kpi-value">{{kpi_total_centros}}</p></div>
-      <div class="kpi-card"><p class="kpi-label">Empleados totales</p><p class="kpi-value">{{kpi_empleados_totales}}</p></div>
-      <div class="kpi-card"><p class="kpi-label">Evaluaciones aplicadas</p><p class="kpi-value">{{kpi_evaluaciones_totales}}</p></div>
-      <div class="kpi-card"><p class="kpi-label">Cumplimiento documental</p><p class="kpi-value">{{kpi_cumplimiento_promedio}}%</p><p class="kpi-sub">promedio de todos los centros</p></div>
-      <div class="kpi-card"><p class="kpi-label">Riesgo predominante</p><p class="kpi-value">{% if kpi_riesgo_predominante_nivel is not None %}<span class="kpi-badge-dot" data-nivel="{{kpi_riesgo_predominante_nivel}}"></span>{% endif %}{{kpi_riesgo_predominante_nombre}}</p><p class="kpi-sub">peor caso entre tus centros</p></div>
-    </div>
-
     <!-- Dashboard executive risk summary -->
     <section class="db-section section-nom035" id="tour-atencion">
-      <div class="db-section-header"><div class="db-section-title"><div class="db-section-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg></div>NOM-035 — Centros que necesitan atención</div><div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;"><span class="credit-pill credit-pill-blue">{{nom035_disponibles}} crédito{% if nom035_disponibles != 1 %}s{% endif %} disponible{% if nom035_disponibles != 1 %}s{% endif %}</span><a href="{% url 'workplaces' %}" class="link-all">Ver todos los centros</a></div></div>
+      <div class="db-section-header"><div class="db-section-title"><div class="db-section-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg></div>NOM-035</div><div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;"><span class="credit-pill credit-pill-blue">{{nom035_disponibles}} crédito{% if nom035_disponibles != 1 %}s{% endif %} disponible{% if nom035_disponibles != 1 %}s{% endif %}</span><a href="{% url 'workplaces' %}" class="link-all">Ver todos los centros</a></div></div>
+      <div class="kpi-row" id="tour-kpis">
+        <div class="kpi-card"><p class="kpi-label">Centros de trabajo</p><p class="kpi-value">{{kpi_total_centros}}</p></div>
+        <div class="kpi-card"><p class="kpi-label">Empleados totales</p><p class="kpi-value">{{kpi_empleados_totales}}</p></div>
+        <div class="kpi-card"><p class="kpi-label">Evaluaciones aplicadas</p><p class="kpi-value">{{kpi_evaluaciones_totales}}</p></div>
+        <div class="kpi-card"><p class="kpi-label">Cumplimiento documental</p><p class="kpi-value">{{kpi_cumplimiento_promedio}}%</p><p class="kpi-sub">promedio de todos los centros</p></div>
+        <div class="kpi-card"><p class="kpi-label">Riesgo predominante</p><p class="kpi-value">{% if kpi_riesgo_predominante_nivel is not None %}<span class="kpi-badge-dot" data-nivel="{{kpi_riesgo_predominante_nivel}}"></span>{% endif %}{{kpi_riesgo_predominante_nombre}}</p><p class="kpi-sub">peor caso entre tus centros</p></div>
+      </div>
+      <h3 class="db-subsection-title">Centros que necesitan atención</h3>
       {% if centros_atencion %}<div class="atencion-list">{% for item in centros_atencion %}<div class="atencion-card risk-{{item.riesgo_nivel}}"><div><p class="atencion-name">{{item.name}}</p><p class="atencion-meta">{{item.empleados_registrados}} empleados · Evaluación #{{item.cat}} · {{item.survey_completion}}% aplicado</p></div><span class="risk-pill risk-{{item.riesgo_nivel}}">Riesgo: {{item.riesgo_nivel_nombre}}</span><a href="{% url 'single_workplace' item.id %}" class="btn btn-outline btn-sm">Ver centro</a></div>{% endfor %}</div>{% elif not has_workplaces %}<div class="card"><div class="card-body"><div class="empty-state"><p>No hay centros registrados. <a href="/workplaceform/">Registra el primero</a>.</p></div></div></div>{% else %}<div class="dim-empty">Aún no hay datos de riesgo suficientes en tus centros para mostrar aquí.</div>{% endif %}
     </section>
 
