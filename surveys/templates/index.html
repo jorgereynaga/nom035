@@ -1198,10 +1198,12 @@
       {% if centros_atencion %}<div class="atencion-list">{% for item in centros_atencion %}<div class="atencion-card risk-{{item.riesgo_nivel}}"><div><p class="atencion-name">{{item.name}}</p><p class="atencion-meta">{{item.empleados_registrados}} empleados · Evaluación #{{item.cat}} · {{item.survey_completion}}% aplicado</p></div><span class="risk-pill risk-{{item.riesgo_nivel}}">Riesgo: {{item.riesgo_nivel_nombre}}</span><a href="{% url 'single_workplace' item.id %}" class="btn btn-outline btn-sm">Ver centro</a></div>{% endfor %}</div>{% elif not has_workplaces %}<div class="card"><div class="card-body"><div class="empty-state"><p>No hay centros registrados. <a href="/workplaceform/">Registra el primero</a>.</p></div></div></div>{% else %}<div class="dim-empty">Aún no hay datos de riesgo suficientes en tus centros para mostrar aquí.</div>{% endif %}
     </section>
 
+    {% if acciones_pendientes %}
     <section class="db-section section-acciones">
       <div class="db-section-header"><div class="db-section-title"><div class="db-section-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>Acciones pendientes — Plan de acción</div></div>
-      {% if acciones_pendientes %}{% for a in acciones_pendientes %}<div class="accion-pend-item {% if a.es_vencida %}vencida{% endif %}"><div><p class="accion-pend-name">{{a.tipo_accion}} — {{a.workplace_nombre}}</p><p class="accion-pend-meta">Responsable: {{a.responsable}}</p></div><span class="accion-pend-fecha {% if a.es_vencida %}vencida{% endif %}">{% if a.es_vencida %}Venció el {{a.fecha_programada}}{% else %}Vence el {{a.fecha_programada}}{% endif %}</span></div>{% endfor %}{% else %}<div class="dim-empty">No tienes acciones pendientes registradas en tu Plan de acción.</div>{% endif %}
+      {% for a in acciones_pendientes %}<div class="accion-pend-item {% if a.es_vencida %}vencida{% endif %}"><div><p class="accion-pend-name">{{a.tipo_accion}} — {{a.workplace_nombre}}</p><p class="accion-pend-meta">Responsable: {{a.responsable}}</p></div><span class="accion-pend-fecha {% if a.es_vencida %}vencida{% endif %}">{% if a.es_vencida %}Venció el {{a.fecha_programada}}{% else %}Vence el {{a.fecha_programada}}{% endif %}</span></div>{% endfor %}
     </section>
+    {% endif %}
 
 
     <!-- ══════════════════════════════════════════════════════════
