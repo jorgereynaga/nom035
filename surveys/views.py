@@ -355,6 +355,8 @@ class SaveAnswers(generics.GenericAPIView):
 		else:
 			form=request.data['form']
 		workplace=Workplace.objects.get(id=workplace_id)
+		if form in ("risksurveya","risksurveyb","traumasurvey") and workplace.evaluation_history.filter(numero_evaluacion=workplace.evaluation).exists():
+			return Response('Esta evaluación ya fue finalizada. Contacta al administrador del centro de trabajo para que inicie el siguiente ciclo.', status=status.HTTP_403_FORBIDDEN)
 		dic={'workplace':workplace_id,'evaluation':workplace.evaluation}
 		for item in answers:
 			dic.update(item)
@@ -3499,10 +3501,29 @@ class EndEvaluation(APIView):
 				numero_evaluacion=workplace.evaluation,
 				guia=workplace.survey_type(),
 			)
+			return Response({'status':'ok'})
+		except Exception as e:
+			return Response({'status':'error', 'error':f"error::{e}"})
+
+
+class StartNewEvaluation(APIView):
+	http_method_names = ['get',]
+	permission_classes = (IsAuthenticated,)
+	authentication_classes = (TokenAuthentication,SessionAuthentication)
+	def get(self, request, format=None):
+		try:
+			workplace_id=request.query_params.get('workplace_id') or request.data.get('workplace_id')
+			if not request.user.workplaces.filter(id=workplace_id).exists():
+				return Response({'status':'error', 'error':'Centro de trabajo no encontrado.'}, status=403)
+			workplace=Workplace.objects.filter(id=workplace_id).last()
+			if workplace.es_demo:
+				return Response({'status':'error', 'error':'No es posible iniciar una evaluacion nueva en un centro de trabajo de demostracion.'})
+			if not workplace.evaluation_history.filter(numero_evaluacion=workplace.evaluation).exists():
+				return Response({'status':'error', 'error':'Debes finalizar la evaluación actual antes de iniciar una nueva.'})
 			workplace.evaluation=workplace.evaluation+1
 			workplace.paid=True
 			workplace.save()
-			return Response({'status':'ok'})
+			return Response({'status':'ok', 'evaluation':workplace.evaluation})
 		except Exception as e:
 			return Response({'status':'error', 'error':f"error::{e}"})
 # Views Web Page

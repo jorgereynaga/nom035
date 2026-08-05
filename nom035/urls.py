@@ -59,6 +59,7 @@ urlpatterns = [
     path('clima/<str:access_code>/', ClimaLaboralView.as_view(), name='clima_laboral'),
     path('clima/resultados/<int:workplace_id>/', ClimaResultadosView.as_view(), name='clima_resultados'),
     path('api/end_evaluation/', EndEvaluation.as_view()),
+    path('api/start_new_evaluation/', StartNewEvaluation.as_view()),
     path('api/save_chart/', SaveCharts.as_view()),
     #bot
     path('bot/99b2d8fA40Pcb35040300Pd1b45b5152913434373fb570d665/', BotView.as_view()),

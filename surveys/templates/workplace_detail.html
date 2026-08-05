@@ -388,8 +388,8 @@ table.dataTable tbody tr:last-child td { border-bottom: none !important; }
 {% if not employees_available %}
 <div class="alert alert-danger">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-  No cuentas con más empleados por registrar. Dirígete a la sección de compras para habilitar un nuevo centro de trabajo o contacta a un asesor.
-  <a href="{% url 'stripe_planes' %}">Ver opciones</a>
+  Este centro de trabajo alcanzó su cupo de empleados. Crea un nuevo centro de trabajo para seguir registrando empleados.
+  <a href="{% url 'workplaceform' %}">Crear centro de trabajo</a>
 </div>
 {% endif %}
 
@@ -475,7 +475,12 @@ table.dataTable tbody tr:last-child td { border-bottom: none !important; }
     </div>
 
     <div class="action-item">
-    {% if viewing_done %}
+    {% if viewing_done and viewing_is_current %}
+        <button type="button" id="start_new_evaluation_confirm" class="btn btn-primary btn-sm">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+          Nueva evaluación
+        </button>
+        {% elif viewing_done %}
         <button disabled class="btn btn-outline btn-sm">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
           Evaluación finalizada
@@ -488,8 +493,8 @@ table.dataTable tbody tr:last-child td { border-bottom: none !important; }
         {% else %}
         <button disabled class="btn btn-outline btn-sm">Finalizar aplicación</button>
         {% endif %}
-    <button type="button" class="help-icon" data-help="Cierra el ciclo de cuestionarios de esta evaluación cuando ya tengas empleados registrados y al menos una encuesta contestada. Esto habilita los resultados y deja lista una evaluación nueva para el siguiente ciclo.">?</button>
-    <div class="help-tooltip">Cierra el ciclo de cuestionarios de esta evaluación cuando ya tengas empleados registrados y al menos una encuesta contestada. Esto habilita los resultados y deja lista una evaluación nueva para el siguiente ciclo.</div>
+    <button type="button" class="help-icon" data-help="Cierra el ciclo de cuestionarios de esta evaluación cuando ya tengas empleados registrados y al menos una encuesta contestada. Esto habilita los resultados. Cuando quieras iniciar el siguiente ciclo, usa el botón Nueva evaluación.">?</button>
+    <div class="help-tooltip">Cierra el ciclo de cuestionarios de esta evaluación cuando ya tengas empleados registrados y al menos una encuesta contestada. Esto habilita los resultados. Cuando quieras iniciar el siguiente ciclo, usa el botón Nueva evaluación.</div>
     </div>
 
     <div class="action-item">
@@ -824,6 +829,29 @@ $(function(){
               toastr.success("Se ha cerrado la evaluación","ok");
               $("#confirmModal").removeClass("active");
               setTimeout(function(){ window.location.href = "/workplaces/{{workplace_id}}/{{evaluation}}/"; }, 1500);
+            }
+    });
+  });
+
+  $("#start_new_evaluation_confirm").click(function(){
+    var $btn = $(this).prop('disabled', true);
+    $.ajax({
+      url: "/api/start_new_evaluation/",
+      method: 'GET',
+      data: {'workplace_id': "{{workplace_id}}"},
+      dataType: 'json',
+      success: function(data){
+              if (data.status === 'error'){
+                      toastr.error(data.error || 'No fue posible iniciar la evaluacion nueva.', 'Error');
+                      $btn.prop('disabled', false);
+                      return;
+              }
+              toastr.success("Nueva evaluación iniciada","ok");
+              setTimeout(function(){ window.location.href = "/workplaces/{{workplace_id}}/" + data.evaluation + "/"; }, 1000);
+            },
+      error: function(){
+              toastr.error('No fue posible iniciar la evaluacion nueva.', 'Error');
+              $btn.prop('disabled', false);
             }
     });
   });
